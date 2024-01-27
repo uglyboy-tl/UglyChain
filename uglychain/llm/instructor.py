@@ -17,6 +17,8 @@ Here is the output schema:
 {schema}
 ```"""
 
+class ParseError(Exception):
+    pass
 
 class Instructor(BaseModel):
     @classmethod
@@ -34,7 +36,7 @@ class Instructor(BaseModel):
         except (json.JSONDecodeError, ValidationError) as e:
             name = cls.__name__
             msg = f"Failed to parse {name} from completion {response}. Got: {e}"
-            raise Exception(msg)
+            raise ParseError(msg)
 
     @classmethod
     def get_format_instructions(cls) -> str:
