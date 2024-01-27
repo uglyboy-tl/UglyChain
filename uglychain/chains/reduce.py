@@ -24,7 +24,7 @@ class ReduceChain(LLM[GenericResponseType]):
         assert (
             "history" in self.input_keys
         ), "ReduceChain expects response to be in input_keys"
-        if not hasattr(inputs, "history"):
+        if "history" not in inputs:
             inputs["history"] = ""
         super()._validate_inputs(inputs)
 
