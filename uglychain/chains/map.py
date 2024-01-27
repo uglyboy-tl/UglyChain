@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Union
 from pathos.multiprocessing import ProcessingPool as Pool
 from loguru import logger
 
+from uglychain.llm import ParseError
 from .llm import LLM, GenericResponseType
 
 
@@ -56,16 +57,32 @@ class MapChain(LLM[GenericResponseType]):
                 {mapping_key: input[mapping_key] for mapping_key in self.map_keys}
             )
             prompt = self.prompt.format(**new_input)
-            try:
-                response = self.llm.generate(prompt, self.response_model)
-                if self.response_model:
-                    response = self.llm.parse_response(response, self.response_model).model_dump_json()
-            except Exception as e:
-                logger.warning(f"MapChain: {input['index']} failed with error: {e}")
-                response = "Error"
-            logger.debug(f"MapChain: {input['index']} finished")
-            return {"index": input["index"], "result": response}
-
+            max_retries = 3  # 设置最大重试次数
+            attempts = 0     # 初始化尝试次数
+            while attempts < max_retries:
+                try:
+                    response = self.llm.generate(prompt, self.response_model)
+                    if self.response_model:
+                        instructor_response = self.llm.parse_response(response, self.response_model).model_dump_json()
+                        if self.memory_callback:
+                            self.memory_callback((prompt, response))
+                        logger.debug(f"MapChain: {input['index']} finished")
+                        return {"index": input["index"], "result": instructor_response}
+                    else:
+                        if self.memory_callback:
+                            self.memory_callback((prompt, response))
+                        logger.debug(f"MapChain: {input['index']} finished")
+                        return {"index": input["index"], "result": response}
+                except ParseError as e:  # 捕获所有异常
+                    attempts += 1       # 尝试次数增加
+                    logger.warning(f"解析失败，第 {attempts} 次尝试重新解析")
+                    logger.trace(f"第 {attempts} 次尝试解析失败，原因：{e}")
+                    if attempts == max_retries:
+                        return {"index": input["index"], "result": "Error"}  # 如果达到最大尝试次数，则抛出最后一个异常
+                except Exception as e:
+                    logger.warning(f"MapChain: {input['index']} failed with error: {e}")
+                    return {"index": input["index"], "result": "Error"}
+            return {"index": input["index"], "result": "Error"}
         return func
 
     def _process_results(self, results) -> List[Union[GenericResponseType, str]]:

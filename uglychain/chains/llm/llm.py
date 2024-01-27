@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from loguru import logger
 
 from uglychain.provider import get_llm_provider
-from uglychain.llm import BaseLanguageModel, Model
+from uglychain.llm import BaseLanguageModel, Model, ParseError
 from ..base import Chain
 from .prompt import Prompt
 
@@ -80,12 +80,14 @@ class LLM(Chain, Generic[GenericResponseType]):
                     if self.memory_callback:
                         self.memory_callback((prompt, response))
                     return response
-            except Exception as e:  # 捕获所有异常
+            except ParseError as e:  # 捕获所有异常
                 attempts += 1       # 尝试次数增加
                 logger.warning("解析失败，正在尝试重新解析")
                 logger.trace(f"第 {attempts} 次尝试解析失败，原因：{e}")
                 if attempts == max_retries:
                     raise e         # 如果达到最大尝试次数，则抛出最后一个异常
+            except Exception as e:
+                raise e
         raise
 
     @property
