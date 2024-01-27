@@ -11,6 +11,7 @@ from .llm import LLM, GenericResponseType
 
 @dataclass
 class ReduceChain(LLM[GenericResponseType]):
+    prompt_template: str = "{history}\n{input}"
     reduce_keys: List[str] = field(default_factory=lambda: ["input"])
     format: Callable[[Union[str, GenericResponseType]], str] = field(
         default_factory=lambda: lambda x: str(x)
@@ -39,20 +40,22 @@ class ReduceChain(LLM[GenericResponseType]):
         ), f"ReduceChain expects {reduce_key} to be a list of strings with the same length"
 
     def _call(self, inputs: Dict[str, str]) -> Union[str, GenericResponseType]:
-        response = inputs["history"]
+        response = ""
+        history = inputs["history"]
         for i in range(self.num):
-            response = self._process_input(i, inputs, response)
+            response = self._process(i, inputs, history)
+            history = self.format(response)
             logger.debug(f"ReduceChain: {i} finished")
             logger.debug(f"ReduceChain: {response}")
         return response
 
-    def _process_input(
-        self, index: int, inputs: Dict[str, str], response: Union[str, GenericResponseType]
+    def _process(
+        self, index: int, inputs: Dict[str, str], history: str
     ) -> Union[str, GenericResponseType]:
         new_input = inputs.copy()
         if index > 0:
             new_input.pop("history")
-            new_input["history"] = self.format(response)
+            new_input["history"] = history
         new_input.update(
             {reduce_key: inputs[reduce_key][index] for reduce_key in self.reduce_keys}
         )
