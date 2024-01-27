@@ -1,7 +1,36 @@
-# UglyChain
-⚡ UglyChain：更好用的 LLM 应用构建工具 ⚡
+[![Contributors][contributors-shield]][contributors-url]
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+[![MIT License][license-shield]][license-url]
+
+<!-- PROJECT LOGO -->
+<br />
+<div align="center">
+  <a href="https://github.com/othneildrew/Best-README-Template">
+    <!-- <img src="images/logo.png" alt="Logo" width="80" height="80"> -->
+  </a>
+
+  <h3 align="center">UglyChain</h3>
+
+  <p align="center">
+    ⚡ UglyChain：更好用的 LLM 应用构建工具 ⚡
+    <br />
+    <a href="https://github.com/uglyboy-tl/UglyChain"><strong>Explore the docs »</strong></a>
+    <br />
+    <br />
+    <a href="https://github.com/uglyboy-tl/UglyChain">View Demo</a>
+    ·
+    <a href="https://github.com/uglyboy-tl/UglyChain/issues">Report Bug</a>
+    ·
+    <a href="https://github.com/uglyboy-tl/UglyChain/issues">Request Feature</a>
+  </p>
+</div>
+
+## 🤔 What is UglyChain?
 
 ## Features
+
 - 📦 对大模型接口进行封装，提供对工程化更加直观易懂的交互方式，而不是传统的对话式交互。
   - 可以参数化 Prompt，更加方便地进行批量调用
   - 可以对 Prompt 进行结构化返回，方便后续处理
@@ -12,10 +41,16 @@
 - 💾 提供了搜索引擎的封装，可以方便地进行搜索引擎的调用。
   - 注意我们只封装了搜索过程的调用，而没有提供搜索引擎的搭建。如果要构建基于 RAG 的应用，需要利用其他的工具完成资料库的建立，而我们只提供对资料库搜索功能的封装。
 
-## Setup
+## Getting Started
 
+With pip:
 
-## Example usage
+```bash
+pip install uglychain
+```
+
+## Usage
+
 ### LLM
 
 > 这是最基础的模型调用类，其他的高级类也都继承和使用了这个类的基本功能。
@@ -24,6 +59,7 @@
 
 ```python
 from uglychain import LLM, Model
+
 llm = LLM()
 print(llm("你是谁？")) # 与模型对话，返回字符串的回答
 ```
@@ -68,13 +104,16 @@ print(llm("Extract Jason is 25 years old")) # UserDetail(name='Jason', age=25)
 快速使用：
 
 ```python
+from uglychain import MapChain
+
 llm = MapChain()
 print(llm([
         {"input": "How old are you?"},
         {"input": "What is the meaning of life?"},
         {"input": "What is the hottest day of the year?"},
     ]))
-``````
+```
+
 类似于 LLM，也可以对 MapChain 进行更高阶的使用：
 
 ```python
@@ -90,3 +129,26 @@ input = [
     "《水浒传》",
 ]
 print(llm(book=input, position="作者"))
+```
+
+## Roadmap
+
+- [ ] 增加 FunctionCall 的能力
+- [ ] 增加 Memory 的能力
+
+## Contributing
+
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
+Don't forget to give the project a star! Thanks again!
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+Distributed under the MIT License. See `LICENSE.txt` for more information.
