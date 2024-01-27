@@ -11,6 +11,7 @@ class Model(Enum):
     COPILOT4 = "copilot-4"
     YI = "yi"
     YI_32K = "yi-32k"
+    CUSTOM = "custom"
     QWEN = "qwen"
     QWEN_28K = "qwen-28k"
     QWEN_TURBO = "qwen-turbo"

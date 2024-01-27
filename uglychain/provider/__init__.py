@@ -7,6 +7,7 @@ from uglychain.llm import BaseLanguageModel
 from .chatgpt import ChatGPT
 from .copilot import Copilot
 from .yi import Yi
+from .custom import Custom
 from .dashscope import DashScope
 from .zhipu import ChatGLM
 
@@ -20,6 +21,7 @@ LLM_PROVIDERS = {
     "copilot-4": (Copilot, {"model": "gpt-4"}),
     "yi": (Yi, {"model": "yi-34b-chat-v08"}),
     "yi-32k": (Yi, {"model": "yi-34b-chat-32k-v01"}),
+    "custom": (Custom, {}),
     "qwen": (DashScope, {"model": "qwen-max", "MAX_TOKENS": 6000}),
     "qwen-turbo": (DashScope, {"model": "qwen-turbo", "MAX_TOKENS": 6000}),
     "qwen-plus": (DashScope, {"model": "qwen-plus", "MAX_TOKENS": 30000}),

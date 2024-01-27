@@ -19,6 +19,10 @@ class Config:
     copilot_gpt4_service_url: Optional[str] = os.getenv("COPILOT_GPT4_SERVICE_URL")
     # Yi
     yi_api_key: Optional[str] = os.getenv("YI_API_KEY")
+    # Custom
+    custom_token: Optional[str] = os.getenv("CUSTOM_TOKEN")
+    custom_url: Optional[str] = os.getenv("CUSTOM_URL")
+    custom_model: Optional[str] = os.getenv("CUSTOM_MODEL")
 
     # Dashscope
     dashscope_api_key: Optional[str] = os.getenv("DASHSCOPE_API_KEY")
