@@ -7,8 +7,8 @@ from typing import Any, Dict, Type, Optional
 from loguru import logger
 from pydantic import BaseModel
 
-from uglychain.utils import config
-from uglychain.llm import BaseLanguageModel, Instructor, retry_decorator
+from uglychain.utils import config, retry_decorator
+from uglychain.llm import BaseLanguageModel, Instructor
 
 @dataclass
 class ChatGLM(BaseLanguageModel):

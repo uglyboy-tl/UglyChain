@@ -9,8 +9,8 @@ from requests.exceptions import SSLError
 from loguru import logger
 from pydantic import BaseModel
 
-from uglychain.llm import BaseLanguageModel, retry_decorator, Instructor
-
+from uglychain.llm import BaseLanguageModel, Instructor
+from uglychain.utils import retry_decorator
 
 def not_notry_exception(exception: BaseException) -> bool:
     if isinstance(exception, openai.BadRequestError):

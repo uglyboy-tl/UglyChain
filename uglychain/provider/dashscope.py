@@ -8,8 +8,8 @@ from http import HTTPStatus
 from loguru import logger
 from pydantic import BaseModel
 
-from uglychain.utils import config
-from uglychain.llm import BaseLanguageModel, retry_decorator, Instructor
+from uglychain.utils import config, retry_decorator
+from uglychain.llm import BaseLanguageModel, Instructor
 
 
 class BadRequestError(Exception):
