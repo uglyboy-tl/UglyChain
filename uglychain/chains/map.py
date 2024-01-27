@@ -13,8 +13,9 @@ from .llm import LLM, GenericResponseType
 
 @dataclass
 class MapChain(LLM[GenericResponseType]):
-    is_init_delay: bool = True
-    map_keys: List[str] = field(default_factory=lambda: ["input"])
+    prompt_template: str = "{map_key}"
+    is_init_delay: bool = field(init=False, default=True)
+    map_keys: List[str] = field(default_factory=lambda: ["map_key"])
 
     def _validate_inputs(self, inputs: Dict[str, Any]) -> None:
         self.num = len(inputs[self.map_keys[0]])

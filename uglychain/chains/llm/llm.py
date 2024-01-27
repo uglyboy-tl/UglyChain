@@ -30,7 +30,7 @@ class LLM(Chain, Generic[GenericResponseType]):
     system_prompt: Optional[str] = None
     response_model: Optional[Type[GenericResponseType]] = None
     memory_callback: Optional[Callable[[Tuple[str, str]], None]] = None
-    is_init_delay: bool = False
+    is_init_delay: bool = field(init=False, default=False)
     llm: BaseLanguageModel = field(init=False)
 
     def __post_init__(self):
