@@ -1,9 +1,7 @@
-from enum import Enum, unique
-
-from pydantic import BaseModel
 from loguru import logger
 
 from uglychain import LLM, Model
+from uglychain.examples.instructor import UserDetail
 
 def llm(model: Model | None = None):
     if model:
@@ -20,14 +18,6 @@ def prompt(model: Model | None = None):
     logger.info(llm("上海"))
 
 def instructor(model: Model | None = None):
-    @unique
-    class Gender(Enum):
-        FEMALE = "FEMALE"
-        MALE = "MALE"
-
-    class UserDetail(BaseModel):
-        name: str
-        gender: Gender
 
     if model:
         llm = LLM(model=model, response_model=UserDetail)
