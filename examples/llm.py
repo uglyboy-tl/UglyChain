@@ -1,7 +1,7 @@
 from loguru import logger
 
 from uglychain import LLM, Model
-from uglychain.examples.instructor import UserDetail
+from examples.instructor import UserDetail
 
 def llm(model: Model | None = None):
     if model:

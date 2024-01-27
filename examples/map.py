@@ -1,7 +1,7 @@
 from loguru import logger
 
 from uglychain import MapChain, Model
-from uglychain.examples.instructor import AUTHOR
+from examples.instructor import AUTHOR
 
 
 def map(model: Model | None = None):
