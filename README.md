@@ -1,3 +1,4 @@
+[![Release Notes][release-shield]][release-url]
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
@@ -7,7 +8,7 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/othneildrew/Best-README-Template">
+  <a href="https://github.com/uglyboy-tl/UglyChain">
     <!-- <img src="images/logo.png" alt="Logo" width="80" height="80"> -->
   </a>
 
@@ -152,3 +153,18 @@ Don't forget to give the project a star! Thanks again!
 ## License
 
 Distributed under the MIT License. See `LICENSE.txt` for more information.
+
+<!-- MARKDOWN LINKS & IMAGES -->
+<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+[release-shield]:https://img.shields.io/github/release/uglyboy-tl/UglyChain.svg?style=for-the-badge
+[release-url]: https://github.com/uglyboy-tl/UglyChain/releases
+[contributors-shield]: https://img.shields.io/github/contributors/uglyboy-tl/UglyChain.svg?style=for-the-badge
+[contributors-url]: https://github.com/uglyboy-tl/UglyChain/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/uglyboy-tl/UglyChain.svg?style=for-the-badge
+[forks-url]: https://github.com/uglyboy-tl/UglyChain/network/members
+[stars-shield]: https://img.shields.io/github/stars/uglyboy-tl/UglyChain.svg?style=for-the-badge
+[stars-url]: https://github.com/uglyboy-tl/UglyChain/stargazers
+[issues-shield]: https://img.shields.io/github/issues/uglyboy-tl/UglyChain.svg?style=for-the-badge
+[issues-url]: https://github.com/uglyboy-tl/UglyChain/issues
+[license-shield]: https://img.shields.io/github/license/uglyboy-tl/UglyChain.svg?style=for-the-badge
+[license-url]: https://github.com/uglyboy-tl/UglyChain/blob/master/LICENSE.txt
