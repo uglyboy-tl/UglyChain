@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "uglychain"
+version = "0.0.1"
+description = "UglyChain：更好用的 LLM 应用构建工具"
+authors = ["uglyboy <uglyboy@uglyboy.cn>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pydantic = "^2.5.3"
+loguru = "^0.7.2"
+tenacity = "^8.2.3"
+pathos = "^0.3.1"
+requests = "^2.31.0"
+openai = "^1.10.0"
+
+
+[tool.poetry.group.dev.dependencies]
+jieba-fast = "^0.53"
+zhipuai = "^2.0.1"
+dashscope = "^1.14.1"
+tiktoken = "^0.5.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
