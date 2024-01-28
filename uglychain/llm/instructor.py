@@ -15,7 +15,9 @@ the object {{"foo": ["bar", "baz"]}} is a well-formatted instance of the schema.
 Here is the output schema:
 ```
 {schema}
-```"""
+```
+
+Ensure the response can be parsed by Python json.loads"""
 
 class ParseError(Exception):
     pass
