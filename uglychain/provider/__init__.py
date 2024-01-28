@@ -8,6 +8,7 @@ from .chatgpt import ChatGPT
 from .copilot import Copilot
 from .yi import Yi
 from .custom import Custom
+from .gemini import Gemini
 from .dashscope import DashScope
 from .zhipu import ChatGLM
 
@@ -22,6 +23,7 @@ LLM_PROVIDERS = {
     "yi": (Yi, {"model": "yi-34b-chat-v08"}),
     "yi-32k": (Yi, {"model": "yi-34b-chat-32k-v01"}),
     "custom": (Custom, {}),
+    "gemini": (Gemini, {"model": "gemini-pro"}),
     "qwen": (DashScope, {"model": "qwen-max", "MAX_TOKENS": 6000}),
     "qwen-turbo": (DashScope, {"model": "qwen-turbo", "MAX_TOKENS": 6000}),
     "qwen-plus": (DashScope, {"model": "qwen-plus", "MAX_TOKENS": 30000}),

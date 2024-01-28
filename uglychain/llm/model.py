@@ -12,6 +12,7 @@ class Model(Enum):
     YI = "yi"
     YI_32K = "yi-32k"
     CUSTOM = "custom"
+    GEMINI = "gemini"
     QWEN = "qwen"
     QWEN_28K = "qwen-28k"
     QWEN_TURBO = "qwen-turbo"

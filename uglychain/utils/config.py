@@ -24,6 +24,8 @@ class Config:
     custom_url: Optional[str] = os.getenv("CUSTOM_URL")
     custom_model: Optional[str] = os.getenv("CUSTOM_MODEL")
 
+    # Gemini
+    gemini_api_key: Optional[str] = os.getenv("GEMINI_API_KEY")
     # Dashscope
     dashscope_api_key: Optional[str] = os.getenv("DASHSCOPE_API_KEY")
     # Zhipuai
