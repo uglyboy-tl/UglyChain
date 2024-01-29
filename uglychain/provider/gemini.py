@@ -26,7 +26,7 @@ class Gemini(BaseLanguageModel):
             instructor = Instructor.from_BaseModel(response_model)
             prompt += "\n" + instructor.get_format_instructions()
         self._generate_messages(prompt)
-        kwargs = {"content": self.messages, **self._default_params}
+        kwargs = {"content": self.messages, **self.default_params}
         response = self.completion_with_backoff(**kwargs)
 
         logger.trace(f"kwargs:{kwargs}\nresponse:{response}")
@@ -51,7 +51,7 @@ class Gemini(BaseLanguageModel):
         return self.messages
 
     @property
-    def _default_params(self) -> Dict[str, Any]:
+    def default_params(self) -> Dict[str, Any]:
         config = self.client.types.GenerationConfig(
             max_output_tokens=self.max_tokens, temperature=self.temperature
         )

@@ -2,14 +2,14 @@
 # -*-coding:utf-8-*-
 
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Type
+from typing import Any, Dict, Optional, Type, List, Callable
 from http import HTTPStatus
 
 from loguru import logger
 from pydantic import BaseModel
 
 from uglychain.utils import config, retry_decorator
-from uglychain.llm import BaseLanguageModel, Instructor
+from uglychain.llm import BaseLanguageModel
 
 
 class BadRequestError(Exception):
@@ -42,13 +42,9 @@ class DashScope(BaseLanguageModel):
         self,
         prompt: str = "",
         response_model: Optional[Type[BaseModel]] = None,
+        tools: Optional[List[Callable]] = None,
     ) -> str:
-        self._generate_validation()
-        if response_model:
-            instructor = Instructor.from_BaseModel(response_model)
-            prompt += "\n" + instructor.get_format_instructions()
-        self._generate_messages(prompt)
-        kwargs = {"messages": self.messages, **self._default_params}
+        kwargs = self.get_kwargs(prompt, response_model, tools)
         try:
             response = self.completion_with_backoff(**kwargs)
         except Exception as e:
@@ -93,7 +89,7 @@ class DashScope(BaseLanguageModel):
             )
 
     @property
-    def _default_params(self) -> Dict[str, Any]:
+    def default_params(self) -> Dict[str, Any]:
         kwargs = {
             "model": self.model,
             "seed": self.seed,

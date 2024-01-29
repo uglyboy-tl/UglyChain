@@ -2,13 +2,13 @@
 # -*-coding:utf-8-*-
 
 from dataclasses import dataclass
-from typing import Any, Dict, Type, Optional
+from typing import Any, Dict, Type, Optional, List, Callable
 
-from loguru import logger
 from pydantic import BaseModel
+from loguru import logger
 
 from uglychain.utils import config, retry_decorator
-from uglychain.llm import BaseLanguageModel, Instructor
+from uglychain.llm import BaseLanguageModel
 
 @dataclass
 class ChatGLM(BaseLanguageModel):
@@ -20,20 +20,15 @@ class ChatGLM(BaseLanguageModel):
         self,
         prompt: str = "",
         response_model: Optional[Type[BaseModel]] = None,
+        tools: Optional[List[Callable]] = None,
     ) -> str:
-        self._generate_validation()
-        if response_model:
-            instructor = Instructor.from_BaseModel(response_model)
-            prompt += "\n" + instructor.get_format_instructions()
-        self._generate_messages(prompt)
-        kwargs = {"messages": self.messages, **self._default_params}
+        kwargs = self.get_kwargs(prompt, response_model, tools)
         response = self.completion_with_backoff(**kwargs)
-
         logger.trace(f"kwargs:{kwargs}\nresponse:{response}")
         return response.choices[0].message.content.strip()
 
     @property
-    def _default_params(self) -> Dict[str, Any]:
+    def default_params(self) -> Dict[str, Any]:
         kwargs = {
             "model": self.model,
             "do_sample": True,

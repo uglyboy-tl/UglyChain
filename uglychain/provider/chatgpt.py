@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Type, Optional
+from typing import Type, Optional, List, Callable
 
 from loguru import logger
 from pydantic import BaseModel
@@ -20,13 +20,9 @@ class ChatGPT(ChatGPTAPI):
         self,
         prompt: str = "",
         response_model: Optional[Type[BaseModel]] = None,
+        tools: Optional[List[Callable]] = None,
     ) -> str:
-        self._generate_validation()
-        if response_model:
-            instructor = Instructor.from_BaseModel(response_model)
-            prompt += "\n" + instructor.get_format_instructions()
-        self._generate_messages(prompt)
-        kwargs = {"messages": self.messages, **self._default_params}
+        kwargs = self.get_kwargs(prompt, response_model, tools)
         if response_model and self.model in ["gpt-3.5-turbo-1106","gpt-4-1106-preview"]:
             kwargs["response_format"] = {"type": "json_object"}
         try:

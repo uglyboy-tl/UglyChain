@@ -3,11 +3,12 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Type, TypeVar, cast
+from typing import Any, Dict, List, Callable, Optional, Type, TypeVar, cast
 
 from pydantic import BaseModel
+
+from .tools import FunctionCall, tools_schema
 from .instructor import Instructor
-from .tool import BaseTool
 
 TEMPERATURE = 0.3
 T = TypeVar("T", bound=BaseModel)
@@ -72,8 +73,8 @@ class BaseLanguageModel(ABC):
         self,
         prompt: str = "",
         response_model: Optional[Type[T]] = None,
-        tools: Optional[List[BaseTool]] = None,
-    ) -> str:
+        tools: Optional[List[Callable]] = None,
+    ) -> Any:
         """Ask a question and return the user's response.
 
         Args:
@@ -85,6 +86,28 @@ class BaseLanguageModel(ABC):
 
         """
         pass
+
+    def get_kwargs(
+        self,
+        prompt: str,
+        response_model: Optional[Type[T]],
+        tools: Optional[List[Callable]],
+    ) -> Dict[str, Any]:
+        self._generate_validation()
+        if tools:
+            if response_model:
+                assert isinstance(
+                    response_model, FunctionCall
+                ), "when use tools, response_model must be FunctionCall"
+            else:
+                response_model = cast(Type[T], FunctionCall)
+            prompt += f"\n{tools_schema(tools)}"
+        if response_model:
+            instructor = Instructor.from_BaseModel(response_model)
+            prompt += "\n" + instructor.get_format_instructions()
+        self._generate_messages(prompt)
+        kwargs = {"messages": self.messages, **self.default_params}
+        return kwargs
 
     def parse_response(self, response: str, response_model: Type[T]) -> T:
         """Parse the response from the LLM provider.
@@ -105,7 +128,7 @@ class BaseLanguageModel(ABC):
         pass
 
     @property
-    def _default_params(self) -> Dict[str, Any]:
+    def default_params(self) -> Dict[str, Any]:
         """Get the default parameters for generating responses.
 
         Returns:
