@@ -13,6 +13,7 @@ tenacity = "^8.2.3"
 pathos = "^0.3.1"
 requests = "^2.31.0"
 openai = "^1.10.0"
+docstring-parser = "^0.15"
 
 
 [tool.poetry.group.dev.dependencies]
