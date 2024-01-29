@@ -1,0 +1,10 @@
+site_name: UglyChain
+theme:
+  name: material
+
+nav:
+  - index.md
+  - examples.md
+  - llm.md
+  - chain.md
+  - tools.md
