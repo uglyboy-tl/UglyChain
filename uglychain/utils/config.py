@@ -19,6 +19,8 @@ class Config:
     copilot_gpt4_service_url: Optional[str] = os.getenv("COPILOT_GPT4_SERVICE_URL")
     # Yi
     yi_api_key: Optional[str] = os.getenv("YI_API_KEY")
+    # Baichuan
+    baichuan_api_key: Optional[str] = os.getenv("BAICHUAN_API_KEY")
     # Custom
     custom_token: Optional[str] = os.getenv("CUSTOM_TOKEN")
     custom_url: Optional[str] = os.getenv("CUSTOM_URL")
