@@ -30,7 +30,7 @@ class Config:
     dashscope_api_key: Optional[str] = os.getenv("DASHSCOPE_API_KEY")
     # Zhipuai
     zhipuai_api_key: Optional[str] = os.getenv("ZHIPUAI_API_KEY")
-    llm_provider: str = os.getenv("LLM_PROVIDER", "gpt4")
+    llm_provider: str = os.getenv("LLM_PROVIDER", "gpt-3.5-turbo")
 
     # Bing Search
     bing_subscription_key: Optional[str] = os.getenv("BING_SUBSCRIPTION_KEY")
