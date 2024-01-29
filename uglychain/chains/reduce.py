@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Callable, Union
 
 from loguru import logger
 
-from .llm import LLM, GenericResponseType
+from .llm import LLM, GenericResponseType, FunctionCall
 
 
 @dataclass
@@ -16,6 +16,18 @@ class ReduceChain(LLM[GenericResponseType]):
     format: Callable[[Union[str, GenericResponseType]], str] = field(
         default_factory=lambda: lambda x: str(x)
     )
+    def __post_init__(self):
+        super().__post_init__()
+        if self.tools:
+            self._format = self.format
+            def format_for_tools(response: FunctionCall) -> str:
+                for tool in self.tools: # type: ignore
+                    if tool.__name__ == response.name:
+                        result = tool(**response.args)
+                        logger.debug(f"{tool.__name__}({response.args}) -> {result}")
+                        return self._format(result)
+                raise ValueError(f"Cannot find tool {response.name}")
+            self.format = format_for_tools # type: ignore
 
     def _validate_inputs(self, inputs: Dict[str, Any]) -> None:
         self.num = len(inputs[self.reduce_keys[0]])
