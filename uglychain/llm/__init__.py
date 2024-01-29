@@ -4,6 +4,7 @@
 from .base import BaseLanguageModel
 from .model import Model
 from .instructor import Instructor, ParseError
+from .tools import FunctionCall
 
 
 __all__ = [
@@ -11,4 +12,5 @@ __all__ = [
     "Model",
     "Instructor",
     "ParseError",
+    "FunctionCall",
 ]

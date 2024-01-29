@@ -1,18 +1,30 @@
 #!/usr/bin/env python3
 # -*-coding:utf-8-*-
 
-from typing import Any, Dict, List, Optional, Callable, Tuple, Type, TypeVar, Generic, Union
+from typing import (
+    Any,
+    Dict,
+    List,
+    Optional,
+    Callable,
+    Tuple,
+    Type,
+    TypeVar,
+    Generic,
+    Union,
+)
 from dataclasses import dataclass, field
 
 from pydantic import BaseModel
 from loguru import logger
 
 from uglychain.provider import get_llm_provider
-from uglychain.llm import BaseLanguageModel, Model, ParseError
+from uglychain.llm import BaseLanguageModel, Model, ParseError, FunctionCall
 from ..base import Chain
 from .prompt import Prompt
 
 GenericResponseType = TypeVar("GenericResponseType", bound=BaseModel)
+
 
 @dataclass
 class LLM(Chain, Generic[GenericResponseType]):
@@ -29,6 +41,7 @@ class LLM(Chain, Generic[GenericResponseType]):
     model: Model = Model.DEFAULT
     system_prompt: Optional[str] = None
     response_model: Optional[Type[GenericResponseType]] = None
+    tools: Optional[List[Callable]] = None
     memory_callback: Optional[Callable[[Tuple[str, str]], None]] = None
     is_init_delay: bool = field(init=False, default=False)
     llm: BaseLanguageModel = field(init=False)
@@ -38,6 +51,9 @@ class LLM(Chain, Generic[GenericResponseType]):
 
         This method initializes the LLMChain object by getting the LLM provider and setting the prompt.
         """
+        assert not (
+            self.tools and self.response_model
+        ), "tools and response_model cannot be set at the same time"
         self.llm = get_llm_provider(self.model.value, self.is_init_delay)
         logger.success(f"{self.model} loaded")
         if self.system_prompt:
@@ -67,25 +83,34 @@ class LLM(Chain, Generic[GenericResponseType]):
         prompt = self.prompt.format(**inputs)
 
         max_retries = 3  # 设置最大重试次数
-        attempts = 0     # 初始化尝试次数
+        attempts = 0  # 初始化尝试次数
         while attempts < max_retries:
             try:
-                response = self.llm.generate(prompt, self.response_model)
+                response = self.llm.generate(prompt, self.response_model, self.tools)
                 if self.response_model:
-                    instructor_response = self.llm.parse_response(response, self.response_model)
+                    instructor_response = self.llm.parse_response(
+                        response, self.response_model
+                    )
                     if self.memory_callback:
                         self.memory_callback((prompt, response))
                     return instructor_response
+                elif self.tools:
+                    instructor_response = self.llm.parse_response(
+                        response, FunctionCall
+                    )
+                    if self.memory_callback:
+                        self.memory_callback((prompt, response))
+                    return instructor_response  # type: ignore
                 else:
                     if self.memory_callback:
                         self.memory_callback((prompt, response))
                     return response
             except ParseError as e:  # 捕获所有异常
-                attempts += 1       # 尝试次数增加
+                attempts += 1  # 尝试次数增加
                 logger.warning("解析失败，正在尝试重新解析")
                 logger.trace(f"第 {attempts} 次尝试解析失败，原因：{e}")
                 if attempts == max_retries:
-                    raise e         # 如果达到最大尝试次数，则抛出最后一个异常
+                    raise e  # 如果达到最大尝试次数，则抛出最后一个异常
             except Exception as e:
                 raise e
         raise
