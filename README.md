@@ -17,7 +17,7 @@
   <p align="center">
     ⚡ UglyChain：更好用的 LLM 应用构建工具 ⚡
     <br />
-    <a href="https://blog.uglyboy.cn/UglyChain/"><strong>Explore the docs »</strong></a>
+    <a href="https://uglychain.uglyboy.cn"><strong>Explore the docs »</strong></a>
     <br />
     <br />
     <a href="https://github.com/uglyboy-tl/UglyChain/issues">Report Bug</a>
