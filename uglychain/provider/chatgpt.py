@@ -5,7 +5,6 @@ from loguru import logger
 from pydantic import BaseModel
 
 from uglychain.utils import config
-from uglychain.llm import Instructor
 from .openai_api import ChatGPTAPI
 
 
