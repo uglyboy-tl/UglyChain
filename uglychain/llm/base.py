@@ -95,12 +95,7 @@ class BaseLanguageModel(ABC):
     ) -> Dict[str, Any]:
         self._generate_validation()
         if tools:
-            if response_model:
-                assert isinstance(
-                    response_model, FunctionCall
-                ), "when use tools, response_model must be FunctionCall"
-            else:
-                response_model = cast(Type[T], FunctionCall)
+            response_model = cast(Type[T], FunctionCall)
             prompt += f"\n{tools_schema(tools)}"
         if response_model:
             instructor = Instructor.from_BaseModel(response_model)
