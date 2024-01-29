@@ -17,11 +17,9 @@
   <p align="center">
     ⚡ UglyChain：更好用的 LLM 应用构建工具 ⚡
     <br />
-    <a href="https://github.com/uglyboy-tl/UglyChain"><strong>Explore the docs »</strong></a>
+    <a href="https://blog.uglyboy.cn/UglyChain/"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/uglyboy-tl/UglyChain">View Demo</a>
-    ·
     <a href="https://github.com/uglyboy-tl/UglyChain/issues">Report Bug</a>
     ·
     <a href="https://github.com/uglyboy-tl/UglyChain/issues">Request Feature</a>
@@ -138,7 +136,7 @@ print(llm(book=input, position="作者"))
 
 ## Roadmap
 
-- [ ] 增加 FunctionCall 的能力
+- [x] 增加 FunctionCall 的能力
 - [ ] 增加 Memory 的能力
 
 ## Contributing
