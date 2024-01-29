@@ -8,7 +8,7 @@ from pathos.multiprocessing import ProcessingPool as Pool
 from loguru import logger
 
 from uglychain.llm import ParseError
-from .llm import LLM, GenericResponseType
+from .llm import LLM, GenericResponseType, FunctionCall
 
 
 @dataclass
@@ -62,13 +62,20 @@ class MapChain(LLM[GenericResponseType]):
             attempts = 0     # 初始化尝试次数
             while attempts < max_retries:
                 try:
-                    response = self.llm.generate(prompt, self.response_model)
+                    response = self.llm.generate(prompt, self.response_model,self.tools)
                     if self.response_model:
                         instructor_response = self.llm.parse_response(response, self.response_model).model_dump_json()
                         if self.memory_callback:
                             self.memory_callback((prompt, response))
                         logger.debug(f"MapChain: {input['index']} finished")
                         return {"index": input["index"], "result": instructor_response}
+                    elif self.tools:
+                        instructor_response = self.llm.parse_response(
+                            response, FunctionCall
+                        ).model_dump_json()
+                        if self.memory_callback:
+                            self.memory_callback((prompt, response))
+                        return {"index": input["index"], "result": instructor_response}  # type: ignore
                     else:
                         if self.memory_callback:
                             self.memory_callback((prompt, response))
