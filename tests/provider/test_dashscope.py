@@ -1,6 +1,8 @@
 import pytest
+
+from examples.instructor import Gender, UserDetail
 from uglychain import LLM, Model
-from examples.instructor import UserDetail, Gender
+
 
 @pytest.mark.parametrize("model", [Model.QWEN, Model.QWEN_28K, Model.QWEN_TURBO, Model.QWEN_PLUS])
 def test_llm(model):

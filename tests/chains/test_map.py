@@ -1,5 +1,6 @@
-from uglychain import MapChain
 from examples.instructor import AUTHOR
+from uglychain import MapChain
+
 
 def test_map():
     llm = MapChain()

@@ -1,5 +1,6 @@
+from examples.instructor import Gender, UserDetail
 from uglychain import LLM
-from examples.instructor import UserDetail, Gender
+
 
 def test_llm():
     llm = LLM()

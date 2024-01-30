@@ -2041,4 +2041,4 @@ pyjwt = ">=2.8.0,<2.9.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "deb0eb859ad18653a39a193d2e3306a0fd9521e5149801ea0f0498e785f0d66f"
+content-hash = "59cfac45cfe7858c3239385c744d166851aaa4a1d4843de619694d62ac9cc14b"

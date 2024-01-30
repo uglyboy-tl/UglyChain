@@ -1,6 +1,8 @@
+from .chains import LLM, MapChain, ReAct, ReActChain, ReduceChain
 from .llm import BaseLanguageModel, Model
-from .chains import LLM, MapChain, ReduceChain, ReActChain, ReAct
 from .retrievers import BaseRetriever, StoresRetriever
+
+__version__ = "0.0.3"
 
 __all__ = [
     "BaseLanguageModel",

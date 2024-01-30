@@ -1,5 +1,5 @@
 from .config import config
-from .nlp import segment, cut_sentences
+from .nlp import cut_sentences, segment
 from .retry_decorator import retry_decorator
 
 __all__ = [
