@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 
 
 class FunctionCall(BaseModel):
+    thought: str = Field(..., description="the reason you thought to choose this tool")
     name: str = Field(..., description="tool name")
     args: dict = Field(..., description="tool arguments")
 
