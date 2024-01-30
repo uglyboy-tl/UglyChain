@@ -22,16 +22,16 @@ class ChatGPT(ChatGPTAPI):
         tools: Optional[List[Callable]] = None,
     ) -> str:
         kwargs = self.get_kwargs(prompt, response_model, tools)
-        if response_model and self.model in ["gpt-3.5-turbo-1106","gpt-4-1106-preview"]:
+        if response_model and self.model in ["gpt-3.5-turbo-1106","gpt-4-turbo-preview"]:
             kwargs["response_format"] = {"type": "json_object"}
         try:
             response = self.completion_with_backoff(**kwargs)
         except Exception as e:
             if "maximum context length" in str(e) and self.name == "OpenAI":
-                if self.model == "gpt-3.5-turbo":
+                if self.model == "gpt-3.5-turbo-1106":
                     kwargs["model"] = "gpt-3.5-turbo-16k"
                 elif self.model == "gpt-4":
-                    kwargs["model"] = "gpt-4-32k"
+                    kwargs["model"] = "gpt-4-turbo-preview"
                 else:
                     raise e
                 logger.warning(
