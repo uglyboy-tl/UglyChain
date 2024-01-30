@@ -8,12 +8,13 @@ import json
 import math
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Set, Tuple, Dict
+from typing import Dict, List, Optional, Set, Tuple
 
 from loguru import logger
 
-from .base import StoresRetriever
 from uglychain.utils import segment
+
+from .base import StoresRetriever
 
 
 class PathNotFoundError(Exception):
@@ -35,9 +36,7 @@ class BM25:
         return text.split().count(word) / len(text.split())
 
     def calculate_idf(self, word: str) -> float:
-        matches = len(
-            [True for text in self.preprocessed_texts if word in text.split()]
-        )
+        matches = len([True for text in self.preprocessed_texts if word in text.split()])
         return math.log(len(self.preprocessed_texts) / matches) if matches else 0.0
 
     def calculate_bm25_score(self, i: int, query: str) -> float:
@@ -51,28 +50,16 @@ class BM25:
             idf_value = self.idf_values.get(word, 0)
             tf_idf_value = tf_value * idf_value
             text_len = self.text_lens[i]
-            avg_len = (
-                self.sum_len / len(self.preprocessed_texts)
-                if self.preprocessed_texts
-                else 1
-            )
-            score_part = (self.k1 + 1) / (
-                tf_value + self.k1 * (1 - self.b + self.b * text_len / avg_len)
-            )
+            avg_len = self.sum_len / len(self.preprocessed_texts) if self.preprocessed_texts else 1
+            score_part = (self.k1 + 1) / (tf_value + self.k1 * (1 - self.b + self.b * text_len / avg_len))
             score += tf_idf_value * score_part
         return score
 
-    def search(
-        self, query: str, n: int = StoresRetriever.default_n
-    ) -> List[Tuple[int, float]]:
+    def search(self, query: str, n: int = StoresRetriever.default_n) -> List[Tuple[int, float]]:
         num = len(self.text_lens)
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            scores = list(
-                executor.map(
-                    self.calculate_bm25_score, range(num), itertools.repeat(query)
-                )
-            )
-        scores = list(zip(range(num), scores))
+            scores = list(executor.map(self.calculate_bm25_score, range(num), itertools.repeat(query)))
+        scores = list(zip(range(num), scores, strict=False))
         top_n_scores = heapq.nlargest(n, scores, key=lambda x: x[1])
         return top_n_scores
 
@@ -103,7 +90,7 @@ class BM25Retriever(StoresRetriever):
         top_n_scores = self._data.search(query, n)
         return [self.texts[i] for i, _ in top_n_scores]
 
-    def add(self, text: str, metadata: Dict[str, str] = {}) -> None:
+    def add(self, text: str, metadata: Optional[Dict[str, str]] = None) -> None:
         if not text:
             logger.warning("Text cannot be empty.")
             return
@@ -111,7 +98,7 @@ class BM25Retriever(StoresRetriever):
             logger.warning(f"Text already exists: {text}")
             return
         self.texts.append(text)
-        self.metadatas.append(metadata)
+        self.metadatas.append(metadata or {})
         self._data.add(text)
         self._save()
 

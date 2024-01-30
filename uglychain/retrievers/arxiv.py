@@ -3,11 +3,11 @@
 
 from dataclasses import dataclass
 from typing import List
+from xml.etree import ElementTree
 
 import requests
 from loguru import logger
-from tenacity import retry, stop_after_attempt, wait_fixed, before_sleep_log, RetryError
-from xml.etree import ElementTree
+from tenacity import RetryError, before_sleep_log, retry, stop_after_attempt, wait_fixed
 
 from .base import BaseRetriever
 
@@ -28,9 +28,7 @@ class ArxivRetriever(BaseRetriever):
             logger.error(f"Error occurred while parsing XML: {e}")
             return []
         except (requests.RequestException, RetryError) as e:
-            logger.error(
-                f"Error occurred while sending request or parsing response: {e}"
-            )
+            logger.error(f"Error occurred while sending request or parsing response: {e}")
             return []
 
     @retry(

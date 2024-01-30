@@ -19,17 +19,17 @@ Here is the output schema:
 
 Ensure the response can be parsed by Python json.loads"""
 
+
 class ParseError(Exception):
     pass
+
 
 class Instructor(BaseModel):
     @classmethod
     def from_response(cls, response: str) -> "Instructor":
         try:
             # Greedy search for 1st json candidate.
-            match = re.search(
-                r"(\{.*\})", response.strip(), re.MULTILINE | re.IGNORECASE | re.DOTALL
-            )
+            match = re.search(r"(\{.*\})", response.strip(), re.MULTILINE | re.IGNORECASE | re.DOTALL)
             json_str = ""
             if match:
                 json_str = match.group()

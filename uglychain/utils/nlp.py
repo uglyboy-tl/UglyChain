@@ -10,12 +10,7 @@ from .config import config
 from .stop_words import stop_words
 
 if Path(config.stop_words_path).is_file():
-    stop_words = {
-        line.strip()
-        for line in Path(config.stop_words_path)
-        .read_text(encoding="utf-8")
-        .splitlines()
-    }
+    stop_words = {line.strip() for line in Path(config.stop_words_path).read_text(encoding="utf-8").splitlines()}
 
 
 punt_list = {"?", "!", ";", "？", "！", "。", "；", "……", "…", "\n"}
@@ -45,9 +40,7 @@ def segment(text: str) -> str:
 
         jieba.setLogLevel(logging.INFO)
     except ImportError as err:
-        raise ImportError(
-            "You need to install `pip install jieba-fast` to use nlp.segment."
-        ) from err
+        raise ImportError("You need to install `pip install jieba-fast` to use nlp.segment.") from err
     # 结巴分词
     jieba_result = pseg.cut(text)
     # 词性筛选
@@ -55,11 +48,7 @@ def segment(text: str) -> str:
     # 去除特殊符号
     words = [w.word.strip() for w in jieba_result if w.flag != "x"]
     # 去除停用词
-    words = [
-        word
-        for word in words
-        if word not in stop_words and word not in string.punctuation and len(word) > 1
-    ]
+    words = [word for word in words if word not in stop_words and word not in string.punctuation and len(word) > 1]
     # 英文
     words = [word.lower() for word in words]
 

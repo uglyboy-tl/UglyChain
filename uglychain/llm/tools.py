@@ -10,12 +10,14 @@ class FunctionCall(BaseModel):
     name: str = Field(..., description="tool name")
     args: dict = Field(..., description="tool arguments")
 
-FUNCTION_CALL_FORMAT="""
+
+FUNCTION_CALL_FORMAT = """
 -----
 Respond with tool name and tool arguments to achieve the instruction.
 
 {tool_schema}
 """
+
 
 def to_json_schema_type(type_name: str) -> str:
     type_map = {
@@ -31,6 +33,7 @@ def to_json_schema_type(type_name: str) -> str:
     }
     return type_map.get(type_name, "any")
 
+
 def parse_annotation(annotation):
     if getattr(annotation, "__origin__", None) == Union:
         types = [t.__name__ if t.__name__ != "NoneType" else "None" for t in annotation.__args__]
@@ -44,6 +47,7 @@ def parse_annotation(annotation):
             return f"{to_json_schema_type(annotation.__origin__.__name__)}[{','.join([to_json_schema_type(i.__name__) for i in annotation.__args__])}]"
     else:
         return to_json_schema_type(annotation.__name__)
+
 
 def get_pydantic_schema(pydantic_obj: BaseModel, visited_models=None) -> dict:
     if visited_models is None:
@@ -73,6 +77,7 @@ def get_pydantic_schema(pydantic_obj: BaseModel, visited_models=None) -> dict:
     visited_models.remove(pydantic_obj)
 
     return schema
+
 
 def function_schema(func: Callable):
     signature = inspect.signature(func)
@@ -126,13 +131,11 @@ def function_schema(func: Callable):
 
     return function_info
 
+
 def tools_schema(tools: List[Callable]):
     tools_schema = []
 
     for tool in tools:
-        tool_schema = {
-            "type": "function",
-            "function": function_schema(tool)
-        }
+        tool_schema = {"type": "function", "function": function_schema(tool)}
         tools_schema.append(tool_schema)
-    return FUNCTION_CALL_FORMAT.format(tool_schema = tools_schema)
+    return FUNCTION_CALL_FORMAT.format(tool_schema=tools_schema)

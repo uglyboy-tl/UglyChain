@@ -36,9 +36,7 @@ LLM_PROVIDERS = {
 }
 
 
-def get_llm_provider(
-    llm_provider_name: str = config.llm_provider, is_init_delay: bool = False
-) -> BaseLanguageModel:
+def get_llm_provider(llm_provider_name: str = config.llm_provider, is_init_delay: bool = False) -> BaseLanguageModel:
     """
     Get the LLM provider.
 

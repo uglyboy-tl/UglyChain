@@ -26,9 +26,7 @@ class MapChain(LLM[GenericResponseType]):
 
     def _validate_map_key(self, map_key, inputs):
         assert (
-            map_key in self.input_keys
-            and isinstance(inputs[map_key], List)
-            and len(inputs[map_key]) == self.num
+            map_key in self.input_keys and isinstance(inputs[map_key], List) and len(inputs[map_key]) == self.num
         ), f"MapChain expects {map_key} to be a list of strings with the same length"
 
     def _call(self, inputs: Dict[str, Any]) -> List[Union[GenericResponseType, str]]:
@@ -52,32 +50,22 @@ class MapChain(LLM[GenericResponseType]):
 
     def _map_func(self, inputs):
         def func(input) -> Dict[str, Union[int, str, GenericResponseType]]:
-            new_input: Dict = {
-                k: v for k, v in inputs.items() if k not in self.map_keys
-            }
-            new_input.update(
-                {mapping_key: input[mapping_key] for mapping_key in self.map_keys}
-            )
+            new_input: Dict = {k: v for k, v in inputs.items() if k not in self.map_keys}
+            new_input.update({mapping_key: input[mapping_key] for mapping_key in self.map_keys})
             prompt = self.prompt.format(**new_input)
             max_retries = 3  # 设置最大重试次数
             attempts = 0  # 初始化尝试次数
             while attempts < max_retries:
                 try:
-                    response = self.llm.generate(
-                        prompt, self.response_model, self.tools
-                    )
+                    response = self.llm.generate(prompt, self.response_model, self.tools)
                     if self.response_model:
-                        instructor_response = self.llm.parse_response(
-                            response, self.response_model
-                        ).model_dump_json()
+                        instructor_response = self.llm.parse_response(response, self.response_model).model_dump_json()
                         if self.memory_callback:
                             self.memory_callback((prompt, response))
                         logger.debug(f"MapChain: {input['index']} finished")
                         return {"index": input["index"], "result": instructor_response}
                     elif self.tools:
-                        instructor_response = self.llm.parse_response(
-                            response, FunctionCall
-                        ).model_dump_json()
+                        instructor_response = self.llm.parse_response(response, FunctionCall).model_dump_json()
                         if self.memory_callback:
                             self.memory_callback((prompt, response))
                         return {"index": input["index"], "result": instructor_response}  # type: ignore
@@ -110,9 +98,7 @@ class MapChain(LLM[GenericResponseType]):
                 if result["result"] == "Error":
                     new_results.append(result["result"])
                 else:
-                    new_results.append(
-                        self.response_model.model_validate_json(result["result"])
-                    )
+                    new_results.append(self.response_model.model_validate_json(result["result"]))
             return new_results
         else:
             return [result["result"] for result in results]

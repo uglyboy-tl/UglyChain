@@ -1,7 +1,7 @@
 from loguru import logger
 
-from uglychain import MapChain, Model
 from examples.instructor import AUTHOR
+from uglychain import MapChain, Model
 
 
 def map(model: Model | None = None):
@@ -43,5 +43,5 @@ def map_input(model: Model | None = None):
 
 
 if __name__ == "__main__":
-    #map()
+    # map()
     map_input(Model.YI_32K)

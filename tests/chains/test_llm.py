@@ -6,6 +6,7 @@ def test_llm():
     llm = LLM()
     assert isinstance(llm("你是谁？"), str)
 
+
 def test_instructor():
     llm = LLM(response_model=UserDetail)
     obj = llm("Extract Jason is a boy")

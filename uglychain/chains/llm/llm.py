@@ -52,9 +52,7 @@ class LLM(Chain, Generic[GenericResponseType]):
 
         This method initializes the LLMChain object by getting the LLM provider and setting the prompt.
         """
-        assert not (
-            self.tools and self.response_model
-        ), "tools and response_model cannot be set at the same time"
+        assert not (self.tools and self.response_model), "tools and response_model cannot be set at the same time"
         self.llm = get_llm_provider(self.model.value, self.is_init_delay)
         logger.success(f"{self.model} loaded")
         if self.system_prompt:
@@ -89,16 +87,12 @@ class LLM(Chain, Generic[GenericResponseType]):
             try:
                 response = self.llm.generate(prompt, self.response_model, self.tools)
                 if self.response_model:
-                    instructor_response = self.llm.parse_response(
-                        response, self.response_model
-                    )
+                    instructor_response = self.llm.parse_response(response, self.response_model)
                     if self.memory_callback:
                         self.memory_callback((prompt, response))
                     return instructor_response
                 elif self.tools:
-                    instructor_response = self.llm.parse_response(
-                        response, FunctionCall
-                    )
+                    instructor_response = self.llm.parse_response(response, FunctionCall)
                     if self.memory_callback:
                         self.memory_callback((prompt, response))
                     return instructor_response  # type: ignore

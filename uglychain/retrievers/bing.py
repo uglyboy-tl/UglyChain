@@ -5,9 +5,10 @@ from dataclasses import dataclass
 
 import requests
 from loguru import logger
-from tenacity import retry, stop_after_attempt, wait_fixed, before_sleep_log, RetryError
+from tenacity import RetryError, before_sleep_log, retry, stop_after_attempt, wait_fixed
 
 from uglychain.utils import config
+
 from .base import BaseRetriever
 
 BING_SEARCH_API_URL = "https://api.bing.microsoft.com/v7.0/search"
@@ -16,12 +17,8 @@ BING_SEARCH_API_URL = "https://api.bing.microsoft.com/v7.0/search"
 @dataclass
 class BingRetriever(BaseRetriever):
     def __post_init__(self):
-        assert hasattr(
-            config, "bing_subscription_key"
-        ), "Bing subscription key not found in config"
-        assert isinstance(
-            config.bing_subscription_key, str
-        ), "Bing subscription key should be a string"
+        assert hasattr(config, "bing_subscription_key"), "Bing subscription key not found in config"
+        assert isinstance(config.bing_subscription_key, str), "Bing subscription key should be a string"
         assert config.bing_subscription_key, "Bing subscription key should not be empty"
 
     def search(self, query: str, n: int = BaseRetriever.default_n) -> list[str]:
@@ -31,9 +28,7 @@ class BingRetriever(BaseRetriever):
             results = json.get("webPages", {}).get("value", [])
             return [self._format(result) for result in results[:n]] if results else []
         except (ValueError, requests.RequestException, RetryError) as e:
-            logger.error(
-                f"Error occurred while sending request or parsing response: {e}"
-            )
+            logger.error(f"Error occurred while sending request or parsing response: {e}")
             return []
 
     @retry(

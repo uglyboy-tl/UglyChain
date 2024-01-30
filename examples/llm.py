@@ -1,7 +1,8 @@
 from loguru import logger
 
-from uglychain import LLM, Model
 from examples.instructor import UserDetail
+from uglychain import LLM, Model
+
 
 def llm(model: Model | None = None):
     if model:
@@ -10,6 +11,7 @@ def llm(model: Model | None = None):
         llm = LLM()
     logger.info(llm("你是谁？"))
 
+
 def prompt(model: Model | None = None):
     if model:
         llm = LLM("{cite} 的市长是谁？", model)
@@ -17,13 +19,14 @@ def prompt(model: Model | None = None):
         llm = LLM()
     logger.info(llm("上海"))
 
-def instructor(model: Model | None = None):
 
+def instructor(model: Model | None = None):
     if model:
         llm = LLM(model=model, response_model=UserDetail)
     else:
         llm = LLM(response_model=UserDetail)
     logger.info(llm("Extract Jason is a boy"))
+
 
 if __name__ == "__main__":
     llm(Model.YI)

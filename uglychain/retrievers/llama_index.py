@@ -13,10 +13,8 @@ class LlamaIndexRetriever(BaseRetriever):
         try:
             from llama_index.indices.base import BaseGPTIndex  # type: ignore
             from llama_index.response.schema import Response  # type: ignore
-        except ImportError:
-            raise ImportError(
-                "You need to install `pip install llama-index` to use this retriever."
-            )
+        except ImportError as err:
+            raise ImportError("You need to install `pip install llama-index` to use this retriever.") from err
         index = cast(BaseGPTIndex, self.index)
 
         response = index.query(query, response_mode="no_text", **self.query_kwargs)
@@ -26,6 +24,7 @@ class LlamaIndexRetriever(BaseRetriever):
         for source_node in response.source_nodes:
             docs.append(source_node.source_text)
         return docs
+
 
 @dataclass
 class LlamaIndexGraphRetriever(BaseRetriever):
@@ -40,10 +39,8 @@ class LlamaIndexGraphRetriever(BaseRetriever):
                 ComposableGraph,
             )
             from llama_index.response.schema import Response  # type: ignore
-        except ImportError:
-            raise ImportError(
-                "You need to install `pip install llama-index` to use this retriever."
-            )
+        except ImportError as err:
+            raise ImportError("You need to install `pip install llama-index` to use this retriever.") from err
         graph = cast(ComposableGraph, self.graph)
 
         # for now, inject response_mode="no_text" into query configs

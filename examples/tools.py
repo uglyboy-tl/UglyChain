@@ -1,4 +1,5 @@
 from enum import Enum
+
 from loguru import logger
 
 from uglychain import LLM, Model
@@ -55,7 +56,6 @@ def functian_call(model: Model | None = None):
     logger.info(llm("What's the weather in San Francisco?"))
 
 
-
 def tools(model: Model | None = None):
     tools = [get_current_weather, search_baidu, search_google, search_bing]
     if model:
@@ -75,4 +75,4 @@ def tools(model: Model | None = None):
 
 if __name__ == "__main__":
     functian_call()
-    #tools()
+    # tools()

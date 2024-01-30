@@ -3,6 +3,7 @@ from loguru import logger
 from uglychain.retrievers import get_retriever
 from uglychain.retrievers.bm25 import BM25Retriever
 
+
 def BM25():
     bm25 = BM25Retriever("/tmp/bm25_data.json")
     query = "天安门"
@@ -15,17 +16,20 @@ def BM25():
     bm25.add("指引我们向前进")
     logger.info(bm25.search(query, 2))
 
+
 def arxiv():
     retriever = get_retriever("arxiv")
     query = "quantum computing"
     print(retriever.search(query, 2))
+
 
 def bing():
     retriever = get_retriever("bing")
     query = "quantum computing"
     print(retriever.search(query, 2))
 
+
 if __name__ == "__main__":
-    #BM25()
-    #arxiv()
+    # BM25()
+    # arxiv()
     bing()

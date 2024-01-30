@@ -52,22 +52,12 @@ class ChatGPT(ChatGPTAPI):
         try:
             import tiktoken
         except ImportError as e:
-            raise ImportError(
-                "You need to install `pip install tiktoken` to use `use_max_tokens` param."
-            ) from e
-        if (
-            model == "gpt-3.5-turbo"
-            or model == "gpt-3.5-turbo-16k"
-            or model == "gpt-3.5-turbo-1106"
-        ):
-            logger.trace(
-                "gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0613."
-            )
+            raise ImportError("You need to install `pip install tiktoken` to use `use_max_tokens` param.") from e
+        if model == "gpt-3.5-turbo" or model == "gpt-3.5-turbo-16k" or model == "gpt-3.5-turbo-1106":
+            logger.trace("gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0613.")
             return self._num_tokens(messages, model="gpt-3.5-turbo-0613")
         elif model == "gpt-4" or model == "gpt-4-32k" or model == "gpt-4-1106-preview":
-            logger.trace(
-                "gpt-4 may change over time. Returning num tokens assuming gpt-4-0613."
-            )
+            logger.trace("gpt-4 may change over time. Returning num tokens assuming gpt-4-0613.")
             return self._num_tokens(messages, model="gpt-4-0613")
         elif model == "gpt-3.5-turbo-0613":
             # every message follows <|start|>{role/name}\n{content}<|end|>\n
@@ -97,9 +87,7 @@ class ChatGPT(ChatGPTAPI):
 
     @property
     def max_tokens(self):
-        tokens = (
-            self._num_tokens(messages=self.messages, model=self.model) + 1000
-        )  # add 1000 tokens for answers
+        tokens = self._num_tokens(messages=self.messages, model=self.model) + 1000  # add 1000 tokens for answers
         if not self.MAX_TOKENS > tokens:
             raise Exception(
                 f"Prompt is too long. This model's maximum context length is {self.MAX_TOKENS} tokens. your messages required {tokens} tokens"

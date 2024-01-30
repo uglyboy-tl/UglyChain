@@ -3,7 +3,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 DEFAULT_N = 5
 
@@ -38,7 +38,7 @@ class StoresRetriever(BaseRetriever, ABC):
         pass
 
     @abstractmethod
-    def add(self, text: str, metadata: Dict[str, str] = {}):
+    def add(self, text: str, metadata: Optional[Dict[str, str]] = None):
         pass
 
     def _load(self):

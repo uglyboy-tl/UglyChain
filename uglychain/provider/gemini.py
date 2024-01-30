@@ -52,9 +52,7 @@ class Gemini(BaseLanguageModel):
 
     @property
     def default_params(self) -> Dict[str, Any]:
-        config = self.client.types.GenerationConfig(
-            max_output_tokens=self.max_tokens, temperature=self.temperature
-        )
+        config = self.client.types.GenerationConfig(max_output_tokens=self.max_tokens, temperature=self.temperature)
         kwargs = {
             "generation_config": config,
         }
@@ -66,9 +64,7 @@ class Gemini(BaseLanguageModel):
 
             genai.configure(api_key=config.gemini_api_key, transport="rest")
         except ImportError as e:
-            raise ImportError(
-                "You need to install `pip install google-generativeai` to use this provider."
-            ) from e
+            raise ImportError("You need to install `pip install google-generativeai` to use this provider.") from e
         return genai
 
     @retry_decorator()

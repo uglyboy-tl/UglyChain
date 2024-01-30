@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*-coding:utf-8-*-
 
+from .arxiv import ArxivRetriever
 from .base import BaseRetriever, StoresRetriever
 from .bing import BingRetriever
-from .arxiv import ArxivRetriever
-from .llama_index import LlamaIndexRetriever, LlamaIndexGraphRetriever
+from .llama_index import LlamaIndexGraphRetriever, LlamaIndexRetriever
 
 try:
     from .bm25 import BM25Retriever
@@ -32,9 +32,7 @@ def get_retriever(retriever_name: str = "combine") -> BaseRetriever:
         raise NotImplementedError(f"{retriever_name} Retriever not implemented")
 
 
-def get_stores_retriever(
-    retriever_name: str = "bm25", path: str = "", start_int: bool = False
-) -> StoresRetriever:
+def get_stores_retriever(retriever_name: str = "bm25", path: str = "", start_int: bool = False) -> StoresRetriever:
     if retriever_name in STORE_RETRIEVERS.keys():
         retriever = STORE_RETRIEVERS[retriever_name]
         if retriever is None:

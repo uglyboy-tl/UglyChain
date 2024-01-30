@@ -2,13 +2,14 @@
 # -*-coding:utf-8-*-
 
 from dataclasses import dataclass
-from typing import Any, Dict, Type, Optional, List, Callable
+from typing import Any, Callable, Dict, List, Optional, Type
 
-from pydantic import BaseModel
 from loguru import logger
+from pydantic import BaseModel
 
-from uglychain.utils import config, retry_decorator
 from uglychain.llm import BaseLanguageModel
+from uglychain.utils import config, retry_decorator
+
 
 @dataclass
 class ChatGLM(BaseLanguageModel):
@@ -41,10 +42,8 @@ class ChatGLM(BaseLanguageModel):
     def _create_client(self):
         try:
             from zhipuai import ZhipuAI
-        except ImportError:
-            raise ImportError(
-                "You need to install `pip install dashscope` to use this provider."
-        )
+        except ImportError as err:
+            raise ImportError("You need to install `pip install dashscope` to use this provider.") from err
         return ZhipuAI(api_key=config.zhipuai_api_key)
 
     @retry_decorator()
@@ -53,8 +52,10 @@ class ChatGLM(BaseLanguageModel):
 
     @property
     def max_tokens(self):
-        tokens = self._num_tokens(messages=self.messages, model=self.model) + 1000 # add 1000 tokens for answers
+        tokens = self._num_tokens(messages=self.messages, model=self.model) + 1000  # add 1000 tokens for answers
         if not self.MAX_TOKENS > tokens:
-            raise Exception(f"Prompt is too long. This model's maximum context length is {self.MAX_TOKENS} tokens. your messages required {tokens} tokens")
+            raise Exception(
+                f"Prompt is too long. This model's maximum context length is {self.MAX_TOKENS} tokens. your messages required {tokens} tokens"
+            )
         max_tokens = self.MAX_TOKENS - tokens + 1000
         return 2000 if max_tokens > 2000 else max_tokens

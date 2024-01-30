@@ -104,25 +104,19 @@ class DashScope(BaseLanguageModel):
         try:
             import dashscope
         except ImportError as e:
-            raise ImportError(
-                "You need to install `pip install dashscope` to use this provider."
-            ) from e
+            raise ImportError("You need to install `pip install dashscope` to use this provider.") from e
         dashscope.api_key = config.dashscope_api_key
         return dashscope
 
     def _num_tokens(self, messages: list, model: str):
         if model == "qwen-max" or model == "qwen-max-longcontext":
-            logger.trace(
-                "qwen-max may change over time. Returning num tokens assuming qwen-turbo."
-            )
+            logger.trace("qwen-max may change over time. Returning num tokens assuming qwen-turbo.")
             return self._num_tokens(messages, model="qwen-turbo")
         try:
             response = self.client.Tokenization.call(model=model, messages=messages)
         except KeyError:
             logger.trace("model not found. Using qwen-turbo encoding.")
-            response = self.client.Tokenization.call(
-                model="qwen-turbo", messages=messages
-            )
+            response = self.client.Tokenization.call(model="qwen-turbo", messages=messages)
         if response.status_code == HTTPStatus.OK:
             return response.usage["input_tokens"]
         else:
