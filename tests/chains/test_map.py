@@ -14,6 +14,7 @@ def test_map():
     assert len(output) == 3
     assert isinstance(output[0], str)
 
+
 def test_instructor():
     llm = MapChain(
         prompt_template="{book}的{position}是谁？",

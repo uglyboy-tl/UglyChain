@@ -9,6 +9,7 @@ def test_llm(model):
     llm = LLM(model=model)
     assert isinstance(llm("你是谁？"), str)
 
+
 @pytest.mark.parametrize("model", [Model.YI, Model.YI_32K])
 def test_instructor(model):
     llm = LLM(model=model, response_model=UserDetail)
