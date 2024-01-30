@@ -2,15 +2,16 @@
 # -*-coding:utf-8-*-
 
 from dataclasses import dataclass
-from typing import Optional, Type, List, Callable
+from typing import Callable, List, Optional, Type
 
 import openai
-from requests.exceptions import SSLError
-from pydantic import BaseModel
 from loguru import logger
+from pydantic import BaseModel
+from requests.exceptions import SSLError
 
 from uglychain.llm import BaseLanguageModel
 from uglychain.utils import retry_decorator
+
 
 def not_notry_exception(exception: BaseException) -> bool:
     if isinstance(exception, openai.BadRequestError):

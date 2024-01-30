@@ -2,14 +2,14 @@
 # -*-coding:utf-8-*-
 
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Type, List, Callable
 from http import HTTPStatus
+from typing import Any, Callable, Dict, List, Optional, Type
 
 from loguru import logger
 from pydantic import BaseModel
 
-from uglychain.utils import config, retry_decorator
 from uglychain.llm import BaseLanguageModel
+from uglychain.utils import config, retry_decorator
 
 
 class BadRequestError(Exception):
@@ -30,6 +30,7 @@ def not_notry_exception(exception: BaseException):
     if isinstance(exception, Unauthorized):
         return False
     return True
+
 
 @dataclass
 class DashScope(BaseLanguageModel):
@@ -102,10 +103,10 @@ class DashScope(BaseLanguageModel):
     def _create_client(self):
         try:
             import dashscope
-        except ImportError:
+        except ImportError as e:
             raise ImportError(
                 "You need to install `pip install dashscope` to use this provider."
-        )
+            ) from e
         dashscope.api_key = config.dashscope_api_key
         return dashscope
 

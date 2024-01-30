@@ -3,12 +3,12 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Callable, Optional, Type, TypeVar, cast
+from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, cast
 
 from pydantic import BaseModel
 
-from .tools import FunctionCall, tools_schema
 from .instructor import Instructor
+from .tools import FunctionCall, tools_schema
 
 TEMPERATURE = 0.3
 T = TypeVar("T", bound=BaseModel)
@@ -138,6 +138,7 @@ class BaseLanguageModel(ABC):
             kwargs["max_tokens"] = self.max_tokens
         return kwargs
 
+    @abstractmethod
     def _create_client(self):
         """Create the client for the LLM provider.
 

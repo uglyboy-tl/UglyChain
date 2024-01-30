@@ -1,6 +1,6 @@
-from enum import Enum
 import inspect
-from typing import Callable, cast, Union, List
+from enum import Enum
+from typing import Callable, List, Union, cast
 
 from docstring_parser import parse
 from pydantic import BaseModel, Field
@@ -82,7 +82,7 @@ def function_schema(func: Callable):
     else:
         docstring_parsed = parse("")
 
-    parameters = dict()
+    parameters = {}
     required = []
 
     for name, param in signature.parameters.items():

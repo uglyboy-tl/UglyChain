@@ -44,10 +44,10 @@ def segment(text: str) -> str:
         import jieba_fast.posseg as pseg
 
         jieba.setLogLevel(logging.INFO)
-    except ImportError:
+    except ImportError as err:
         raise ImportError(
             "You need to install `pip install jieba-fast` to use nlp.segment."
-        )
+        ) from err
     # 结巴分词
     jieba_result = pseg.cut(text)
     # 词性筛选

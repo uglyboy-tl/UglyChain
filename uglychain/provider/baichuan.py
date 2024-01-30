@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from uglychain.utils import config
+
 from .openai_api import ChatGPTAPI
 
 

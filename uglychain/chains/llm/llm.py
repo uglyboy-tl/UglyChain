@@ -1,25 +1,26 @@
 #!/usr/bin/env python3
 # -*-coding:utf-8-*-
 
+from dataclasses import dataclass, field
 from typing import (
     Any,
+    Callable,
     Dict,
+    Generic,
     List,
     Optional,
-    Callable,
     Tuple,
     Type,
     TypeVar,
-    Generic,
     Union,
 )
-from dataclasses import dataclass, field
 
-from pydantic import BaseModel
 from loguru import logger
+from pydantic import BaseModel
 
+from uglychain.llm import BaseLanguageModel, FunctionCall, Model, ParseError
 from uglychain.provider import get_llm_provider
-from uglychain.llm import BaseLanguageModel, Model, ParseError, FunctionCall
+
 from ..base import Chain
 from .prompt import Prompt
 

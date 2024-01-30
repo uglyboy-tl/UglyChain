@@ -1,10 +1,11 @@
 from dataclasses import dataclass
-from typing import Type, Optional, List, Callable
+from typing import Callable, List, Optional, Type
 
 from loguru import logger
 from pydantic import BaseModel
 
 from uglychain.utils import config
+
 from .openai_api import ChatGPTAPI
 
 
@@ -22,7 +23,10 @@ class ChatGPT(ChatGPTAPI):
         tools: Optional[List[Callable]] = None,
     ) -> str:
         kwargs = self.get_kwargs(prompt, response_model, tools)
-        if response_model and self.model in ["gpt-3.5-turbo-1106","gpt-4-turbo-preview"]:
+        if response_model and self.model in [
+            "gpt-3.5-turbo-1106",
+            "gpt-4-turbo-preview",
+        ]:
             kwargs["response_format"] = {"type": "json_object"}
         try:
             response = self.completion_with_backoff(**kwargs)
@@ -47,11 +51,15 @@ class ChatGPT(ChatGPTAPI):
     def _num_tokens(self, messages: list, model: str):
         try:
             import tiktoken
-        except ImportError:
+        except ImportError as e:
             raise ImportError(
                 "You need to install `pip install tiktoken` to use `use_max_tokens` param."
-        )
-        if model == "gpt-3.5-turbo" or model == "gpt-3.5-turbo-16k" or model == "gpt-3.5-turbo-1106":
+            ) from e
+        if (
+            model == "gpt-3.5-turbo"
+            or model == "gpt-3.5-turbo-16k"
+            or model == "gpt-3.5-turbo-1106"
+        ):
             logger.trace(
                 "gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0613."
             )

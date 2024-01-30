@@ -2,11 +2,11 @@ from typing import Any, Callable
 
 from loguru import logger
 from tenacity import (
+    before_sleep_log,
     retry,
     retry_if_exception,
     stop_after_attempt,
     wait_random_exponential,
-    before_sleep_log,
 )
 
 

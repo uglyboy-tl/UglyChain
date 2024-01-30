@@ -3,7 +3,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Dict, Type, List, Optional
+from typing import Dict, List, Optional, Type
 
 from loguru import logger
 

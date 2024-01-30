@@ -1,9 +1,9 @@
-import re
 import json
+import re
 from functools import wraps
 from typing import Type
 
-from pydantic import BaseModel, create_model, ValidationError
+from pydantic import BaseModel, ValidationError, create_model
 
 PYDANTIC_FORMAT_INSTRUCTIONS = """
 -----
@@ -38,7 +38,7 @@ class Instructor(BaseModel):
         except (json.JSONDecodeError, ValidationError) as e:
             name = cls.__name__
             msg = f"Failed to parse {name} from completion {response}. Got: {e}"
-            raise ParseError(msg)
+            raise ParseError(msg) from e
 
     @classmethod
     def get_format_instructions(cls) -> str:

@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 # -*-coding:utf-8-*-
 
-from uglychain.utils import config
 from uglychain.llm import BaseLanguageModel
+from uglychain.utils import config
 
+from .baichuan import Baichuan
 from .chatgpt import ChatGPT
 from .copilot import Copilot
-from .yi import Yi
-from .baichuan import Baichuan
 from .custom import Custom
-from .gemini import Gemini
 from .dashscope import DashScope
+from .gemini import Gemini
+from .yi import Yi
 from .zhipu import ChatGLM
 
 LLM_PROVIDERS = {

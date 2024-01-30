@@ -4,11 +4,12 @@
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Union
 
-from pathos.multiprocessing import ProcessingPool as Pool
 from loguru import logger
+from pathos.multiprocessing import ProcessingPool as Pool
 
 from uglychain.llm import ParseError
-from .llm import LLM, GenericResponseType, FunctionCall
+
+from .llm import LLM, FunctionCall, GenericResponseType
 
 
 @dataclass
@@ -59,12 +60,16 @@ class MapChain(LLM[GenericResponseType]):
             )
             prompt = self.prompt.format(**new_input)
             max_retries = 3  # 设置最大重试次数
-            attempts = 0     # 初始化尝试次数
+            attempts = 0  # 初始化尝试次数
             while attempts < max_retries:
                 try:
-                    response = self.llm.generate(prompt, self.response_model,self.tools)
+                    response = self.llm.generate(
+                        prompt, self.response_model, self.tools
+                    )
                     if self.response_model:
-                        instructor_response = self.llm.parse_response(response, self.response_model).model_dump_json()
+                        instructor_response = self.llm.parse_response(
+                            response, self.response_model
+                        ).model_dump_json()
                         if self.memory_callback:
                             self.memory_callback((prompt, response))
                         logger.debug(f"MapChain: {input['index']} finished")
@@ -82,15 +87,19 @@ class MapChain(LLM[GenericResponseType]):
                         logger.debug(f"MapChain: {input['index']} finished")
                         return {"index": input["index"], "result": response}
                 except ParseError as e:  # 捕获所有异常
-                    attempts += 1       # 尝试次数增加
+                    attempts += 1  # 尝试次数增加
                     logger.warning(f"解析失败，第 {attempts} 次尝试重新解析")
                     logger.trace(f"第 {attempts} 次尝试解析失败，原因：{e}")
                     if attempts == max_retries:
-                        return {"index": input["index"], "result": "Error"}  # 如果达到最大尝试次数，则抛出最后一个异常
+                        return {
+                            "index": input["index"],
+                            "result": "Error",
+                        }  # 如果达到最大尝试次数，则抛出最后一个异常
                 except Exception as e:
                     logger.warning(f"MapChain: {input['index']} failed with error: {e}")
                     return {"index": input["index"], "result": "Error"}
             return {"index": input["index"], "result": "Error"}
+
         return func
 
     def _process_results(self, results) -> List[Union[GenericResponseType, str]]:
@@ -101,7 +110,9 @@ class MapChain(LLM[GenericResponseType]):
                 if result["result"] == "Error":
                     new_results.append(result["result"])
                 else:
-                    new_results.append(self.response_model.model_validate_json(result["result"]))
+                    new_results.append(
+                        self.response_model.model_validate_json(result["result"])
+                    )
             return new_results
         else:
             return [result["result"] for result in results]

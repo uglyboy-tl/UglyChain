@@ -1,5 +1,7 @@
 from enum import Enum
+
 from uglychain.utils import config
+
 
 class Model(Enum):
     GPT3_TURBO = "gpt-3.5-turbo"

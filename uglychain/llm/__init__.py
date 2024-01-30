@@ -2,10 +2,9 @@
 # -*-coding:utf-8-*-
 
 from .base import BaseLanguageModel
-from .model import Model
 from .instructor import Instructor, ParseError
+from .model import Model
 from .tools import FunctionCall
-
 
 __all__ = [
     "BaseLanguageModel",
