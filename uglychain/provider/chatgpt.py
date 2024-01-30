@@ -56,7 +56,7 @@ class ChatGPT(ChatGPTAPI):
         if model == "gpt-3.5-turbo" or model == "gpt-3.5-turbo-16k" or model == "gpt-3.5-turbo-1106":
             logger.trace("gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0613.")
             return self._num_tokens(messages, model="gpt-3.5-turbo-0613")
-        elif model == "gpt-4" or model == "gpt-4-32k" or model == "gpt-4-1106-preview":
+        elif model == "gpt-4" or model == "gpt-4-32k" or model == "gpt-4-1106-preview" or model == "gpt-4-turbo-preview":
             logger.trace("gpt-4 may change over time. Returning num tokens assuming gpt-4-0613.")
             return self._num_tokens(messages, model="gpt-4-0613")
         elif model == "gpt-3.5-turbo-0613":

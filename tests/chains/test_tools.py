@@ -1,8 +1,9 @@
 from enum import Enum
 
-from loguru import logger
+import pytest
 
 from uglychain import LLM, Model
+from uglychain.llm import FunctionCall
 
 
 class Unit(Enum):
@@ -47,32 +48,22 @@ def search_bing(query: str) -> str:
     return f"{query}是一个技术博主"
 
 
-def functian_call(model: Model | None = None):
+@pytest.mark.parametrize("model", [Model.GPT3_TURBO, Model.QWEN, Model.YI_32K])
+def test_llm_tool(model):
     tools = [get_current_weather]
-    if model:
-        llm = LLM(model=model, tools=tools)
-    else:
-        llm = LLM(tools=tools)
-    logger.info(llm("What's the weather in Beijing?"))
+    llm = LLM(model=model, tools=tools)
+    response = llm("What's the weather in Beijing?")
+    assert isinstance(response, FunctionCall)
+    assert response.name == "get_current_weather"
+    assert response.args["location"] == "Beijing"
+    assert not hasattr(response.args, "unit") or response.args["unit"] in {"CELSIUS", "FAHRENHEIT"}
 
 
-def tools(model: Model | None = None):
+@pytest.mark.parametrize("model", [Model.GPT3_TURBO, Model.QWEN, Model.YI_32K])
+def test_llm_tools(model):
     tools = [get_current_weather, search_baidu, search_google, search_bing]
-    if model:
-        llm = LLM(
-            model=model,
-            tools=tools,
-        )
-    else:
-        llm = LLM(tools=tools)
+    llm = LLM(model=model, tools=tools)
     response = llm("用百度查一查牛顿生于哪一年？")
-    logger.debug(response)
-    for tool in tools:
-        if tool.__name__ == response.name:
-            logger.debug(f"使用 {tool.__name__} 工具解析")
-            logger.info(tool(**response.args))
-
-
-if __name__ == "__main__":
-    functian_call(Model.QWEN)
-    # tools()
+    assert isinstance(response, FunctionCall)
+    assert response.name == "search_baidu"
+    assert isinstance(response.args["query"], str)
