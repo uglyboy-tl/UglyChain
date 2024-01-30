@@ -1,43 +1,41 @@
 #!/usr/bin/env python3
 # -*-coding:utf-8-*-
 
+import logging
 import string
 from pathlib import Path
 from typing import List
-import logging
 
 from .config import config
 from .stop_words import stop_words
 
 if Path(config.stop_words_path).is_file():
-    stop_words = set(
+    stop_words = {
         line.strip()
         for line in Path(config.stop_words_path)
         .read_text(encoding="utf-8")
         .splitlines()
-    )
+    }
 
 
-punt_list = set(["?", "!", ";", "？", "！", "。", "；", "……", "…", "\n"])
-allow_speech_tags = set(
-    [
-        "an",
-        "i",
-        "j",
-        "l",
-        "n",
-        "nr",
-        "nrfg",
-        "ns",
-        "nt",
-        "nz",
-        "t",
-        "v",
-        "vd",
-        "vn",
-        "eng",
-    ]
-)
+punt_list = {"?", "!", ";", "？", "！", "。", "；", "……", "…", "\n"}
+allow_speech_tags = {
+    "an",
+    "i",
+    "j",
+    "l",
+    "n",
+    "nr",
+    "nrfg",
+    "ns",
+    "nt",
+    "nz",
+    "t",
+    "v",
+    "vd",
+    "vn",
+    "eng",
+}
 
 
 def segment(text: str) -> str:
