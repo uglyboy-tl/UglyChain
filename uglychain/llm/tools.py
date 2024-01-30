@@ -7,14 +7,14 @@ from pydantic import BaseModel, Field
 
 
 class FunctionCall(BaseModel):
-    thought: str = Field(..., description="the reason you thought to choose this tool")
-    name: str = Field(..., description="tool name")
-    args: dict = Field(..., description="tool arguments")
+    thought: str = Field(..., description="Think step by step and explan why you need to use a tool")
+    name: str = Field(..., description="Tool name of the tool to take")
+    args: dict = Field(..., description="Tool arguments")
 
 
 FUNCTION_CALL_FORMAT = """
 -----
-Respond with tool name and tool arguments to achieve the instruction.
+Respond with tool name and tool arguments to achieve the instruction:
 
 {tool_schema}
 """
