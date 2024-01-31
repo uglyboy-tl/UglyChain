@@ -2,12 +2,12 @@
 # -*-coding:utf-8-*-
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Type
+from typing import Any, Callable, Dict, List, Optional, Type
 
 from loguru import logger
 from pydantic import BaseModel
 
-from uglychain.llm import BaseLanguageModel, Instructor
+from uglychain.llm import BaseLanguageModel
 from uglychain.utils import config, retry_decorator
 
 
@@ -20,17 +20,24 @@ class Gemini(BaseLanguageModel):
         self,
         prompt: str = "",
         response_model: Optional[Type[BaseModel]] = None,
+        tools: Optional[List[Callable]] = None,
     ) -> str:
-        self._generate_validation()
-        if response_model:
-            instructor = Instructor.from_BaseModel(response_model)
-            prompt += "\n" + instructor.get_format_instructions()
-        self._generate_messages(prompt)
-        kwargs = {"content": self.messages, **self.default_params}
+        kwargs = self.get_kwargs(prompt, response_model, tools)
         response = self.completion_with_backoff(**kwargs)
-
         logger.trace(f"kwargs:{kwargs}\nresponse:{response}")
         return response.choices[0].message.content.strip()
+
+    def get_kwargs(
+        self,
+        prompt: str,
+        response_model: Optional[Type],
+        tools: Optional[List[Callable]],
+    ) -> Dict[str, Any]:
+        kwargs = super().get_kwargs(prompt, response_model, tools)
+        contents = kwargs["messages"]
+        kwargs.pop("messages")
+        kwargs["contents"] = contents
+        return kwargs
 
     def _generate_messages(self, prompt: str) -> List[Dict[str, str]]:
         """Generate the list of messages for the conversation.
