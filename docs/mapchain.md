@@ -1,6 +1,4 @@
-# 高级 Chain 模块
-
-## MapChain
+# MapChain
 
 > 这是一个可以并行对同类型 Prompt 进行调用的类，可以大大提高调用效率。
 

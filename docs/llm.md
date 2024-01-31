@@ -1,4 +1,4 @@
-# 基础 Chain 模块
+# 基础 LLM 模块
 
 ```python
 from uglychain import LLM, Model

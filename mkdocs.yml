@@ -1,15 +1,38 @@
 site_name: UglyChain
+repo_name: uglyboy-tl/uglychain
+repo_url: https://github.com/uglyboy-tl/uglychain
+
 theme:
   name: material
+  language: 'zh'  # 配置语言
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.expand
+  icon:
+    repo: fontawesome/brands/github
 site_url: https://uglyboy-tl.github.io/UglyChain/
 
 nav:
-  - Home: index.md
-  - Install: install.md
-  - Documents:
-    - Introduction: introduction.md
-    - Quick Start: quickstart.md
-    - Examples: examples.md
+  - 主页:
+    - 介绍: introduction.md
+    - 快速开始: quickstart.md
+  - 入门:
+    - 安装: install.md
+    - 配置: config.md
+  - Chain:
     - LLM: llm.md
-    - Chain: chain.md
+    - MapChain: mapchain.md
+    - ReduceChain: reducechain.md
+  - Agent:
     - Tools: tools.md
+    - ReAct: react.md
+  - 参考: examples.md
+  - 关于: about.md
+
+markdown_extensions:
+  - toc:
+      permalink: true
+
+plugins:
+  - git-revision-date
