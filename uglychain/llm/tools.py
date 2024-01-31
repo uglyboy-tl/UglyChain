@@ -7,10 +7,12 @@ from pydantic import BaseModel, Field
 
 
 class FunctionCall(BaseModel):
-    thought: str = Field(..., description="Think step by step and explan why you need to use a tool")
-    name: str = Field(..., description="Tool name of the tool to take")
-    args: dict = Field(..., description="Tool arguments")
+    name: str = Field(..., description="tool name")
+    args: dict = Field(..., description="tool arguments")
 
+class Action(BaseModel):
+    thought: str = Field(..., description="Think step by step and explan why you need to use a tool")
+    action: FunctionCall = Field(..., description="The action to take")
 
 FUNCTION_CALL_FORMAT = """
 -----
@@ -133,13 +135,10 @@ def function_schema(func: Callable):
     return function_info
 
 
-def tools_schema(tools: List[Callable], openai_schema: bool = False):
+def tools_schema(tools: List[Callable]):
     tools_schema = []
 
     for tool in tools:
         tool_schema = {"type": "function", "function": function_schema(tool)}
         tools_schema.append(tool_schema)
-    if openai_schema:
-        return tools_schema
-    else:
-        return FUNCTION_CALL_FORMAT.format(tool_schema=tools_schema)
+    return tools_schema

@@ -1,5 +1,5 @@
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Type
 
 from loguru import logger
@@ -17,7 +17,7 @@ class ChatGPT(ChatGPTAPI):
     base_url: str = config.openai_api_base
     name: str = "OpenAI"
     use_max_tokens: bool = True
-    use_openai_tools: bool = False
+    use_native_tools: bool = field(init=False, default=True)
 
     def generate(
         self,
@@ -51,7 +51,7 @@ class ChatGPT(ChatGPTAPI):
                 raise e
 
         logger.trace(f"kwargs:{kwargs}\nresponse:{response}")
-        if self.use_openai_tools and tools and response.choices[0].message.tool_calls:
+        if self.use_native_tools and tools and response.choices[0].message.tool_calls:
             result = response.choices[0].message.tool_calls[0].function
             return json.dumps({"name": result.name, "args": json.loads(result.arguments)})
         return response.choices[0].message.content.strip()
@@ -62,11 +62,11 @@ class ChatGPT(ChatGPTAPI):
         response_model: Optional[Type],
         tools: Optional[List[Callable]],
     ) -> Dict[str, Any]:
-        if self.use_openai_tools and tools:
+        if self.use_native_tools and tools:
             self._generate_validation()
             self._generate_messages(prompt)
             params = self.default_params
-            params["tools"] = tools_schema(tools,True)
+            params["tools"] = tools_schema(tools)
             kwargs = {"messages": self.messages, **params}
             return kwargs
         else:

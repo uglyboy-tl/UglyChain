@@ -8,7 +8,7 @@ from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, cast
 from pydantic import BaseModel
 
 from .instructor import Instructor
-from .tools import FunctionCall, tools_schema
+from .tools import FUNCTION_CALL_FORMAT, FunctionCall, tools_schema
 
 TEMPERATURE = 0.3
 T = TypeVar("T", bound=BaseModel)
@@ -50,6 +50,7 @@ class BaseLanguageModel(ABC):
     use_max_tokens: bool = field(init=False, default=False)
     is_continuous: bool = field(init=False, default=False)
     messages: list = field(init=False, default_factory=list)
+    use_native_tools: bool = field(init=False, default=False)
 
     def __post_init__(self):
         if not self.is_init_delay:
@@ -96,7 +97,7 @@ class BaseLanguageModel(ABC):
         self._generate_validation()
         if tools:
             response_model = cast(Type[T], FunctionCall)
-            prompt += f"\n{tools_schema(tools)}"
+            prompt += f"\n{FUNCTION_CALL_FORMAT.format(tool_schema = tools_schema(tools))}"
         if response_model:
             instructor = Instructor.from_BaseModel(response_model)
             prompt += "\n" + instructor.get_format_instructions()
