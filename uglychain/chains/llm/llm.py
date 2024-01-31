@@ -18,7 +18,8 @@ from typing import (
 from loguru import logger
 from pydantic import BaseModel
 
-from uglychain.llm import BaseLanguageModel, FunctionCall, Model, ParseError
+from uglychain.llm import BaseLanguageModel, Model, ParseError
+from uglychain.llm.tools import ActionResopnse, FunctionCall
 from uglychain.provider import get_llm_provider
 
 from ..base import Chain
@@ -52,7 +53,11 @@ class LLM(Chain, Generic[GenericResponseType]):
 
         This method initializes the LLMChain object by getting the LLM provider and setting the prompt.
         """
-        assert not (self.tools and self.response_model), "tools and response_model cannot be set at the same time"
+        # assert not (self.tools and self.response_model), "tools and response_model cannot be set at the same time"
+        if self.tools:
+            assert (
+                self.response_model is None or self.response_model == ActionResopnse
+            ), "response_model must be ActionResopnse if tools is set"
         self.llm = get_llm_provider(self.model.value, self.is_init_delay)
         logger.success(f"{self.model} loaded")
         if self.system_prompt:
@@ -88,6 +93,8 @@ class LLM(Chain, Generic[GenericResponseType]):
                 response = self.llm.generate(prompt, self.response_model, self.tools)
                 if self.response_model:
                     instructor_response = self.llm.parse_response(response, self.response_model)
+                    if self.tools and instructor_response.action.name not in [tool.__name__ for tool in self.tools]:
+                        raise ParseError(f"Tool {instructor_response.name} not found")
                     if self.memory_callback:
                         self.memory_callback((prompt, response))
                     return instructor_response

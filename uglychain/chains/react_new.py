@@ -6,10 +6,12 @@ from typing import Callable, Dict, List, Union
 
 from loguru import logger
 
+from uglychain.llm.tools import ActionResopnse
+
 from .llm import LLM, FunctionCall, GenericResponseType
 
 
-def final_answer(response: str)-> str:
+def finish(response: str)-> str:
     """the final answer tool must be used to respond to the user. You must use this when you have decided on an answer.
 
     Args:
@@ -33,7 +35,7 @@ class Action:
 
     @property
     def done(self) -> bool:
-        if self.action == "final_answer":
+        if self.action == "finish":
             return True
         else:
             return False
@@ -53,16 +55,17 @@ class ReActChain(LLM[GenericResponseType]):
         self._acts = []
         super().__post_init__()
         assert self.tools is not None, "tools must be set"
-        self.tools.insert(0, final_answer)
-        self.reactllm = LLM("""Question: {input}\n{react_history}""",self.model, tools=self.tools)
+        self.tools.insert(0, finish)
+        self.reactllm = LLM("""Question: {input}\n{react_history}""",self.model, tools=self.tools, response_model=ActionResopnse)
+        self.reactllm.llm.use_native_tools = False
 
     def _call(self, inputs: Dict[str, str]) -> Union[str, GenericResponseType]:
         input = self.prompt.format(**inputs)
         response = self.reactllm(input = input, react_history = "")
         thought = response.thought
-        action = response.name
-        params = response.args
-        obs = call(self.tools, response) # type: ignore
+        action = response.action.name
+        params = response.action.args
+        obs = call(self.tools, response.action)
         act = Action(thought, action, params, obs)
         logger.success(act.info)
         while not act.done:
@@ -73,9 +76,9 @@ class ReActChain(LLM[GenericResponseType]):
             logger.debug(f"{input}\n{react_history}")
             response = self.reactllm(input = input, react_history = react_history)
             thought = response.thought
-            action = response.name
-            params = response.args
-            obs = call(self.tools, response) # type: ignore
+            action = response.action.name
+            params = response.action.args
+            obs = call(self.tools, response.action)
             act = Action(thought, action, params, obs)
             logger.success(act.info)
         response = act.params["response"]
