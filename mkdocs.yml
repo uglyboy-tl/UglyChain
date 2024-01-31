@@ -16,7 +16,7 @@ site_url: https://uglyboy-tl.github.io/UglyChain/
 
 nav:
   - 主页:
-    - 介绍: introduction.md
+    - 介绍: index.md
     - 快速开始: quickstart.md
   - 入门:
     - 安装: install.md
