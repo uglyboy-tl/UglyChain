@@ -18,6 +18,7 @@ nav:
   - 主页:
     - 介绍: index.md
     - 快速开始: quickstart.md
+    - 路线图: roadmap.md
   - 入门:
     - 安装: install.md
     - 配置: config.md
@@ -28,6 +29,7 @@ nav:
   - Agent:
     - Tools: tools.md
     - ReAct: react.md
+    - Retriever: retriever.md
   - 参考: examples.md
   - 关于: about.md
 

@@ -1,4 +1,4 @@
-from .chains import LLM, MapChain, ReAct, ReActChain, ReduceChain
+from .chains import LLM, MapChain, ReActChain, ReduceChain
 from .llm import BaseLanguageModel, Model
 from .retrievers import BaseRetriever, StoresRetriever
 
@@ -11,7 +11,6 @@ __all__ = [
     "MapChain",
     "ReduceChain",
     "ReActChain",
-    "ReAct",
     "BaseRetriever",
     "StoresRetriever",
 ]

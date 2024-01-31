@@ -1,7 +1,7 @@
 from .base import Chain
 from .llm import LLM, GenericResponseType
 from .map import MapChain
-from .react import ReAct, ReActChain
+from .react_bad import ReActChain
 from .reduce import ReduceChain
 
 __all__ = [
@@ -9,7 +9,6 @@ __all__ = [
     "LLM",
     "MapChain",
     "ReduceChain",
-    "ReAct",
     "ReActChain",
     "GenericResponseType",
 ]
