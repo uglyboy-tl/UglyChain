@@ -112,7 +112,7 @@ class ReActChain(LLM[GenericResponseType]):
         input = self.prompt.format(**inputs)
         assert self.tools is not None, "tools must be set"
         react_response = self.llmchain(input=input, react_history="", tools = self.tools_schema, tool_names=self.tool_names)
-        logger.debug(f"{react_response}")
+        logger.trace(f"{react_response}")
         response = self.formatchain(react_response)
         thought = response.thought
         action = response.action.name
@@ -127,9 +127,8 @@ class ReActChain(LLM[GenericResponseType]):
             react_history = (
                 "\n".join(str(a) for a in self._acts)
             )
-            logger.debug(f"{input}\n{react_history}")
             react_response = self.llmchain(input=input, react_history=react_history, tools = self.tools_schema, tool_names=self.tool_names)
-            logger.debug(f"{react_response}")
+            logger.trace(f"{react_response}")
             response = self.formatchain(react_response)
             thought = response.thought
             action = response.action.name
