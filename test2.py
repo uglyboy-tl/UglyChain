@@ -1,22 +1,22 @@
 import sys
 from enum import Enum
-from typing import Callable, List, Union
+from typing import Callable, List
 
 from loguru import logger
 from pydantic import BaseModel
 
-from examples.instructor import UserDetail
 from uglychain import LLM, Model
-from uglychain.chains.react_new import ReActChain, final_answer
-from uglychain.llm.instructor import PYDANTIC_FORMAT_INSTRUCTIONS, Instructor
-from uglychain.llm.tools import FunctionCall, tools_schema
+from uglychain.chains.react_new import ReActChain, finish
+from uglychain.llm.tools import ActionResopnse, FunctionCall, tools_schema
 
 logger.remove()
 logger.add(sink=sys.stdout, level="TRACE")
 
+
 class Done(BaseModel):
     thought: str
     final_answer: str
+
 
 def call(tools: List[Callable], response: FunctionCall):
     for tool in tools:
@@ -66,7 +66,8 @@ def search_bing(query: str) -> str:
     """
     return f"{query}是一个技术博主"
 
-REACT="""
+
+REACT = """
 Assistant is a large language model trained by OpenAI.
 
 Assistant is designed to be able to assist with a wide range of tasks, from answering simple questions to providing in-depth explanations and discussions on a wide range of topics. As a language model, Assistant is able to generate human-like text based on the input it receives, allowing it to engage in natural-sounding conversations and provide responses that are coherent and relevant to the topic at hand.
@@ -104,17 +105,38 @@ New input: {input}
 {history}
 """
 
+
 def llm(model: Model | None = None):
-    tools: List[Callable] = [final_answer, get_current_weather, search_baidu]
+    if model:
+        llm = LLM(model=model)
+    else:
+        llm = LLM()
+    response = llm("Hi!")
+    logger.info(response)
+
+
+def base_react(model: Model | None = None):
+    tools: List[Callable] = [finish, get_current_weather, search_baidu]
     tool_names = [tool.__name__ for tool in tools]
-    #instructor = Instructor.from_BaseModel(FunctionCall)
-    #instructor_prompt = instructor.get_format_instructions()
+    # instructor = Instructor.from_BaseModel(FunctionCall)
+    # instructor_prompt = instructor.get_format_instructions()
     if model:
         llm = LLM(REACT, model=model)
     else:
         llm = LLM(REACT)
-    response = llm(tools = tools_schema(tools), input ="What's the weather in San Francisco?", history = "Thought: Do I need to use a tool? Yes\nAction: search_baidu\nAction Input: 牛顿生于哪一年\nObservation: According to the search results, Newton was born in 1643.",tool_names = tool_names)
+    response = llm(
+        tools=tools_schema(tools),
+        input="What's the weather in San Francisco?",
+        history="Thought: I need to use the get_current_weather tool to get the current weather in San Francisco.\nAction: get_current_weather\nAction Input: {'location': 'San Francisco, CA', 'unit': 'FAHRENHEIT'}\nObservation: 晴天，25华氏度",
+        tool_names=tool_names,
+    )
     logger.success(response)
+    if model:
+        llm1 = LLM(model=model,response_model=ActionResopnse)
+    else:
+        llm1 = LLM(response_model=ActionResopnse)
+    logger.success(llm1(response))
+
 
 def react(model: Model | None = None):
     tools: List[Callable] = [get_current_weather, search_baidu]
@@ -123,9 +145,12 @@ def react(model: Model | None = None):
     else:
         llm = ReActChain(tools=tools)
 
-    response = llm("牛顿生于哪一年")
+    # response = llm("牛顿生于哪一年")
+    response = llm("What's the weather in San Francisco?")
     logger.info(response)
 
+
 if __name__ == "__main__":
-    #llm(Model.YI_32K)
-    react(Model.YI_32K)
+    # llm(Model.GEMINI)
+    base_react(Model.YI_32K)
+    # react(Model.GPT3_TURBO)
