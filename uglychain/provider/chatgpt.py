@@ -1,9 +1,11 @@
+import json
 from dataclasses import dataclass
-from typing import Callable, List, Optional, Type
+from typing import Any, Callable, Dict, List, Optional, Type
 
 from loguru import logger
 from pydantic import BaseModel
 
+from uglychain.llm.tools import tools_schema
 from uglychain.utils import config
 
 from .openai_api import ChatGPTAPI
@@ -15,6 +17,7 @@ class ChatGPT(ChatGPTAPI):
     base_url: str = config.openai_api_base
     name: str = "OpenAI"
     use_max_tokens: bool = True
+    use_openai_tools: bool = False
 
     def generate(
         self,
@@ -26,6 +29,8 @@ class ChatGPT(ChatGPTAPI):
         if response_model and self.model in [
             "gpt-3.5-turbo-1106",
             "gpt-4-turbo-preview",
+            "gpt-4-1106-preview",
+            "gpt-4-0125-preview"
         ]:
             kwargs["response_format"] = {"type": "json_object"}
         try:
@@ -46,7 +51,26 @@ class ChatGPT(ChatGPTAPI):
                 raise e
 
         logger.trace(f"kwargs:{kwargs}\nresponse:{response}")
+        if self.use_openai_tools and tools and response.choices[0].message.tool_calls:
+            result = response.choices[0].message.tool_calls[0].function
+            return json.dumps({"name": result.name, "args": json.loads(result.arguments)})
         return response.choices[0].message.content.strip()
+
+    def get_kwargs(
+        self,
+        prompt: str,
+        response_model: Optional[Type],
+        tools: Optional[List[Callable]],
+    ) -> Dict[str, Any]:
+        if self.use_openai_tools and tools:
+            self._generate_validation()
+            self._generate_messages(prompt)
+            params = self.default_params
+            params["tools"] = tools_schema(tools,True)
+            kwargs = {"messages": self.messages, **params}
+            return kwargs
+        else:
+            return super().get_kwargs(prompt, response_model, tools)
 
     def _num_tokens(self, messages: list, model: str):
         try:

@@ -133,10 +133,13 @@ def function_schema(func: Callable):
     return function_info
 
 
-def tools_schema(tools: List[Callable]):
+def tools_schema(tools: List[Callable], openai_schema: bool = False):
     tools_schema = []
 
     for tool in tools:
         tool_schema = {"type": "function", "function": function_schema(tool)}
         tools_schema.append(tool_schema)
-    return FUNCTION_CALL_FORMAT.format(tool_schema=tools_schema)
+    if openai_schema:
+        return tools_schema
+    else:
+        return FUNCTION_CALL_FORMAT.format(tool_schema=tools_schema)
