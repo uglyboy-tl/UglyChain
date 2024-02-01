@@ -3,7 +3,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, cast
+from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union, cast
 
 from pydantic import BaseModel
 
@@ -75,6 +75,7 @@ class BaseLanguageModel(ABC):
         prompt: str = "",
         response_model: Optional[Type[T]] = None,
         tools: Optional[List[Callable]] = None,
+        stop: Union[Optional[str], List[str]] = None,
     ) -> Any:
         """Ask a question and return the user's response.
 
@@ -93,6 +94,7 @@ class BaseLanguageModel(ABC):
         prompt: str,
         response_model: Optional[Type[T]],
         tools: Optional[List[Callable]],
+        stop: Union[Optional[str], List[str]],
     ) -> Dict[str, Any]:
         self._generate_validation()
         if tools:
@@ -103,7 +105,9 @@ class BaseLanguageModel(ABC):
             instructor = Instructor.from_BaseModel(response_model)
             prompt += "\n" + instructor.get_format_instructions()
         self._generate_messages(prompt)
-        kwargs = {"messages": self.messages, **self.default_params}
+        if stop and isinstance(stop, str):
+            stop = [stop]
+        kwargs = {"messages": self.messages, "stop": stop, **self.default_params}
         return kwargs
 
     def parse_response(self, response: str, response_model: Type[T]) -> T:

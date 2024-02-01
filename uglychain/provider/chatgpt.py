@@ -1,6 +1,6 @@
 import json
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Type
+from typing import Any, Callable, Dict, List, Optional, Type, Union
 
 from loguru import logger
 from pydantic import BaseModel
@@ -24,8 +24,9 @@ class ChatGPT(ChatGPTAPI):
         prompt: str = "",
         response_model: Optional[Type[BaseModel]] = None,
         tools: Optional[List[Callable]] = None,
+        stop: Union[Optional[str], List[str]] = None,
     ) -> str:
-        kwargs = self.get_kwargs(prompt, response_model, tools)
+        kwargs = self.get_kwargs(prompt, response_model, tools, stop)
         if response_model and self.model in [
             "gpt-3.5-turbo-1106",
             "gpt-4-turbo-preview",
@@ -61,16 +62,17 @@ class ChatGPT(ChatGPTAPI):
         prompt: str,
         response_model: Optional[Type],
         tools: Optional[List[Callable]],
+        stop: Union[Optional[str], List[str]],
     ) -> Dict[str, Any]:
         if self.use_native_tools and tools:
             self._generate_validation()
             self._generate_messages(prompt)
             params = self.default_params
             params["tools"] = tools_schema(tools)
-            kwargs = {"messages": self.messages, **params}
+            kwargs = {"messages": self.messages, "stop": stop, **params}
             return kwargs
         else:
-            return super().get_kwargs(prompt, response_model, tools)
+            return super().get_kwargs(prompt, response_model, tools, stop)
 
     def _num_tokens(self, messages: list, model: str):
         try:

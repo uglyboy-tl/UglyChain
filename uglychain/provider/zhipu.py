@@ -2,7 +2,7 @@
 # -*-coding:utf-8-*-
 
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, Type
+from typing import Any, Callable, Dict, List, Optional, Type, Union
 
 from loguru import logger
 from pydantic import BaseModel
@@ -22,8 +22,17 @@ class ChatGLM(BaseLanguageModel):
         prompt: str = "",
         response_model: Optional[Type[BaseModel]] = None,
         tools: Optional[List[Callable]] = None,
+        stop: Union[Optional[str], List[str]] = None,
     ) -> str:
-        kwargs = self.get_kwargs(prompt, response_model, tools)
+        kwargs = self.get_kwargs(prompt, response_model, tools, stop)
+        if stop:
+            if isinstance(stop, str):
+                kwargs["stop"] = [stop]
+            elif isinstance(stop, list):
+                kwargs["stop"] = stop[0:1]
+            kwargs["stop"] = stop
+        else:
+            kwargs.pop("stop")
         response = self.completion_with_backoff(**kwargs)
         logger.trace(f"kwargs:{kwargs}\nresponse:{response}")
         return response.choices[0].message.content.strip()

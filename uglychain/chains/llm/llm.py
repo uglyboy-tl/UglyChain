@@ -33,6 +33,7 @@ class LLM(Chain, Generic[GenericResponseType]):
     system_prompt: Optional[str] = None
     response_model: Optional[Type[GenericResponseType]] = None
     tools: Optional[List[Callable]] = None
+    stop: Optional[Union[str, List[str]]] = None
     memory_callback: Optional[Callable[[Tuple[str, str]], None]] = None
     is_init_delay: bool = field(init=False, default=False)
     llm: BaseLanguageModel = field(init=False)
@@ -79,7 +80,7 @@ class LLM(Chain, Generic[GenericResponseType]):
         attempts = 0  # 初始化尝试次数
         while attempts < max_retries:
             try:
-                response = self.llm.generate(prompt, self.response_model, self.tools)
+                response = self.llm.generate(prompt, self.response_model, self.tools, self.stop)
                 if self.response_model:
                     instructor_response = self.llm.parse_response(response, self.response_model)
                     if self.tools and instructor_response.action.name not in [tool.__name__ for tool in self.tools]:  # type: ignore

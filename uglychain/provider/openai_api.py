@@ -2,7 +2,7 @@
 # -*-coding:utf-8-*-
 
 from dataclasses import dataclass
-from typing import Callable, List, Optional, Type
+from typing import Callable, List, Optional, Type, Union
 
 import openai
 from loguru import logger
@@ -42,8 +42,9 @@ class ChatGPTAPI(BaseLanguageModel):
         prompt: str = "",
         response_model: Optional[Type[BaseModel]] = None,
         tools: Optional[List[Callable]] = None,
+        stop: Union[Optional[str], List[str]] = None,
     ) -> str:
-        kwargs = self.get_kwargs(prompt, response_model, tools)
+        kwargs = self.get_kwargs(prompt, response_model, tools, stop)
         response = self.completion_with_backoff(**kwargs)
         logger.trace(f"kwargs:{kwargs}\nresponse:{response}")
         return response.choices[0].message.content.strip()

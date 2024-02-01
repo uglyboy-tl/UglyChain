@@ -3,7 +3,7 @@
 
 from dataclasses import dataclass
 from http import HTTPStatus
-from typing import Any, Callable, Dict, List, Optional, Type
+from typing import Any, Callable, Dict, List, Optional, Type, Union
 
 from loguru import logger
 from pydantic import BaseModel
@@ -44,8 +44,9 @@ class DashScope(BaseLanguageModel):
         prompt: str = "",
         response_model: Optional[Type[BaseModel]] = None,
         tools: Optional[List[Callable]] = None,
+        stop: Union[Optional[str], List[str]] = None,
     ) -> str:
-        kwargs = self.get_kwargs(prompt, response_model, tools)
+        kwargs = self.get_kwargs(prompt, response_model, tools, stop)
         try:
             response = self.completion_with_backoff(**kwargs)
         except Exception as e:

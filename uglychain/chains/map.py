@@ -57,7 +57,7 @@ class MapChain(LLM[GenericResponseType]):
             attempts = 0  # 初始化尝试次数
             while attempts < max_retries:
                 try:
-                    response = self.llm.generate(prompt, self.response_model, self.tools)
+                    response = self.llm.generate(prompt, self.response_model, self.tools, self.stop)
                     if self.response_model:
                         instructor_response = self.llm.parse_response(response, self.response_model).model_dump_json()
                         if self.memory_callback:
