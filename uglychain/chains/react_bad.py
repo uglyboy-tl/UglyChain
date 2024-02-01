@@ -52,7 +52,7 @@ New input:
 
 
 def finish(answer: str) -> str:
-    """returns the answer and finishes the task.
+    """When get Final Answer, use this tool to return the answer and finishes the task.
     Args:
         answer (str): The response to return.
     """
@@ -95,16 +95,13 @@ class ReActChain(LLM[GenericResponseType]):
 
     def __post_init__(self):
         self._acts = []
-        # super().__post_init__()
-        if self.system_prompt:
-            self.llm.set_system_prompt(self.system_prompt)
         self.prompt = self.prompt_template
         assert self.tools is not None, "tools must be set"
         self.tools.insert(0, finish)
         self.tools_schema = tools_schema(self.tools)
         self.tool_names = [tool.__name__ for tool in self.tools]
 
-        self.llmchain = LLM(REACT_PROMPT, self.model)
+        self.llmchain = LLM(REACT_PROMPT, self.model, self.system_prompt)
         self.formatchain = LLM(model=self.model, tools=self.tools, response_model=ActionResopnse)
         self.formatchain.llm.use_native_tools = False
 

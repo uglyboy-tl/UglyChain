@@ -1,80 +1,99 @@
 #!/usr/bin/env python3
 # -*-coding:utf-8-*-
 
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import Dict, List, Optional, Type
+from dataclasses import dataclass, field
+from typing import Callable, Dict, List, Union
 
 from loguru import logger
 
-from .llm import LLM, GenericResponseType
+from uglychain.llm.tools import ActionResopnse
+
+from .llm import LLM, FunctionCall, GenericResponseType
+
+
+def finish(answer: str) -> str:
+    """returns the answer and finishes the task.
+    Args:
+        answer (str): The response to return.
+    """
+    return answer
+
+
+def call(tools: List[Callable], response: FunctionCall):
+    for tool in tools:
+        if tool.__name__ == response.name:
+            return tool(**response.args)
+    raise ValueError(f"Can't find tool {response.name}")
 
 
 @dataclass
-class ReAct(ABC):
-    thought: Optional[str] = None
-    action: Optional[str] = None
-    params: Optional[Dict[str, str]] = None
+class Action:
+    thought: str
+    action: str
+    params: Dict
+    obs: str
     current: bool = True
 
-    def __post_init__(self):
-        self.obs = self.run()
-
-    @abstractmethod
-    def run(self) -> str:
-        pass
-
-    @classmethod
-    @abstractmethod
-    def parse(cls, response) -> "ReAct":
-        pass
-
     @property
-    @abstractmethod
     def done(self) -> bool:
-        pass
+        if self.action == "finish":
+            return True
+        else:
+            return False
 
-    @abstractmethod
     def __str__(self) -> str:
-        pass
+        return self.info
 
     @property
     def info(self) -> str:
-        if self.done:
-            return f"[Thought]: {self.thought}"
-        else:
-            return f"[Thought]: {self.thought}\n[Action]: {self.action}\n[Params]: {self.params}\n[Obs]: {self.obs}"
+        return f"Thought: {self.thought}\nAction: {self.action}\nAction Input: {self.params}\nObservation: {self.obs}"
 
 
 @dataclass
 class ReActChain(LLM[GenericResponseType]):
-    reactType: Optional[Type[ReAct]] = None
+    llmchain: LLM = field(init=False)
 
     def __post_init__(self):
         self._acts = []
-        super().__post_init__()
-        assert self.reactType is not None, "cls must be set"
+        # super().__post_init__()
+        self.prompt = self.prompt_template
+        assert self.tools is not None, "tools must be set"
+        self.tools.insert(0, finish)
+        self.llmchain = LLM(
+            """Question: {input}\n{react_history}""",
+            self.model,
+            self.system_prompt,
+            tools=self.tools,
+            response_model=ActionResopnse,
+        )
+        self.llmchain.llm.use_native_tools = False
 
-    @property
-    def input_keys(self) -> List[str]:
-        return ["prompt"]
-
-    def _process(self, act: ReAct) -> str:
+    def _call(self, inputs: Dict[str, str]) -> Union[str, GenericResponseType]:
+        input = self.prompt.format(**inputs)
+        assert self.tools is not None, "tools must be set"
+        response = self.llmchain(input=input, react_history="")
+        thought = response.thought
+        action = response.action.name
+        params = response.action.args
+        obs = call(self.tools, response.action)
+        act = Action(thought, action, params, obs)
         logger.success(act.info)
         while not act.done:
             if self._acts:
                 self._acts[-1].current = False
             self._acts.append(act)
-            inputs = {"prompt": "\n".join(str(a) for a in self._acts)}
-            response = self._call(inputs)
-            act = self.reactType.parse(response)  # type: ignore
+            react_history = "\n".join(str(a) for a in self._acts)
+            # logger.debug(f"{input}\n{react_history}")
+            response = self.llmchain(input=input, react_history=react_history)
+            thought = response.thought
+            action = response.action.name
+            params = response.action.args
+            obs = call(self.tools, response.action)
+            act = Action(thought, action, params, obs)
             logger.success(act.info)
-        return act.info
-
-    def __call__(self, act: Optional[ReAct] = None) -> str:
-        if act is None:
-            inputs = {"prompt": "Start!"}
-            inputs = self._prep_inputs(inputs)
-            response = self._call(inputs)
-            act = self.reactType.parse(response)  # type: ignore
-        return self._process(act)
+        response = obs
+        if self.response_model:
+            llm = LLM(model=self.model, response_model=self.response_model)
+            return llm(response)
+        else:
+            return response
