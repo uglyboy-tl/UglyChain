@@ -39,6 +39,7 @@ def test_react1(model):
     response = llm("What's the weather in San Francisco?")
     assert response.find("25") >= 0
 
+
 @pytest.mark.parametrize("model", [Model.GPT3_TURBO, Model.YI_32K, Model.QWEN, Model.GLM3])
 def test_react2(model):
     tools: List[Callable] = [get_current_weather, search_baidu]

@@ -101,17 +101,19 @@ class ReActChain(LLM[GenericResponseType]):
         self.prompt = self.prompt_template
         assert self.tools is not None, "tools must be set"
         self.tools.insert(0, finish)
-        self.tools_schema=tools_schema(self.tools)
-        self.tool_names=[tool.__name__ for tool in self.tools]
+        self.tools_schema = tools_schema(self.tools)
+        self.tool_names = [tool.__name__ for tool in self.tools]
 
         self.llmchain = LLM(REACT_PROMPT, self.model)
-        self.formatchain = LLM(model=self.model,tools=self.tools, response_model=ActionResopnse)
+        self.formatchain = LLM(model=self.model, tools=self.tools, response_model=ActionResopnse)
         self.formatchain.llm.use_native_tools = False
 
     def _call(self, inputs: Dict[str, str]) -> Union[str, GenericResponseType]:
         input = self.prompt.format(**inputs)
         assert self.tools is not None, "tools must be set"
-        react_response = self.llmchain(input=input, react_history="", tools = self.tools_schema, tool_names=self.tool_names)
+        react_response = self.llmchain(
+            input=input, react_history="", tools=self.tools_schema, tool_names=self.tool_names
+        )
         logger.trace(f"{react_response}")
         response = self.formatchain(react_response)
         thought = response.thought
@@ -124,10 +126,10 @@ class ReActChain(LLM[GenericResponseType]):
             if self._acts:
                 self._acts[-1].current = False
             self._acts.append(act)
-            react_history = (
-                "\n".join(str(a) for a in self._acts)
+            react_history = "\n".join(str(a) for a in self._acts)
+            react_response = self.llmchain(
+                input=input, react_history=react_history, tools=self.tools_schema, tool_names=self.tool_names
             )
-            react_response = self.llmchain(input=input, react_history=react_history, tools = self.tools_schema, tool_names=self.tool_names)
             logger.trace(f"{react_response}")
             response = self.formatchain(react_response)
             thought = response.thought

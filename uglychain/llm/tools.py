@@ -10,9 +10,11 @@ class FunctionCall(BaseModel):
     name: str = Field(..., description="tool name")
     args: dict = Field(..., description="tool arguments")
 
+
 class ActionResopnse(BaseModel):
     thought: str = Field(..., description="Think step by step and explan why you need to use a tool")
     action: FunctionCall = Field(..., description="The action to take")
+
 
 FUNCTION_CALL_FORMAT = """
 -----

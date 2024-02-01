@@ -82,8 +82,8 @@ class LLM(Chain, Generic[GenericResponseType]):
                 response = self.llm.generate(prompt, self.response_model, self.tools)
                 if self.response_model:
                     instructor_response = self.llm.parse_response(response, self.response_model)
-                    if self.tools and instructor_response.action.name not in [tool.__name__ for tool in self.tools]: # type: ignore
-                        raise ParseError(f"Tool {instructor_response.action.name} not found") # type: ignore
+                    if self.tools and instructor_response.action.name not in [tool.__name__ for tool in self.tools]:  # type: ignore
+                        raise ParseError(f"Tool {instructor_response.action.name} not found")  # type: ignore
                     if self.memory_callback:
                         self.memory_callback((prompt, response))
                     return instructor_response
