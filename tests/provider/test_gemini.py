@@ -1,6 +1,6 @@
 import pytest
 
-from examples.instructor import Gender, UserDetail
+from examples.schema import Gender, UserDetail
 from uglychain import LLM, Model
 
 

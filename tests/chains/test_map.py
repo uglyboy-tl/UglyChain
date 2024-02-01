@@ -1,4 +1,4 @@
-from examples.instructor import AUTHOR
+from examples.schema import AUTHOR
 from uglychain import MapChain
 
 

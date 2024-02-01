@@ -1,6 +1,6 @@
 from loguru import logger
 
-from examples.instructor import UserDetail
+from examples.schema import UserDetail
 from uglychain import LLM, Model
 
 
