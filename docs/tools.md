@@ -86,6 +86,7 @@ for tool in tools:
 ### 如果不确定是否需要调用函数
 
 可以引入一个直接返回结果的函数
+
 ```python
 from uglychain.chains.react_bad import finish
 
