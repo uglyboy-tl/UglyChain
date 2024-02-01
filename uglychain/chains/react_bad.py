@@ -101,7 +101,7 @@ class ReActChain(LLM[GenericResponseType]):
         self.tools_schema = tools_schema(self.tools)
         self.tool_names = [tool.__name__ for tool in self.tools]
 
-        self.llmchain = LLM(REACT_PROMPT, self.model, self.system_prompt)
+        self.llmchain = LLM(REACT_PROMPT, self.model, self.system_prompt, stop="Observation:")
         self.formatchain = LLM(model=self.model, tools=self.tools, response_model=ActionResopnse)
         self.formatchain.llm.use_native_tools = False
 
