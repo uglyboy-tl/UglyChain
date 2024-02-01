@@ -26,14 +26,6 @@ class BaseWorker(ABC):
     storage: Optional[Storage] = None
     llm: Optional[LLM] = None
 
-    def __post_init__(self):
-        """Post initialization method.
-
-        Sets the system of the LLMChain object if a role is provided.
-        """
-        if not self.llm:
-            self.llm = LLM(self.prompt, self.model, self.role)
-
     def _ask(self, *args, **kwargs) -> Any:
         """Ask a question to the LLMChain object.
 
@@ -56,4 +48,5 @@ class BaseWorker(ABC):
             *args: Positional arguments.
             **kwargs: Keyword arguments.
         """
-        pass
+        if not self.llm:
+            self.llm = LLM(self.prompt, self.model, self.role)
