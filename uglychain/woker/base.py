@@ -50,3 +50,6 @@ class BaseWorker(ABC):
         """
         if not self.llm:
             self.llm = LLM(self.prompt, self.model, self.role)
+        response = self._ask(*args, **kwargs)
+        if self.storage:
+            self.storage.save(response)
