@@ -6,7 +6,7 @@ from typing import Optional
 
 from loguru import logger
 
-from uglychain import LLM
+from uglychain import LLM, Model
 from uglychain.retrievers import BaseRetriever, get_retriever
 from uglychain.tools import run_code
 
@@ -47,6 +47,7 @@ PROMPT = """# Recommended Procedures
 class CodeInterpreter(BaseWorker):
     role: str = field(init=False)
     prompt: str = "Question: {question}"
+    model: Model = Model.GPT4_TURBO
     use_retriever: bool = False
     retriever: Optional[BaseRetriever] = field(init=False, default=None)
 
