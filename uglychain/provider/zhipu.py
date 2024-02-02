@@ -34,7 +34,7 @@ class ChatGLM(BaseLanguageModel):
         else:
             kwargs.pop("stop")
         response = self.completion_with_backoff(**kwargs)
-        logger.trace(f"kwargs:{kwargs}\nresponse:{response}")
+        logger.trace(f"kwargs:{kwargs}\nresponse:{response.choices[0].dict()}")
         return response.choices[0].message.content.strip()
 
     @property

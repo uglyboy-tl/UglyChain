@@ -50,7 +50,7 @@ class ChatGPT(ChatGPTAPI):
             else:
                 raise e
 
-        logger.trace(f"kwargs:{kwargs}\nresponse:{response}")
+        logger.trace(f"kwargs:{kwargs}\nresponse:{response.choices[0].dict()}")
         if self.use_native_tools and tools and response.choices[0].message.tool_calls:
             result = response.choices[0].message.tool_calls[0].function
             return json.dumps({"name": result.name, "args": json.loads(result.arguments)})
@@ -68,6 +68,8 @@ class ChatGPT(ChatGPTAPI):
             self._generate_messages(prompt)
             params = self.default_params
             params["tools"] = tools_schema(tools)
+            if len(tools) == 1:
+                params["tool_choice"] = {"type": "function", "function": {"name": tools[0].__name__}}
             kwargs = {"messages": self.messages, "stop": stop, **params}
             return kwargs
         else:

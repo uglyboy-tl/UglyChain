@@ -62,7 +62,7 @@ class DashScope(BaseLanguageModel):
             else:
                 raise e
 
-        logger.trace(f"kwargs:{kwargs}\nresponse:{response}")
+        logger.trace(f"kwargs:{kwargs}\nresponse:{response.output.choices[0]}")
         return response.output.choices[0].message.content.strip()
 
     @retry_decorator(not_notry_exception)
