@@ -46,6 +46,8 @@ class Action:
 
     @property
     def info(self) -> str:
+        if self.done:
+            return f"Thought: {self.thought}\nAction: Finish\nObservation: {self.obs}"
         return f"Thought: {self.thought}\nAction: {self.action}\nAction Input: {self.params}\nObservation: {self.obs}"
 
 
