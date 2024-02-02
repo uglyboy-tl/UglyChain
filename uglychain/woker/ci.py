@@ -40,32 +40,33 @@ PROMPT = """# Recommended Procedures
 {relevant_procedures}
 ---
 
-{question}
 """
 
 
 @dataclass
 class CodeInterpreter(BaseWorker):
-    role: Optional[str] = ROLE.format(
-        username=getpass.getuser(), current_working_directory=os.getcwd(), operating_system=platform.system()
-    )
-    prompt: str = PROMPT
+    role: str = field(init=False)
+    prompt: str = "Question: {question}"
     use_retriever: bool = False
     retriever: Optional[BaseRetriever] = field(init=False, default=None)
 
     def __post_init__(self):
         if self.use_retriever:
             self.retriever = get_retriever("open_procedures")
+            self.prompt = PROMPT + self.prompt
+        self.role = ROLE.format(
+            username=getpass.getuser(), current_working_directory=os.getcwd(), operating_system=platform.system()
+        )
 
     def run(self, question: str):
         if not self.llm:
             self.llm = LLM(self.prompt, self.model, self.role, tools=[run_code])
         if self.retriever:
             relevant_procedures = self.retriever.get(query=question)
+            logger.trace(f"Relevant procedures: {relevant_procedures}")
+            response = self._ask(question=question, relevant_procedures=relevant_procedures)
         else:
-            relevant_procedures = ""
-        logger.trace(f"Relevant procedures: {relevant_procedures}")
-        response = self._ask(question=question, relevant_procedures=relevant_procedures)
+            response = self._ask(question=question)
         if self.storage:
             self.storage.save(response)
         return response

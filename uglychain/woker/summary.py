@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Optional, Union
 
 from uglychain import LLM, MapChain, ReduceChain
@@ -53,18 +53,17 @@ SUMMARY:
 @dataclass
 class Summary(BaseWorker):
     role: Optional[str] = ROLE
-    prompt: str = PROMPT
+    prompt: str = field(init=False)
     char_limit: int = 1000
     use_reduce: bool = False
 
     def run(self, input: Union[str, List[str]]):
         if isinstance(input, str) and (not self.llm or isinstance(self.llm, MapChain)):
             if self.use_reduce:
-                self.prompt = REDUCE_PROMPT
                 input = [input[i * 2000 : (i + 1) * 2000 + 200] for i in range(len(input) // 2000 + 1)]
-                self.llm = ReduceChain(self.prompt, self.model, self.role, reduce_keys=["input"])
+                self.llm = ReduceChain(REDUCE_PROMPT, self.model, self.role, reduce_keys=["input"])
             else:
-                self.llm = LLM(self.prompt, self.model, self.role)
+                self.llm = LLM(PROMPT, self.model, self.role)
         elif isinstance(input, list) and (not self.llm or isinstance(self.llm, LLM)):
             self.llm = MapChain(
                 self.prompt,
