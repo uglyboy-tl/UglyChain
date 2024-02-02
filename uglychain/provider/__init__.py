@@ -14,10 +14,9 @@ from .yi import Yi
 from .zhipu import ChatGLM
 
 LLM_PROVIDERS = {
-    "gpt-3.5-turbo": (ChatGPT, {"model": "gpt-3.5-turbo-1106", "MAX_TOKENS": 4096}),
-    "gpt-3.5-turbo-16k": (ChatGPT, {"model": "gpt-3.5-turbo-16k", "MAX_TOKENS": 16384}),
+    "gpt-3.5-turbo": (ChatGPT, {"model": "gpt-3.5-turbo-0125", "MAX_TOKENS": 16384}),
     "gpt-4": (ChatGPT, {"model": "gpt-4", "MAX_TOKENS": 8192}),
-    "gpt-4-turbo": (ChatGPT, {"model": "gpt-4-turbo-preview", "MAX_TOKENS": 4096}),
+    "gpt-4-turbo": (ChatGPT, {"model": "gpt-4-turbo-preview", "MAX_TOKENS": 128000}),
     "copilot-3.5": (Copilot, {"model": "gpt-3.5-turbo"}),
     "copilot-4": (Copilot, {"model": "gpt-4"}),
     "yi": (Yi, {"model": "yi-34b-chat-v08"}),

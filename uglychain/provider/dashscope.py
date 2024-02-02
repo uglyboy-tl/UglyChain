@@ -51,7 +51,7 @@ class DashScope(BaseLanguageModel):
             response = self.completion_with_backoff(**kwargs)
         except Exception as e:
             if "Range of input length" in str(e) or "Prompt is too long." in str(e):
-                if self.model == "qwen-max":
+                if self.model != "qwen-max-longcontext":
                     kwargs["model"] = "qwen-max-longcontext"
                 else:
                     raise e
@@ -127,12 +127,6 @@ class DashScope(BaseLanguageModel):
 
     @property
     def max_tokens(self):
-        # add 1000 tokens for answers
-        tokens = self._num_tokens(messages=self.messages, model=self.model)
-        if not self.MAX_TOKENS > tokens:
-            raise Exception(
-                f"Prompt is too long. This model's maximum context length is {self.MAX_TOKENS} tokens. your messages required {tokens} tokens"
-            )
         if self.model == "qwen-turbo":
             return 1500
         return 2000

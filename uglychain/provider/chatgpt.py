@@ -38,10 +38,9 @@ class ChatGPT(ChatGPTAPI):
             response = self.completion_with_backoff(**kwargs)
         except Exception as e:
             if "maximum context length" in str(e) and self.name == "OpenAI":
-                if self.model == "gpt-3.5-turbo-1106":
-                    kwargs["model"] = "gpt-3.5-turbo-16k"
-                elif self.model == "gpt-4":
+                if self.model != "gpt-4-turbo-preview":
                     kwargs["model"] = "gpt-4-turbo-preview"
+                    kwargs["max_tokens"] = 4096
                 else:
                     raise e
                 logger.warning(
@@ -79,22 +78,21 @@ class ChatGPT(ChatGPTAPI):
             import tiktoken
         except ImportError as e:
             raise ImportError("You need to install `pip install tiktoken` to use `use_max_tokens` param.") from e
-        if model == "gpt-3.5-turbo" or model == "gpt-3.5-turbo-16k" or model == "gpt-3.5-turbo-1106":
-            logger.trace("gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0613.")
-            return self._num_tokens(messages, model="gpt-3.5-turbo-0613")
-        elif (
-            model == "gpt-4" or model == "gpt-4-32k" or model == "gpt-4-1106-preview" or model == "gpt-4-turbo-preview"
-        ):
-            logger.trace("gpt-4 may change over time. Returning num tokens assuming gpt-4-0613.")
-            return self._num_tokens(messages, model="gpt-4-0613")
-        elif model == "gpt-3.5-turbo-0613":
+        if model == "gpt-3.5-turbo-1106":
             # every message follows <|start|>{role/name}\n{content}<|end|>\n
             tokens_per_message = 4
             tokens_per_name = -1  # if there's a name, the role is omitted
         elif model == "gpt-4-0613":
             tokens_per_message = 3
             tokens_per_name = 1
+        elif model.find("gpt-3.5") != -1:
+            logger.trace("gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-1106.")
+            return self._num_tokens(messages, model="gpt-3.5-turbo-1106")
+        elif model.find("gpt-4") != -1:
+            logger.trace("gpt-4 may change over time. Returning num tokens assuming gpt-4-0613.")
+            return self._num_tokens(messages, model="gpt-4-0613")
         else:
+            logger.debug(model.find("gpt-3.5"))
             raise NotImplementedError(
                 f"""num_tokens() is not implemented for model {model}. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how messages are converted to tokens."""
             )
@@ -116,11 +114,7 @@ class ChatGPT(ChatGPTAPI):
     @property
     def max_tokens(self):
         tokens = self._num_tokens(messages=self.messages, model=self.model) + 1000  # add 1000 tokens for answers
-        if not self.MAX_TOKENS > tokens:
-            raise Exception(
-                f"Prompt is too long. This model's maximum context length is {self.MAX_TOKENS} tokens. your messages required {tokens} tokens"
-            )
-        max_tokens = self.MAX_TOKENS - tokens + 1000
+        max_tokens = max(self.MAX_TOKENS - tokens + 1000, 1)
         if self.model == "gpt-4-1106-preview":
             return 4096 if max_tokens > 4096 else max_tokens
         return max_tokens

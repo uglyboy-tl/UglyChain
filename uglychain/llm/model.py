@@ -5,7 +5,6 @@ from uglychain.utils import config
 
 class Model(Enum):
     GPT3_TURBO = "gpt-3.5-turbo"
-    GPT3_TURBO_16K = "gpt-3.5-turbo-16k"
     GPT4 = "gpt-4"
     GPT4_TURBO = "gpt-4-turbo"
     COPILOT3_TURBO = "copilot-3.5"
