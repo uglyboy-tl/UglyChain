@@ -53,3 +53,4 @@ class BaseWorker(ABC):
         response = self._ask(*args, **kwargs)
         if self.storage:
             self.storage.save(response)
+        return response
