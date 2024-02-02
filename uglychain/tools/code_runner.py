@@ -11,12 +11,13 @@ from .languages.shell import Shell
 
 @unique
 class Language(Enum):
-    Python = "python"
     Shell = "shell"
-    AppleScript = "applescript"
-    JavaScript = "javascript"
-    HTML = "html"
     PowerShell = "powershell"
+    AppleScript = "applescript"
+    # Python = "python"
+    R = "r"
+    JavaScript = "javascript"
+    # HTML = "html"
 
 
 LANGUAGES = [
