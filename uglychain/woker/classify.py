@@ -7,6 +7,8 @@ from uglychain import LLM, MapChain
 
 from .base import BaseWorker
 
+ROLE = """You are an expert classifier who can help me."""
+
 PROMPT = """请对下面的文本进行分类：
 ```text
 {input}
@@ -17,6 +19,7 @@ PROMPT = """请对下面的文本进行分类：
 
 @dataclass
 class Classify(BaseWorker):
+    role: Optional[str] = ROLE
     prompt: str = PROMPT
     label: Optional[Type[BaseModel]] = None
     samples: Optional[Dict[str, str]] = None
