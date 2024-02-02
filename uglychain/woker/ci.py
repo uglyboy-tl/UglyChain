@@ -2,13 +2,13 @@ import getpass
 import os
 import platform
 from dataclasses import dataclass, field
-from enum import Enum, unique
 from typing import Optional
 
 from loguru import logger
 
 from uglychain import LLM
 from uglychain.retrievers import BaseRetriever, get_retriever
+from uglychain.tools import run_code
 
 from .base import BaseWorker
 
@@ -60,25 +60,6 @@ In your plan, include steps and, if present, **EXACT CODE SNIPPETS** (especially
 
 {question}
 """
-
-
-@unique
-class Language(Enum):
-    Python = "python"
-    Shell = "shell"
-    AppleScript = "applescript"
-    JavaScript = "javascript"
-    HTML = "html"
-
-
-def run_code(language: Language, code: str):
-    """Executes code on the user's machine and returns the output
-
-    Args:
-        language (str): The programming language
-        code (str): The code to execute
-    """
-    pass
 
 
 @dataclass
