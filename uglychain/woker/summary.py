@@ -72,7 +72,7 @@ class Summary(BaseWorker):
                 self.role,
                 map_keys=["input"],
             )
-            input = [i[:20000] for i in input]  # 20k tokens limit
+            input = [i[:30000] for i in input]  # 20k tokens limit
         kwargs = {"input": input, "char_limit": self.char_limit}
         response = self._ask(**kwargs)
         return response
