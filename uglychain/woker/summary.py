@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Optional, Union
 
-from uglychain import LLM, MapChain
+from uglychain import LLM, MapChain, ReduceChain
 
 from .base import BaseWorker
 
@@ -29,16 +29,42 @@ CONTEXT: {input}
 SUMMARY:
 """
 
+REDUCE_PROMPT = """
+AI, you are provided with a previous summary, as well as additional message that were not included in the original summary.
+If the previous summary is empty, your task is to create a summary based solely on the new interactions.
+
+Previous Summary:
+```text
+{history}
+```
+
+New Interactions:
+```text
+{input}
+```
+
+If the previous summary is not empty, your final summary should integrate the new interactions into the existing summary to create a comprehensive recap of all interactions.
+Please ensure that the final summary does not exceed {char_limit} characters.
+
+SUMMARY:
+"""
+
 
 @dataclass
 class Summary(BaseWorker):
     role: Optional[str] = ROLE
     prompt: str = PROMPT
     char_limit: int = 1000
+    use_reduce: bool = False
 
     def run(self, input: Union[str, List[str]]):
         if isinstance(input, str) and (not self.llm or isinstance(self.llm, MapChain)):
-            self.llm = LLM(self.prompt, self.model, self.role)
+            if self.use_reduce:
+                self.prompt = REDUCE_PROMPT
+                input = [input[i * 2000 : (i + 1) * 2000 + 200] for i in range(len(input) // 2000 + 1)]
+                self.llm = ReduceChain(self.prompt, self.model, self.role, reduce_keys=["input"])
+            else:
+                self.llm = LLM(self.prompt, self.model, self.role)
         elif isinstance(input, list) and (not self.llm or isinstance(self.llm, LLM)):
             self.llm = MapChain(
                 self.prompt,
