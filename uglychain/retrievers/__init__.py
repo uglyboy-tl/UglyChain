@@ -5,6 +5,7 @@ from .arxiv import ArxivRetriever
 from .base import BaseRetriever, StoresRetriever
 from .bing import BingRetriever
 from .llama_index import LlamaIndexGraphRetriever, LlamaIndexRetriever
+from .open_procedures import OpenProceduresRetriever
 
 try:
     from .bm25 import BM25Retriever
@@ -14,6 +15,7 @@ except ImportError:
 RETRIEVERS = {
     "bing": BingRetriever,
     "arxiv": ArxivRetriever,
+    "open_procedures": OpenProceduresRetriever,
     "llama_index": LlamaIndexRetriever,
     "llama_index_graph": LlamaIndexGraphRetriever,
 }
