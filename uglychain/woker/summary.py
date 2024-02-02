@@ -66,7 +66,7 @@ class Summary(BaseWorker):
                 self.llm = LLM(PROMPT, self.model, self.role)
         elif isinstance(input, list) and (not self.llm or isinstance(self.llm, LLM)):
             self.llm = MapChain(
-                self.prompt,
+                PROMPT,
                 self.model,
                 self.role,
                 map_keys=["input"],
