@@ -73,7 +73,7 @@ def react(model: Model | None = None):
 
         llm = ReActChain(system_prompt=system_prompt, tools=tools)
 
-    response = llm("更新系统的软件包。")
+    response = llm("What operating system are we on?")
     # response = llm("What's the weather in San Francisco?")
     logger.info(response)
 
