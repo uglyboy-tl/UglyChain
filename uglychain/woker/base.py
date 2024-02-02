@@ -2,7 +2,7 @@
 # -*-coding:utf-8-*-
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Optional
 
 from uglychain import LLM, Model
@@ -24,7 +24,7 @@ class BaseWorker(ABC):
     prompt: str = "{prompt}"
     model: Model = Model.DEFAULT
     storage: Optional[Storage] = None
-    llm: Optional[LLM] = None
+    llm: Optional[LLM] = field(default=None, init=False)
 
     def _ask(self, *args, **kwargs) -> Any:
         """Ask a question to the LLMChain object.
