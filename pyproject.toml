@@ -4,6 +4,8 @@ version = "0.0.4"
 description = "UglyChain：更好用的 LLM 应用构建工具"
 authors = ["uglyboy <uglyboy@uglyboy.cn>"]
 readme = "README.md"
+repository = "https://github.com/uglyboy-tl/uglychain"
+documentation = "https://uglychain.uglyboy.cn"
 
 [tool.poetry.dependencies]
 python = "^3.11"
