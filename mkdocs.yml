@@ -35,6 +35,7 @@ nav:
     - Summary: Worker/summary.md
     - Classify: Worker/classify.md
     - Plan: Worker/plan.md
+    - Code Interpreter: Worker/ci.md
     - Code: Worker/code.md
     - Fix: Worker/fix.md
     - Continue: Worker/continue.md
