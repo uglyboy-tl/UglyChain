@@ -115,6 +115,4 @@ class ChatGPT(ChatGPTAPI):
     def max_tokens(self):
         tokens = self._num_tokens(messages=self.messages, model=self.model) + 1000  # add 1000 tokens for answers
         max_tokens = max(self.MAX_TOKENS - tokens + 1000, 1)
-        if self.model == "gpt-4-1106-preview":
-            return 4096 if max_tokens > 4096 else max_tokens
-        return max_tokens
+        return 4096 if max_tokens > 4096 else max_tokens
