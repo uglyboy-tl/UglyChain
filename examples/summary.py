@@ -8,7 +8,7 @@ from uglychain.woker.summary import Summary
 # logger.remove()
 # logger.add(sink=sys.stdout, level="TRACE")
 
-worker = Summary("你是一个总结专家。", model=Model.YI_32K)
+worker = Summary(model=Model.YI_32K, use_reduce=True, char_limit=1000)
 with open("examples/summary.md") as f:
     input = f.read()
     logger.info(worker.run(input))
