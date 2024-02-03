@@ -53,7 +53,7 @@ PROCEDURES_PROMPT = """# Recommended Procedures
 
 @dataclass
 class CodeInterpreter(BaseWorker):
-    role: str = ROLE
+    role: str = ROLE_BACK
     prompt: str = "Question: {question}"
     model: Model = Model.GPT4_TURBO
     use_retriever: bool = False
@@ -63,8 +63,8 @@ class CodeInterpreter(BaseWorker):
         if self.use_retriever:
             self.retriever = get_retriever("open_procedures")
             self.prompt = PROCEDURES_PROMPT + self.prompt
-        if self.role == ROLE:
-            self.role = ROLE.format(
+        if self.role == ROLE or self.role == ROLE_BACK:
+            self.role = self.role.format(
                 username=getpass.getuser(), current_working_directory=os.getcwd(), operating_system=platform.system()
             )
 
