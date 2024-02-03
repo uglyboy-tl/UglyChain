@@ -8,7 +8,7 @@ from typing import Callable, List
 from loguru import logger
 
 from uglychain import Model
-from uglychain.tools import Language, run_code
+from uglychain.tools import run_code
 
 # logger.remove()
 # logger.add(sink=sys.stdout, level="TRACE")
@@ -22,7 +22,7 @@ def command(shell: str) -> str:
         shell (str): The shell command to be executed.
     """
     try:
-        result = run_code(Language.Shell, shell)
+        result = run_code("Shell", shell)
         output = "\n".join(a["content"] for a in result)
         if output != "":
             return output

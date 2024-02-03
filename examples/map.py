@@ -41,21 +41,18 @@ def map_input(model: Model | None = None):
     for item in llm(book=input, position="作者"):
         logger.info(item)
 
+
 def instructor(model: Model | None = None):
     if model:
         llm = MapChain(model=model, response_model=UserDetail)
     else:
         llm = MapChain(response_model=UserDetail)
-    input = [
-        "Extract Jason is a boy",
-        "Extract Jason is a girl",
-        "Extract Robin is a boy",
-        "Extract Misty is a girl"
-    ]
+    input = ["Extract Jason is a boy", "Extract Jason is a girl", "Extract Robin is a boy", "Extract Misty is a girl"]
     for item in llm(input):
         logger.info(item)
 
+
 if __name__ == "__main__":
     # map()
-    #map_input(Model.YI_32K)
+    # map_input(Model.YI_32K)
     instructor()

@@ -51,7 +51,7 @@ class Instructor(BaseModel):
         if "type" in reduced_schema:
             del reduced_schema["type"]
         # Ensure json in context is well-formed with double quotes.
-        schema_str = json.dumps(reduced_schema,ensure_ascii=False)
+        schema_str = json.dumps(reduced_schema, ensure_ascii=False)
 
         return PYDANTIC_FORMAT_INSTRUCTIONS.format(schema=schema_str)
 
