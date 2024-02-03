@@ -32,4 +32,6 @@ class Transformer(BaseWorker):
             )
         kwargs = {"input": input, "trans_type": self.trans_type}
         response = self._ask(**kwargs)
+        if self.storage:
+            self.storage.save(response)
         return response

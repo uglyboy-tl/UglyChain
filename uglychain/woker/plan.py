@@ -88,4 +88,6 @@ class Summary(BaseWorker):
             response = self._ask(**kwargs)
             pending_tasks.extend(response.tasks)
             response = self.prioritize_llm(goals=goals, pending_tasks=pending_tasks, completed_tasks=completed_tasks)
+        if self.storage:
+            self.storage.save(response.tasks)
         return response.tasks

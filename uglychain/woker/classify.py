@@ -45,4 +45,6 @@ class Classify(BaseWorker):
             )
         kwargs = {"input": input, "samples": self.samples_prompt}
         response = self._ask(**kwargs)
+        if self.storage:
+            self.storage.save(response)
         return response

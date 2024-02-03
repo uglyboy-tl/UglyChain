@@ -74,4 +74,6 @@ class Summary(BaseWorker):
             input = [i[:30000] for i in input]  # 20k tokens limit
         kwargs = {"input": input, "char_limit": self.char_limit}
         response = self._ask(**kwargs)
+        if self.storage:
+            self.storage.save(response)
         return response
