@@ -2,7 +2,7 @@ from enum import Enum
 
 from loguru import logger
 
-from uglychain import LLM, Model
+from uglychain import LLM, Model, finish, run_function
 
 
 class Unit(Enum):
@@ -26,7 +26,7 @@ def search_baidu(query: str) -> str:
     Args:
         query (str): The query to search.
     """
-    return f"{query}是一个技术博主"
+    return f"{query}出生于1642年"
 
 
 def search_google(query: str) -> str:
@@ -57,7 +57,7 @@ def functian_call(model: Model | None = None):
 
 
 def tools(model: Model | None = None):
-    tools = [get_current_weather, search_baidu, search_google, search_bing]
+    tools = [get_current_weather, search_baidu, search_google, search_bing, finish]
     if model:
         llm = LLM(
             model=model,
@@ -65,14 +65,11 @@ def tools(model: Model | None = None):
         )
     else:
         llm = LLM(tools=tools)
-    response = llm("用百度查一查牛顿生于哪一年？")
+    response = llm("牛顿生于哪一年？")
     logger.debug(response)
-    for tool in tools:
-        if tool.__name__ == response.name:
-            logger.debug(f"使用 {tool.__name__} 工具解析")
-            logger.info(tool(**response.args))
+    logger.info(run_function(tools, response))
 
 
 if __name__ == "__main__":
-    functian_call(Model.QWEN)
-    # tools()
+    # functian_call(Model.QWEN)
+    tools(Model.GPT4_TURBO)
