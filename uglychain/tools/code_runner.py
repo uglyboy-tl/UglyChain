@@ -14,7 +14,7 @@ class Language(Enum):
     Shell = "shell"
     PowerShell = "powershell"
     AppleScript = "applescript"
-    # Python = "python"
+    Python = "python"
     R = "r"
     JavaScript = "javascript"
     # HTML = "html"

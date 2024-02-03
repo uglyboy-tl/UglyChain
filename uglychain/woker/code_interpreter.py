@@ -6,13 +6,13 @@ from typing import Optional
 
 from loguru import logger
 
-from uglychain import LLM, Model
+from uglychain import LLM, Model, finish
 from uglychain.retrievers import BaseRetriever, get_retriever
 from uglychain.tools import run_code
 
 from .base import BaseWorker
 
-ROLE = """
+ROLE_BACK = """
 You are Open Interpreter, a world-class programmer that can complete any goal by executing code.
 First, write a plan. **Always recap the plan between each code block** (you have extreme short-term memory loss, so you need to recap the plan between each message block to retain it).
 When you send a message containing code to run_code, it will be executed **on the user's machine**. The user has given you **full and complete permission** to execute any code necessary to complete the task. You have full access to control their computer to help them. Code entered into run_code will be executed **in the users local environment**.
@@ -35,7 +35,15 @@ OS: {operating_system}
 In your plan, include steps and, if present, **EXACT CODE SNIPPETS** (especially for depracation notices, **WRITE THEM INTO YOUR PLAN -- underneath each numbered step** as they will VANISH once you execute your first line of code, so WRITE THEM DOWN NOW if you need them) from the above procedures if they are relevant to the task. Again, include **VERBATIM CODE SNIPPETS** from the procedures above if they are relevent to the task **directly in your plan.**
 """
 
-PROMPT = """# Recommended Procedures
+ROLE = """You are helpful agent that can code and run it **on the user's machine**.
+
+[User Info]
+Name: {username}
+CWD: {current_working_directory}
+OS: {operating_system}
+"""
+
+PROCEDURES_PROMPT = """# Recommended Procedures
 ---
 {relevant_procedures}
 ---
@@ -45,7 +53,7 @@ PROMPT = """# Recommended Procedures
 
 @dataclass
 class CodeInterpreter(BaseWorker):
-    role: str = field(init=False)
+    role: str = ROLE
     prompt: str = "Question: {question}"
     model: Model = Model.GPT4_TURBO
     use_retriever: bool = False
@@ -54,14 +62,15 @@ class CodeInterpreter(BaseWorker):
     def __post_init__(self):
         if self.use_retriever:
             self.retriever = get_retriever("open_procedures")
-            self.prompt = PROMPT + self.prompt
-        self.role = ROLE.format(
-            username=getpass.getuser(), current_working_directory=os.getcwd(), operating_system=platform.system()
-        )
+            self.prompt = PROCEDURES_PROMPT + self.prompt
+        if self.role == ROLE:
+            self.role = ROLE.format(
+                username=getpass.getuser(), current_working_directory=os.getcwd(), operating_system=platform.system()
+            )
 
     def run(self, question: str):
         if not self.llm:
-            self.llm = LLM(self.prompt, self.model, self.role, tools=[run_code])
+            self.llm = LLM(self.prompt, self.model, self.role, tools=[run_code, finish])
         if self.retriever:
             relevant_procedures = self.retriever.get(query=question)
             logger.trace(f"Relevant procedures: {relevant_procedures}")

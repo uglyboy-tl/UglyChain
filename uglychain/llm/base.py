@@ -100,10 +100,11 @@ class BaseLanguageModel(ABC):
         if tools:
             if not response_model:
                 response_model = cast(Type[T], FunctionCall)
-            if "finish" in [tool.__name__ for tool in tools]:
-                prompt += f"\n{FUNCTION_CALL_WITH_FINISH_FORMAT.format(tool_schema = tools_schema(tools))}"
+            tool_names = [tool.__name__ for tool in tools]
+            if "finish" in tool_names:
+                prompt += f"\n{FUNCTION_CALL_WITH_FINISH_FORMAT.format(tool_names = tool_names, tool_schema = tools_schema(tools))}"
             else:
-                prompt += f"\n{FUNCTION_CALL_FORMAT.format(tool_schema = tools_schema(tools))}"
+                prompt += f"\n{FUNCTION_CALL_FORMAT.format(tool_names = tool_names, tool_schema = tools_schema(tools))}"
         if response_model:
             instructor = Instructor.from_BaseModel(response_model)
             prompt += "\n" + instructor.get_format_instructions()
