@@ -5,6 +5,7 @@ from loguru import logger
 from .languages.applescript import AppleScript
 from .languages.javascript import JavaScript
 from .languages.powershell import PowerShell
+from .languages.python import Python
 from .languages.r import R
 from .languages.shell import Shell
 
@@ -26,17 +27,18 @@ LANGUAGES = [
     AppleScript,
     R,
     PowerShell,
+    Python,
 ]
 
 
-def get_language(language: Language):
+def get_language(language: str):
     for lang in LANGUAGES:
-        if language.name.lower() == lang.name.lower() or (hasattr(lang, "aliases") and language in lang.aliases):
+        if language.lower() == lang.name.lower() or (hasattr(lang, "aliases") and language in lang.aliases):
             return lang
     return None
 
 
-def run_code(language: Language, code: str):
+def run_code(language: str, code: str):
     """Executes code on the user's machine and returns the output
 
     Args:
