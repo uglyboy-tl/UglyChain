@@ -2,16 +2,18 @@
 # -*-coding:utf-8-*-
 
 from dataclasses import dataclass, field
-from typing import Callable, Dict, List, Union
+from typing import Dict, Union
 
 from loguru import logger
 
+from uglychain.llm import finish, run_function
 from uglychain.llm.tools import ActionResopnse, tools_schema
 
-from .llm import LLM, FunctionCall, GenericResponseType
+from .llm import LLM, GenericResponseType
+from .react import Action
 
 REACT_PROMPT = """
-Assistant is a large language model trained by OpenAI.
+Assistant is a large language model trained by Human.
 
 Assistant is designed to be able to assist with a wide range of tasks, from answering simple questions to providing in-depth explanations and discussions on a wide range of topics. As a language model, Assistant is able to generate human-like text based on the input it receives, allowing it to engage in natural-sounding conversations and provide responses that are coherent and relevant to the topic at hand.
 
@@ -51,46 +53,6 @@ New input:
 """
 
 
-def finish(answer: str) -> str:
-    """When get Final Answer, use this tool to return the answer and finishes the task.
-    Args:
-        answer (str): The response to return.
-    """
-    return answer
-
-
-def call(tools: List[Callable], response: FunctionCall):
-    for tool in tools:
-        if tool.__name__ == response.name:
-            return tool(**response.args)
-    raise ValueError(f"Can't find tool {response.name}")
-
-
-@dataclass
-class Action:
-    thought: str
-    action: str
-    params: Dict
-    obs: str
-    current: bool = True
-
-    @property
-    def done(self) -> bool:
-        if self.action == "finish":
-            return True
-        else:
-            return False
-
-    def __str__(self) -> str:
-        return self.info
-
-    @property
-    def info(self) -> str:
-        if self.done:
-            return f"Thought: {self.thought}\nAction: Finish\nObservation: {self.obs}"
-        return f"Thought: {self.thought}\nAction: {self.action}\nAction Input: {self.params}\nObservation: {self.obs}"
-
-
 @dataclass
 class ReActChain(LLM[GenericResponseType]):
     llmchain: LLM = field(init=False)
@@ -118,7 +80,7 @@ class ReActChain(LLM[GenericResponseType]):
         thought = response.thought
         action = response.action.name
         params = response.action.args
-        obs = call(self.tools, response.action)
+        obs = run_function(self.tools, response.action)
         act = Action(thought, action, params, obs)
         logger.success(act.info)
         while not act.done:
@@ -134,7 +96,7 @@ class ReActChain(LLM[GenericResponseType]):
             thought = response.thought
             action = response.action.name
             params = response.action.args
-            obs = call(self.tools, response.action)
+            obs = run_function(self.tools, response.action)
             act = Action(thought, action, params, obs)
             logger.success(act.info)
         response = obs

@@ -8,7 +8,7 @@ from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union, ca
 from pydantic import BaseModel
 
 from .instructor import Instructor
-from .tools import FUNCTION_CALL_FORMAT, FunctionCall, tools_schema
+from .tools import FUNCTION_CALL_FORMAT, FUNCTION_CALL_WITH_FINISH_FORMAT, FunctionCall, tools_schema
 
 TEMPERATURE = 0.3
 T = TypeVar("T", bound=BaseModel)
@@ -100,7 +100,10 @@ class BaseLanguageModel(ABC):
         if tools:
             if not response_model:
                 response_model = cast(Type[T], FunctionCall)
-            prompt += f"\n{FUNCTION_CALL_FORMAT.format(tool_schema = tools_schema(tools))}"
+            if "finish" in [tool.__name__ for tool in tools]:
+                prompt += f"\n{FUNCTION_CALL_WITH_FINISH_FORMAT.format(tool_schema = tools_schema(tools))}"
+            else:
+                prompt += f"\n{FUNCTION_CALL_FORMAT.format(tool_schema = tools_schema(tools))}"
         if response_model:
             instructor = Instructor.from_BaseModel(response_model)
             prompt += "\n" + instructor.get_format_instructions()

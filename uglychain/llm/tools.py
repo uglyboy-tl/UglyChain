@@ -16,9 +16,31 @@ class ActionResopnse(BaseModel):
     action: FunctionCall = Field(..., description="The action to take")
 
 
+def finish(answer: str) -> str:
+    """When get Final Answer, use this tool to return the answer and finishes the task.
+    Args:
+        answer (str): The response to return.
+    """
+    return answer
+
+
+def run_function(tools: List[Callable], response: FunctionCall):
+    for tool in tools:
+        if tool.__name__ == response.name:
+            return tool(**response.args)
+    raise ValueError(f"Can't find tool {response.name}")
+
+
 FUNCTION_CALL_FORMAT = """
 -----
 Respond with tool name and tool arguments to achieve the instruction:
+
+{tool_schema}
+"""
+
+FUNCTION_CALL_WITH_FINISH_FORMAT = """
+-----
+Respond with tool name and tool arguments to achieve the instruction. if you can respond directly, use the tool 'finish' to return the answer and finishes the task:
 
 {tool_schema}
 """

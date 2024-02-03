@@ -2,28 +2,14 @@
 # -*-coding:utf-8-*-
 
 from dataclasses import dataclass, field
-from typing import Callable, Dict, List, Union
+from typing import Dict, Union
 
 from loguru import logger
 
+from uglychain.llm import finish, run_function
 from uglychain.llm.tools import ActionResopnse
 
-from .llm import LLM, FunctionCall, GenericResponseType
-
-
-def finish(answer: str) -> str:
-    """returns the answer and finishes the task.
-    Args:
-        answer (str): The response to return.
-    """
-    return answer
-
-
-def call(tools: List[Callable], response: FunctionCall):
-    for tool in tools:
-        if tool.__name__ == response.name:
-            return tool(**response.args)
-    raise ValueError(f"Can't find tool {response.name}")
+from .llm import LLM, GenericResponseType
 
 
 @dataclass
@@ -77,7 +63,7 @@ class ReActChain(LLM[GenericResponseType]):
         thought = response.thought
         action = response.action.name
         params = response.action.args
-        obs = call(self.tools, response.action)
+        obs = run_function(self.tools, response.action)
         act = Action(thought, action, params, obs)
         logger.success(act.info)
         while not act.done:
@@ -90,7 +76,7 @@ class ReActChain(LLM[GenericResponseType]):
             thought = response.thought
             action = response.action.name
             params = response.action.args
-            obs = call(self.tools, response.action)
+            obs = run_function(self.tools, response.action)
             act = Action(thought, action, params, obs)
             logger.success(act.info)
         response = obs
