@@ -85,10 +85,10 @@ for tool in tools:
 
 ### 如果不确定是否需要调用函数
 
-可以引入一个直接返回结果的函数
+可以引入一个直接返回结果的函数, 带来类似于 OpenAI 中 FunctionCall 的 auto 的效果。
 
 ```python
-from uglychain.chains.react_bad import finish
+from uglychain import finish
 
 def finish(answer: str) -> str:
     """returns the answer and finishes the task.
