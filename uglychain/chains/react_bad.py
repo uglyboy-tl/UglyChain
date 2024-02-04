@@ -2,7 +2,7 @@
 # -*-coding:utf-8-*-
 
 from dataclasses import dataclass, field
-from typing import Dict, Union
+from typing import Any, Callable, Dict, List, Optional, Type, Union, cast
 
 from loguru import logger
 
@@ -50,13 +50,19 @@ Begin!
 New input:
 {input}
 
-{react_history}
+{history}
 """
 
 
 @dataclass
 class ReActChain(LLM[GenericResponseType]):
-    llmchain: LLM = field(init=False)
+    max_reacts: int = 3
+    _response_model: Optional[Type[GenericResponseType]] = field(init=False, default=None)
+    _prompt_template: str = field(init=False)
+    _tools: List[Callable] = field(init=False)
+    formatchain: LLM = field(init=False)
+    tools_schema: str = field(init=False)
+    tool_names: str = field(init=False)
 
     def __new__(cls, *args, **kwargs):
         if args and args[1] in [Model.GPT4, Model.GPT4_TURBO, Model.COPILOT4]:
@@ -67,49 +73,85 @@ class ReActChain(LLM[GenericResponseType]):
 
     def __post_init__(self):
         self._acts = []
-        self.prompt = self.prompt_template
         assert self.tools is not None, "tools must be set"
-        self.tools.insert(0, finish)
-        self.tools_schema = tools_schema(self.tools)
-        self.tool_names = [tool.__name__ for tool in self.tools]
-
-        self.llmchain = LLM(REACT_PROMPT, self.model, self.system_prompt, stop="Observation:")
-        self.formatchain = LLM(model=self.model, tools=self.tools, response_model=ActionResopnse)
+        self._prompt_template = self.prompt_template
+        self.prompt_template = REACT_PROMPT.replace("{input}", self.prompt_template)
+        self._response_model = self.response_model
+        self.response_model = None
+        self.tools_schema = str(tools_schema(self.tools))
+        self.tool_names = ", ".join([tool.__name__ for tool in self.tools])
+        self._tools = self.tools
+        self._tools.insert(0, finish)
+        self.tools = None
+        self.stop = "Observation:"
+        super().__post_init__()
+        self.formatchain = LLM(model=self.model, tools=self._tools, response_model=ActionResopnse)
         self.formatchain.llm.use_native_tools = False
 
+    def _validate_inputs(self, inputs: Dict[str, Any]) -> None:
+        assert "tools" in self.input_keys, "ReduceChain expects history to be in input_keys"
+        assert "tool_names" in self.input_keys, "ReduceChain expects history to be in input_keys"
+        assert "history" in self.input_keys, "ReduceChain expects history to be in input_keys"
+        if "history" not in inputs:
+            inputs["history"] = ""
+        if "tools" not in inputs:
+            inputs["tools"] = self.tools_schema
+        if "tool_names" not in inputs:
+            inputs["tool_names"] = self.tool_names
+        super()._validate_inputs(inputs)
+
+    def _check_args_kwargs(self, args: Any, kwargs: Any) -> Dict[str, Any]:
+        if args and not kwargs:
+            if len(args) != 1 or not isinstance(args[0], Union[str, list]):
+                raise ValueError("`run` supports only one positional argument of type str or list.")
+            return {self.input_keys[2]: args[0]}
+        return super()._check_args_kwargs(args, kwargs)
+
     def _call(self, inputs: Dict[str, str]) -> Union[str, GenericResponseType]:
-        input = self.prompt.format(**inputs)
-        assert self.tools is not None, "tools must be set"
-        react_response = self.llmchain(
-            input=input, react_history="", tools=self.tools_schema, tool_names=self.tool_names
-        )
+        react_response = self._process(inputs=inputs, history="")
         logger.trace(f"{react_response}")
         response = self.formatchain(react_response)
         thought = response.thought
         action = response.action.name
         params = response.action.args
-        obs = run_function(self.tools, response.action)
+        obs = run_function(self._tools, response.action)
         act = Action(thought, action, params, obs)
         logger.success(act.info)
-        while not act.done:
+        react_times = 0
+        while not act.done and react_times < self.max_reacts:
             if self._acts:
                 self._acts[-1].current = False
             self._acts.append(act)
             react_history = "\n".join(str(a) for a in self._acts)
-            react_response = self.llmchain(
-                input=input, react_history=react_history, tools=self.tools_schema, tool_names=self.tool_names
-            )
+            react_response = self._process(inputs=inputs, history=react_history)
             logger.trace(f"{react_response}")
             response = self.formatchain(react_response)
             thought = response.thought
             action = response.action.name
             params = response.action.args
-            obs = run_function(self.tools, response.action)
+            obs = run_function(self._tools, response.action)
             act = Action(thought, action, params, obs)
             logger.success(act.info)
+            react_times += 1
         response = obs
-        if self.response_model:
-            llm = LLM(model=self.model, response_model=self.response_model)
+        if not act.done and react_times >= self.max_reacts:
+            logger.warning(f"ReAct times {react_times} >= max_ReActs {self.max_reacts}")
+            llm = LLM(
+                "Question:{prompt}\n-----\n{history}\n-----\n Now you must give an answer!",
+                self.model,
+                response_model=self._response_model,
+            )
+            prompt = self._prompt_template.format(**inputs)
+            history = "\n".join(str(a) for a in self._acts)
+            return llm(prompt=prompt, history=history)
+        if self._response_model:
+            llm = LLM("{prompt}", self.model, response_model=self._response_model)
             return llm(response)
         else:
             return response
+
+    def _process(self, inputs: Dict[str, str], history: str) -> ActionResopnse:
+        new_input = inputs.copy()
+        new_input["history"] = history
+        response = super()._call(new_input)
+        return cast(ActionResopnse, response)

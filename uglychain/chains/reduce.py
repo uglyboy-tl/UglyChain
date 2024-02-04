@@ -34,7 +34,7 @@ class ReduceChain(LLM[GenericResponseType]):
         self.num = len(inputs[self.reduce_keys[0]])
         for reduce_key in self.reduce_keys:
             self._validate_reduce_key(reduce_key, inputs)
-        assert "history" in self.input_keys, "ReduceChain expects response to be in input_keys"
+        assert "history" in self.input_keys, "ReduceChain expects history to be in input_keys"
         if "history" not in inputs:
             inputs["history"] = ""
         super()._validate_inputs(inputs)
