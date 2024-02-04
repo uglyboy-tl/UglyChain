@@ -59,9 +59,9 @@ class CodeInterpreter(BaseWorker):
     def run(self, question: str):
         if not self.llm:
             if self.use_react:
-                self.llm = ReActChain(self.prompt, self.model, self.role, tools=[run_code, finish])
+                self.llm = ReActChain(self.prompt, self.model, self.role, tools=[run_code])
             else:
-                self.llm = LLM(self.prompt, self.model, self.role, tools=[run_code])
+                self.llm = LLM(self.prompt, self.model, self.role, tools=[finish, run_code])
         if self.retriever:
             retriever_context = self.retriever.get(query=question)
             logger.trace(f"Retriever Context: {retriever_context}")
