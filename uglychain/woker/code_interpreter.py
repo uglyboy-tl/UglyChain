@@ -46,7 +46,7 @@ class CodeInterpreter(BaseWorker):
     role: str = ROLE
     prompt: str = field(init=False, default=PROMPT)
     model: Model = Model.GPT4_TURBO
-    use_react: bool = False
+    use_react: bool = True
     retriever: Optional[BaseRetriever] = field(init=False, default=None)
 
     def __post_init__(self):
