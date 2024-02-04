@@ -6,7 +6,7 @@ from typing import Optional
 
 from loguru import logger
 
-from uglychain import LLM, Model, ReActChain, finish
+from uglychain import LLM, Model, ReActChain
 from uglychain.retrievers import BaseRetriever
 from uglychain.tools import run_code
 
@@ -61,7 +61,7 @@ class CodeInterpreter(BaseWorker):
             if self.use_react:
                 self.llm = ReActChain(self.prompt, self.model, self.role, tools=[run_code])
             else:
-                self.llm = LLM(self.prompt, self.model, self.role, tools=[finish, run_code])
+                self.llm = LLM(self.prompt, self.model, self.role, tools=[run_code])
         if self.retriever:
             retriever_context = self.retriever.get(query=question)
             logger.trace(f"Retriever Context: {retriever_context}")
