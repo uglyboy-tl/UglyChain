@@ -57,8 +57,6 @@ def run_code(language: str, code: str):
                 and output_messages[-1].get("format") == chunk["format"]
             ):
                 output_messages[-1]["content"] += chunk["content"]
-                logger.trace(chunk["content"])
             else:
                 output_messages.append(chunk)
-                logger.trace(chunk["content"])
     return "\n".join(a["content"] for a in output_messages)
