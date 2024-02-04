@@ -6,7 +6,7 @@ from typing import Optional
 
 from loguru import logger
 
-from uglychain import LLM, Model, finish
+from uglychain import LLM, Model, ReActChain, finish
 from uglychain.retrievers import BaseRetriever, get_retriever
 from uglychain.tools import run_code
 
@@ -57,15 +57,15 @@ class CodeInterpreter(BaseWorker):
         if self.use_retriever:
             self.retriever = get_retriever("open_procedures")
             self.prompt = PROCEDURES_PROMPT + self.prompt
-        if self.role == ROLE or self.role == ROLE_BACK:
+        if self.role == ROLE_BACK:
             self.role = self.role.format(
                 username=getpass.getuser(), current_working_directory=os.getcwd(), operating_system=platform.system()
             )
 
     def run(self, question: str):
         if not self.llm:
-            self.llm = LLM(self.prompt, self.model, self.role, tools=[run_code, finish])
-            # self.llm = ReActChain(self.prompt, self.model, self.role, tools=[run_code])
+            # self.llm = LLM(self.prompt, self.model, self.role, tools=[run_code, finish])
+            self.llm = ReActChain(self.prompt, self.model, self.role, tools=[run_code])
         if self.retriever:
             relevant_procedures = self.retriever.get(query=question)
             logger.trace(f"Relevant procedures: {relevant_procedures}")

@@ -36,7 +36,7 @@ def get_language(language: str):
     return None
 
 
-def run_code(code: str, language: str = "Shell"):
+def run_code(code: str, language: Language):
     """This function allows you to execute code **on the user's machine** and retrieve the terminal output. Notice the Python code is sent to a Jupyter kernel for execution.
 
     Args:
@@ -46,6 +46,7 @@ def run_code(code: str, language: str = "Shell"):
     active_languages = {}
     if language not in active_languages:
         active_languages[language] = get_language(language)()  # type: ignore
+
     output_messages = []
     for chunk in active_languages[language].run(code):
         if chunk.get("format") != "active_line":
@@ -57,4 +58,5 @@ def run_code(code: str, language: str = "Shell"):
                 output_messages[-1]["content"] += chunk["content"]
             else:
                 output_messages.append(chunk)
+
     return "\n".join(a["content"] for a in output_messages)
