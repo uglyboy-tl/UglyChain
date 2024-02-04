@@ -35,12 +35,7 @@ OS: {operating_system}
 In your plan, include steps and, if present, **EXACT CODE SNIPPETS** (especially for depracation notices, **WRITE THEM INTO YOUR PLAN -- underneath each numbered step** as they will VANISH once you execute your first line of code, so WRITE THEM DOWN NOW if you need them) from the above procedures if they are relevant to the task. Again, include **VERBATIM CODE SNIPPETS** from the procedures above if they are relevent to the task **directly in your plan.**
 """
 
-ROLE = """You are helpful agent that can code and run it **on the user's machine**.
-
-[User Info]
-Name: {username}
-CWD: {current_working_directory}
-OS: {operating_system}
+ROLE = """You are helpful agent that can code.
 """
 
 PROCEDURES_PROMPT = """# Recommended Procedures
@@ -53,7 +48,7 @@ PROCEDURES_PROMPT = """# Recommended Procedures
 
 @dataclass
 class CodeInterpreter(BaseWorker):
-    role: str = ROLE_BACK
+    role: str = ROLE
     prompt: str = "Question: {question}"
     model: Model = Model.GPT4_TURBO
     use_retriever: bool = False

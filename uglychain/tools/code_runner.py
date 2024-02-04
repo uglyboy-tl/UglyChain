@@ -1,7 +1,5 @@
 from enum import Enum, unique
 
-from loguru import logger
-
 from .languages.applescript import AppleScript
 from .languages.javascript import JavaScript
 from .languages.powershell import PowerShell
@@ -38,8 +36,8 @@ def get_language(language: str):
     return None
 
 
-def run_code(language: str, code: str):
-    """Executes code on the user's machine and returns the output
+def run_code(code: str, language: str = "Shell"):
+    """This function allows you to execute code **on the user's machine** and retrieve the terminal output. Notice the Python code is sent to a Jupyter kernel for execution.
 
     Args:
         language (str): The programming language
