@@ -6,8 +6,15 @@ from dataclasses import dataclass, field
 from typing import Any, Optional
 
 from uglychain import LLM, Model
+from uglychain.retrievers import BaseRetriever
 
 from .storage import Storage
+
+RETRIEVER_PROMPT = """# Context from Retriever(Maybe useful for you to resolve the problem):
+---
+{retriever_context}
+---
+"""
 
 
 @dataclass
@@ -23,8 +30,13 @@ class BaseWorker(ABC):
     role: Optional[str] = None
     prompt: str = "{prompt}"
     model: Model = Model.DEFAULT
+    retriever: Optional[BaseRetriever] = None
     storage: Optional[Storage] = None
     llm: Optional[LLM] = field(default=None, init=False)
+
+    def __post_init__(self):
+        if self.retriever:
+            self.prompt = RETRIEVER_PROMPT + self.prompt
 
     def _ask(self, *args, **kwargs) -> Any:
         """Ask a question to the LLMChain object.

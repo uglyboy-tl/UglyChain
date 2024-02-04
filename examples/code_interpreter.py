@@ -13,6 +13,6 @@ worker = CodeInterpreter(model=Model.YI_32K)
 input = "我买房贷款了187万，贷款的年利率是4.9%，贷款期限是30年，每月还款多少？"
 # input = """"""
 response = worker.run(input)
-logger.info(worker.run(input))
+logger.info(response)
 assert isinstance(response, FunctionCall)
 logger.info(run_function([run_code, finish], response))

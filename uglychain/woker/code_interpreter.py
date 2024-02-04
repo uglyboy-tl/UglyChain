@@ -7,7 +7,7 @@ from typing import Optional
 from loguru import logger
 
 from uglychain import LLM, Model, ReActChain, finish
-from uglychain.retrievers import BaseRetriever, get_retriever
+from uglychain.retrievers import BaseRetriever
 from uglychain.tools import run_code
 
 from .base import BaseWorker
@@ -37,12 +37,6 @@ In your plan, include steps and, if present, **EXACT CODE SNIPPETS** (especially
 
 ROLE = "You are helpful agent that can code."
 
-PROCEDURES_PROMPT = """# Recommended Procedures
----
-{relevant_procedures}
----
-
-"""
 
 PROMPT = "{question}"
 
@@ -52,18 +46,15 @@ class CodeInterpreter(BaseWorker):
     role: str = ROLE
     prompt: str = field(init=False, default=PROMPT)
     model: Model = Model.GPT4_TURBO
-    use_retriever: bool = False
     use_react: bool = False
     retriever: Optional[BaseRetriever] = field(init=False, default=None)
 
     def __post_init__(self):
-        if self.use_retriever:
-            self.retriever = get_retriever("open_procedures")
-            self.prompt = PROCEDURES_PROMPT + self.prompt
         if self.role == ROLE_BACK:
             self.role = self.role.format(
                 username=getpass.getuser(), current_working_directory=os.getcwd(), operating_system=platform.system()
             )
+        super().__post_init__()
 
     def run(self, question: str):
         if not self.llm:
@@ -72,9 +63,9 @@ class CodeInterpreter(BaseWorker):
             else:
                 self.llm = LLM(self.prompt, self.model, self.role, tools=[run_code])
         if self.retriever:
-            relevant_procedures = self.retriever.get(query=question)
-            logger.trace(f"Relevant procedures: {relevant_procedures}")
-            response = self._ask(question=question, relevant_procedures=relevant_procedures)
+            retriever_context = self.retriever.get(query=question)
+            logger.trace(f"Retriever Context: {retriever_context}")
+            response = self._ask(question=question, retriever_context=retriever_context)
         else:
             response = self._ask(question=question)
         if self.storage:
