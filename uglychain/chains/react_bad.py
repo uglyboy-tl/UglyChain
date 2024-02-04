@@ -6,11 +6,12 @@ from typing import Dict, Union
 
 from loguru import logger
 
-from uglychain.llm import finish, run_function
+from uglychain.llm import Model, finish, run_function
 from uglychain.llm.tools import ActionResopnse, tools_schema
 
 from .llm import LLM, GenericResponseType
 from .react import Action
+from .react import ReActChain as ReActChainGood
 
 REACT_PROMPT = """
 Assistant is a large language model trained by Human.
@@ -56,6 +57,13 @@ New input:
 @dataclass
 class ReActChain(LLM[GenericResponseType]):
     llmchain: LLM = field(init=False)
+
+    def __new__(cls, *args, **kwargs):
+        if args and args[1] in [Model.GPT4, Model.GPT4_TURBO, Model.COPILOT4]:
+            return ReActChainGood(*args, **kwargs)
+        elif kwargs and kwargs.get("model") in [Model.GPT4, Model.GPT4_TURBO, Model.COPILOT4]:
+            return ReActChainGood(*args, **kwargs)
+        return super().__new__(cls)
 
     def __post_init__(self):
         self._acts = []
