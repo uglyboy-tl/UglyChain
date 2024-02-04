@@ -66,6 +66,7 @@ class CodeInterpreter(BaseWorker):
     def run(self, question: str):
         if not self.llm:
             self.llm = LLM(self.prompt, self.model, self.role, tools=[run_code, finish])
+            # self.llm = ReActChain(self.prompt, self.model, self.role, tools=[run_code])
         if self.retriever:
             relevant_procedures = self.retriever.get(query=question)
             logger.trace(f"Relevant procedures: {relevant_procedures}")
