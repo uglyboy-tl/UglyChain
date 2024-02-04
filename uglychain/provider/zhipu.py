@@ -30,7 +30,6 @@ class ChatGLM(BaseLanguageModel):
                 kwargs["stop"] = [stop]
             elif isinstance(stop, list):
                 kwargs["stop"] = stop[0:1]
-            kwargs["stop"] = stop
         else:
             kwargs.pop("stop")
         response = self.completion_with_backoff(**kwargs)

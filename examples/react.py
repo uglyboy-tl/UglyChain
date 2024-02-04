@@ -40,8 +40,8 @@ def react(model: Model | None = None):
     else:
         llm = ReActChain(tools=tools)
 
-    response = llm("牛顿生于哪一年")
-    # response = llm("What's the weather in San Francisco?")
+    #response = llm("牛顿生于哪一年")
+    response = llm("What's the weather in San Francisco?")
     logger.info(response)
 
 
