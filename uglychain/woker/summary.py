@@ -53,7 +53,7 @@ SUMMARY:
 @dataclass
 class Summary(BaseWorker):
     role: Optional[str] = ROLE
-    prompt: str = field(init=False)
+    prompt: str = field(init=False, default=PROMPT)
     char_limit: int = 1000
     use_reduce: bool = False
 
@@ -63,10 +63,10 @@ class Summary(BaseWorker):
                 input = [input[i * 2000 : (i + 1) * 2000 + 200] for i in range(len(input) // 2000 + 1)]
                 self.llm = ReduceChain(REDUCE_PROMPT, self.model, self.role, reduce_keys=["input"])
             else:
-                self.llm = LLM(PROMPT, self.model, self.role)
+                self.llm = LLM(self.prompt, self.model, self.role)
         elif isinstance(input, list) and (not self.llm or isinstance(self.llm, LLM)):
             self.llm = MapChain(
-                PROMPT,
+                self.prompt,
                 self.model,
                 self.role,
                 map_keys=["input"],

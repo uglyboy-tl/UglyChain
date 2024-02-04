@@ -20,7 +20,7 @@ PROMPT = """请对下面的文本进行分类：
 @dataclass
 class Classify(BaseWorker):
     role: Optional[str] = ROLE
-    prompt: str = PROMPT
+    prompt: str = field(init=False, default=PROMPT)
     label: Optional[Type[BaseModel]] = None
     samples: Optional[Dict[str, str]] = None
     samples_prompt: str = field(init=False, default="")

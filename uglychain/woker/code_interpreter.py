@@ -44,11 +44,13 @@ PROCEDURES_PROMPT = """# Recommended Procedures
 
 """
 
+PROMPT = "{question}"
+
 
 @dataclass
 class CodeInterpreter(BaseWorker):
     role: str = ROLE
-    prompt: str = "{question}"
+    prompt: str = field(init=False, default=PROMPT)
     model: Model = Model.GPT4_TURBO
     use_retriever: bool = False
     use_react: bool = False
