@@ -61,4 +61,4 @@ def run_code(language: str, code: str):
             else:
                 output_messages.append(chunk)
                 logger.trace(chunk["content"])
-    return output_messages
+    return "\n".join(a["content"] for a in output_messages)

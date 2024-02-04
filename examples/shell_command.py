@@ -21,16 +21,7 @@ def command(shell: str) -> str:
     Args:
         shell (str): The shell command to be executed.
     """
-    try:
-        result = run_code("Shell", shell)
-        output = "\n".join(a["content"] for a in result)
-        if output != "":
-            return output
-        else:
-            return "Command executed successfully."
-    except subprocess.CalledProcessError as e:
-        logger.warning(e.stderr.decode())
-        return "Command '{}' return with error (code {}): {}".format(e.cmd, e.returncode, e.output)
+    return run_code("Shell", shell)
 
 
 ROLE = """
