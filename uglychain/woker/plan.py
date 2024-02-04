@@ -48,15 +48,12 @@ class Tasks(BaseModel):
 
 
 @dataclass
-class Summary(BaseWorker):
+class Planner(BaseWorker):
     role: Optional[str] = ROLE
     prompt: str = field(init=False)
-    char_limit: int = 1000
-    use_reduce: bool = False
-    prioritize_llm: LLM = field(init=False)
 
     def __post_init__(self):
-        self.prioritize_llm = LLM(PRIORITIZE_TASKS, self.model, self.role)
+        self.llm = LLM(PRIORITIZE_TASKS, self.model, self.role)
 
     def run(
         self,
@@ -74,7 +71,7 @@ class Summary(BaseWorker):
             response = self._ask(**kwargs)
             pending_tasks = response.tasks
             completed_tasks = []
-            response = self.prioritize_llm(goals=goals, pending_tasks=pending_tasks, completed_tasks=completed_tasks)
+            response = self.llm(goals=goals, pending_tasks=pending_tasks, completed_tasks=completed_tasks)
         else:
             if completed_tasks is None:
                 completed_tasks = []
@@ -87,7 +84,7 @@ class Summary(BaseWorker):
             }
             response = self._ask(**kwargs)
             pending_tasks.extend(response.tasks)
-            response = self.prioritize_llm(goals=goals, pending_tasks=pending_tasks, completed_tasks=completed_tasks)
+            response = self.llm(goals=goals, pending_tasks=pending_tasks, completed_tasks=completed_tasks)
         if self.storage:
             self.storage.save(response.tasks)
         return response.tasks

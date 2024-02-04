@@ -37,7 +37,6 @@ nav:
     - Plan: Worker/plan.md
     - Code Interpreter: Worker/ci.md
     - Code: Worker/code.md
-    - Fix: Worker/fix.md
     - Continue: Worker/continue.md
   - 参考: examples.md
   - 关于: about.md
