@@ -56,6 +56,7 @@ class BaseLanguageModel(ABC):
     presence_penalty: float = field(init=False, default=PRESENCE_PENALTY)
     system_prompt: Optional[str] = field(init=False, default=None)
     use_max_tokens: bool = field(init=False, default=False)
+    seed: int = field(init=False, default=random.getrandbits(16))
     is_continuous: bool = field(init=False, default=False)
     messages: list = field(init=False, default_factory=list)
     use_native_tools: bool = field(init=False, default=False)
@@ -160,7 +161,7 @@ class BaseLanguageModel(ABC):
             "top_p": self.top_p,
             "frequency_penalty": self.frequency_penalty,
             "presence_penalty": self.presence_penalty,
-            "seed": random.getrandbits(16),
+            "seed": self.seed,
         }
         if self.use_max_tokens:
             kwargs["max_tokens"] = self.max_tokens

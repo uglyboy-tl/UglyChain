@@ -31,17 +31,30 @@ YOUR_FIRST_TASK = "制定一份不超过5条的任务清单"
 class Task(BaseModel):
     id: int = Field(..., description="The task id.")
     task: str = Field(..., description="The task description.")
-    completed: bool = Field(default=False, description="The task status.")
     dependent_task_ids: List[int] = Field(
         default_factory=list,
-        description="The task ids that this task is dependent on. It should always be an empty array, or an array of numbers representing the task ID it should pull results from.",
+        description="The task ids that this task is dependent on. It should always be an empty array, or an array of int representing the task ID it should pull results from.",
     )
+
+
+class Task_with_result(Task):
+    completed: bool = True
     result: Optional[str] = Field(
         default=None, description="The task result. If the task is not completed, this field should be empty."
     )
     result_summary: Optional[str] = Field(
         default=None, description="The task result summary. If the task is not completed, this field should be empty."
     )
+
+    @classmethod
+    def from_task(cls, task: Task, result: Optional[str], result_summary: Optional[str]) -> "Task_with_result":
+        return cls(
+            id=task.id,
+            task=task.task,
+            dependent_task_ids=task.dependent_task_ids,
+            result=result,
+            result_summary=result_summary,
+        )
 
 
 class Tasks(BaseModel):
@@ -53,19 +66,19 @@ class Tasks(BaseModel):
 
     @property
     def incomplete_tasks(self) -> List[Task]:
-        incomplete_tasks = [task for task in self.tasks if not task.completed]
+        incomplete_tasks = [task for task in self.tasks if not hasattr(task, "result")]
         incomplete_tasks.sort(key=lambda x: x.id)
         return incomplete_tasks
 
     @property
     def completed_tasks(self) -> List[Task]:
-        completed_tasks = [task for task in self.tasks if task.completed]
+        completed_tasks = [task for task in self.tasks if hasattr(task, "result")]
         completed_tasks.sort(key=lambda x: x.id)
         return completed_tasks
 
     @property
     def tasks_completed(self) -> bool:
-        return all(task.completed for task in self.tasks)
+        return all(hasattr(task, "result") for task in self.tasks)
 
     def get_task_by_id(self, task_id: int) -> Optional[Task]:
         for task in self.tasks:
@@ -86,7 +99,7 @@ def execute_task(
         all_dependent_tasks_complete = True
         for dep_id in task.dependent_task_ids:
             dependent_task = tasks.get_task_by_id(dep_id)
-            if not dependent_task or dependent_task.completed is False:
+            if not dependent_task or not hasattr(dependent_task, "result"):
                 all_dependent_tasks_complete = False
                 break
         if not all_dependent_tasks_complete:
@@ -97,10 +110,14 @@ def execute_task(
     else:
         task_prompt = task.task
     result = execute(task_prompt)
-    task.completed = True
-    task.result = result
+    result_summary = None
     if summarizer_agent:
-        task.result_summary = summarizer_agent(result)
+        result_summary = summarizer_agent(result)
+    try:
+        index = tasks.tasks.index(task)
+        tasks.tasks[index] = Task_with_result.from_task(task, result, result_summary)
+    except ValueError:
+        pass  # 旧值不在列表中
 
 
 @dataclass
@@ -135,7 +152,7 @@ class Planner(BaseWorker):
             tasks = Tasks(objective=self.objective, tasks=[first_task])
             execute_task(tasks, text_completion, objective=self.objective)
         completed_tasks = tasks.completed_tasks
-        task = completed_tasks[0]
+        task = cast(Task_with_result, completed_tasks[0])
         result = task.result
         original_task_list = tasks.tasks.copy()
         minified_task_list = [
@@ -149,11 +166,14 @@ class Planner(BaseWorker):
         if tasks.objective != self.objective:
             logger.warning(f"Objective has been changed from {self.objective} to {tasks.objective}. fix it.")
             tasks.objective = self.objective
-        for updated_task, original_task in zip(tasks.tasks, original_task_list, strict=False):
+        for i, updated_task, original_task in zip(
+            range(len(original_task_list)), tasks.tasks, original_task_list, strict=False
+        ):
             if updated_task.task != original_task.task:
-                logger.warning(f"Task {updated_task.id} has been changed.")
-            if original_task.result:
-                updated_task.result = original_task.result
+                logger.warning(f"Task {updated_task.id} has been changed. use the new one.")
+                original_task.task = updated_task.task
+            if isinstance(original_task, Task_with_result):
+                tasks.tasks[i] = original_task
         if self.storage:
             self.storage.save(tasks)
         return tasks
