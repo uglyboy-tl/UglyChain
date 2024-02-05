@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*-coding:utf-8-*-
 
+import random
 from dataclasses import dataclass
 from http import HTTPStatus
 from typing import Any, Callable, Dict, List, Optional, Type, Union
@@ -37,7 +38,6 @@ class DashScope(BaseLanguageModel):
     model: str
     use_max_tokens: bool = True
     MAX_TOKENS: int = 6000
-    seed: int = 1234
 
     def generate(
         self,
@@ -94,7 +94,10 @@ class DashScope(BaseLanguageModel):
     def default_params(self) -> Dict[str, Any]:
         kwargs = {
             "model": self.model,
-            "seed": self.seed,
+            "seed": random.getrandbits(16),
+            "temperature": self.temperature,
+            "top_p": self.top_p,
+            "repetition_penalty": self.presence_penalty / 2 + 1,
             "result_format": "message",
         }
         if self.use_max_tokens:

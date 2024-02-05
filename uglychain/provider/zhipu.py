@@ -1,6 +1,4 @@
-#!/usr/bin/env python3
-# -*-coding:utf-8-*-
-
+import json
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Type, Union
 
@@ -8,6 +6,7 @@ from loguru import logger
 from pydantic import BaseModel
 
 from uglychain.llm import BaseLanguageModel
+from uglychain.llm.tools import tools_schema
 from uglychain.utils import config, retry_decorator
 
 
@@ -34,7 +33,29 @@ class ChatGLM(BaseLanguageModel):
             kwargs.pop("stop")
         response = self.completion_with_backoff(**kwargs)
         logger.trace(f"kwargs:{kwargs}\nresponse:{response.choices[0].dict()}")
+        if self.use_native_tools and tools and response.choices[0].message.tool_calls:
+            result = response.choices[0].message.tool_calls[0].function
+            return json.dumps({"name": result.name, "args": json.loads(result.arguments)})
         return response.choices[0].message.content.strip()
+
+    def get_kwargs(
+        self,
+        prompt: str,
+        response_model: Optional[Type],
+        tools: Optional[List[Callable]],
+        stop: Union[Optional[str], List[str]],
+    ) -> Dict[str, Any]:
+        if self.use_native_tools and tools:
+            self._generate_validation()
+            self._generate_messages(prompt)
+            params = self.default_params
+            params["tools"] = tools_schema(tools)
+            if len(tools) == 1:
+                params["tool_choice"] = {"type": "function", "function": {"name": tools[0].__name__}}
+            kwargs = {"messages": self.messages, "stop": stop, **params}
+            return kwargs
+        else:
+            return super().get_kwargs(prompt, response_model, tools, stop)
 
     @property
     def default_params(self) -> Dict[str, Any]:
@@ -42,6 +63,7 @@ class ChatGLM(BaseLanguageModel):
             "model": self.model,
             "do_sample": True,
             "temperature": self.temperature,
+            "top_p": self.top_p,
         }
         if self.use_max_tokens:
             kwargs["max_tokens"] = self.max_tokens

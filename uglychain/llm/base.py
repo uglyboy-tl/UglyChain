@@ -11,6 +11,9 @@ from .instructor import Instructor
 from .tools import FUNCTION_CALL_FORMAT, FUNCTION_CALL_WITH_FINISH_FORMAT, FunctionCall, tools_schema
 
 TEMPERATURE = 0.3
+FREQUENCY_PENALTY = 0
+PRESENCE_PENALTY = 0
+TOP_P = 1
 T = TypeVar("T", bound=BaseModel)
 
 
@@ -46,6 +49,9 @@ class BaseLanguageModel(ABC):
     model: str
     client: Any = field(init=False)
     temperature: float = field(init=False, default=TEMPERATURE)
+    top_p: int = field(init=False, default=TOP_P)
+    frequency_penalty: float = field(init=False, default=FREQUENCY_PENALTY)
+    presence_penalty: float = field(init=False, default=PRESENCE_PENALTY)
     system_prompt: Optional[str] = field(init=False, default=None)
     use_max_tokens: bool = field(init=False, default=False)
     is_continuous: bool = field(init=False, default=False)
@@ -143,6 +149,9 @@ class BaseLanguageModel(ABC):
         kwargs = {
             "model": self.model,
             "temperature": self.temperature,
+            "top_p": self.top_p,
+            "frequency_penalty": self.frequency_penalty,
+            "presence_penalty": self.presence_penalty,
         }
         if self.use_max_tokens:
             kwargs["max_tokens"] = self.max_tokens
