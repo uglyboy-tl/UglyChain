@@ -1,6 +1,6 @@
 import inspect
 from enum import Enum
-from typing import Callable, List, Union, cast
+from typing import Callable, List, Literal, Union, cast, get_args, get_origin
 
 from docstring_parser import parse
 from pydantic import BaseModel, Field
@@ -69,6 +69,8 @@ def parse_annotation(annotation):
     if getattr(annotation, "__origin__", None) == Union:
         types = [t.__name__ if t.__name__ != "NoneType" else "None" for t in annotation.__args__]
         return to_json_schema_type(types[0])
+    elif get_origin(annotation) is Literal:
+        return "enum", list(get_args(annotation))
     elif issubclass(annotation, Enum):  # If the annotation is an Enum type
         return "enum", [item.name for item in annotation]  # Return 'enum' and a list of the names of the enum members
     elif getattr(annotation, "__origin__", None) is not None:

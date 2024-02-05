@@ -20,7 +20,7 @@ LLM_PROVIDERS = {
     "copilot-3.5": (Copilot, {"model": "gpt-3.5-turbo"}),
     "copilot-4": (Copilot, {"model": "gpt-4"}),
     "yi": (Yi, {"model": "yi-34b-chat-v08"}),
-    "yi-32k": (Yi, {"model": "yi-34b-chat-32k-v01"}),
+    "yi-32k": (Yi, {"model": "yi-34b-chat-32k-v03"}),
     "baichuan-turbo": (Baichuan, {"model": "Baichuan2-Turbo"}),
     "baichuan-turbo-192k": (Baichuan, {"model": "Baichuan2-Turbo-192k"}),
     "baichuan-pro": (Baichuan, {"model": "Baichuan2-53B"}),

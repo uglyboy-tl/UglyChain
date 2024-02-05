@@ -1,4 +1,4 @@
-from enum import Enum, unique
+from typing import Literal
 
 from .languages.applescript import AppleScript
 from .languages.javascript import JavaScript
@@ -6,18 +6,6 @@ from .languages.powershell import PowerShell
 from .languages.python import Python
 from .languages.r import R
 from .languages.shell import Shell
-
-
-@unique
-class Language(Enum):
-    Shell = "shell"
-    PowerShell = "powershell"
-    AppleScript = "applescript"
-    Python = "python"
-    R = "r"
-    JavaScript = "javascript"
-    # HTML = "html"
-
 
 LANGUAGES = [
     Shell,
@@ -36,7 +24,7 @@ def get_language(language: str):
     return None
 
 
-def run_code(code: str, language: Language) -> str:
+def run_code(code: str, language: Literal["Shell", "Powershell", "Applescript", "Python", "R", "Javascript"]) -> str:
     """This function allows you to execute code **on the user's machine** and retrieve the terminal output. Notice the Python code is sent to a Jupyter kernel for execution.
 
     Args:
