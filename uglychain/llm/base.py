@@ -5,15 +5,16 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union, cast
 
+from loguru import logger
 from pydantic import BaseModel
 
 from .instructor import Instructor
-from .tools import FUNCTION_CALL_FORMAT, FUNCTION_CALL_WITH_FINISH_FORMAT, FunctionCall, tools_schema
+from .tools import FUNCTION_CALL_FORMAT, FUNCTION_CALL_WITH_FINISH_FORMAT, FunctionCall, finish, tools_schema
 
 TEMPERATURE = 0.3
 FREQUENCY_PENALTY = 0
 PRESENCE_PENALTY = 0
-TOP_P = 1
+TOP_P = 1.0
 T = TypeVar("T", bound=BaseModel)
 
 
@@ -49,7 +50,7 @@ class BaseLanguageModel(ABC):
     model: str
     client: Any = field(init=False)
     temperature: float = field(init=False, default=TEMPERATURE)
-    top_p: int = field(init=False, default=TOP_P)
+    top_p: float = field(init=False, default=TOP_P)
     frequency_penalty: float = field(init=False, default=FREQUENCY_PENALTY)
     presence_penalty: float = field(init=False, default=PRESENCE_PENALTY)
     system_prompt: Optional[str] = field(init=False, default=None)
@@ -93,7 +94,10 @@ class BaseLanguageModel(ABC):
             str: The user's response.
 
         """
-        pass
+        kwargs = self.get_kwargs(prompt, response_model, tools, stop)
+        response = self.completion_with_backoff(**kwargs)
+        logger.trace(f"kwargs:{kwargs}\nresponse:{response}")
+        return response
 
     def get_kwargs(
         self,
@@ -106,10 +110,13 @@ class BaseLanguageModel(ABC):
         if tools:
             if not response_model:
                 response_model = cast(Type[T], FunctionCall)
-            tool_names = [tool.__name__ for tool in tools]
-            if "finish" in tool_names:
+            try:
+                index = tools.index(finish)
+                tools[:] = [tools[index]] + tools[:index] + tools[index + 1 :]
+                tool_names = ", ".join([f"`{tool.__name__}`" for tool in tools])
                 prompt += f"\n{FUNCTION_CALL_WITH_FINISH_FORMAT.format(tool_names = tool_names, tool_schema = tools_schema(tools))}"
-            else:
+            except ValueError:
+                tool_names = ", ".join([f"`{tool.__name__}`" for tool in tools])
                 prompt += f"\n{FUNCTION_CALL_FORMAT.format(tool_names = tool_names, tool_schema = tools_schema(tools))}"
         if response_model:
             instructor = Instructor.from_BaseModel(response_model)

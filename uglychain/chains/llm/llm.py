@@ -90,7 +90,6 @@ class LLM(Chain, Generic[GenericResponseType]):
                     return instructor_response
                 elif self.tools:
                     instructor_response = self.llm.parse_response(response, FunctionCall)
-                    logger.debug(instructor_response.name)
                     if instructor_response.name not in [tool.__name__ for tool in self.tools]:
                         raise ParseError(f"Tool {instructor_response.name} not found")
                     if self.memory_callback:

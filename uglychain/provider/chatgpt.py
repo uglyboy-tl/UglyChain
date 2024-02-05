@@ -94,7 +94,6 @@ class ChatGPT(ChatGPTAPI):
             logger.trace("gpt-4 may change over time. Returning num tokens assuming gpt-4-0613.")
             return self._num_tokens(messages, model="gpt-4-0613")
         else:
-            logger.debug(model.find("gpt-3.5"))
             raise NotImplementedError(
                 f"""num_tokens() is not implemented for model {model}. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how messages are converted to tokens."""
             )
