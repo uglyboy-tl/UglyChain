@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*-coding:utf-8-*-
 
+import random
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union, cast
@@ -159,6 +160,7 @@ class BaseLanguageModel(ABC):
             "top_p": self.top_p,
             "frequency_penalty": self.frequency_penalty,
             "presence_penalty": self.presence_penalty,
+            "seed": random.getrandbits(16),
         }
         if self.use_max_tokens:
             kwargs["max_tokens"] = self.max_tokens
