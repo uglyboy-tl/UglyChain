@@ -31,7 +31,9 @@ def search_baidu(query: str) -> str:
     return "牛顿出生于1642年"
 
 
-@pytest.mark.parametrize("model", [Model.GPT3_TURBO, Model.YI_32K, Model.QWEN, Model.GLM3, Model.BAICHUAN_TURBO])
+@pytest.mark.parametrize(
+    "model", [Model.GPT3_TURBO, Model.YI, Model.YI_32K, Model.QWEN, Model.GLM3, Model.BAICHUAN_TURBO]
+)
 def test_react1(model):
     tools: List[Callable] = [get_current_weather, search_baidu]
     llm = ReActChain(model=model, tools=tools)
@@ -40,7 +42,9 @@ def test_react1(model):
     assert response.find("25") >= 0
 
 
-@pytest.mark.parametrize("model", [Model.GPT3_TURBO, Model.YI_32K, Model.QWEN, Model.GLM3, Model.BAICHUAN_TURBO])
+@pytest.mark.parametrize(
+    "model", [Model.GPT3_TURBO, Model.YI, Model.YI_32K, Model.QWEN, Model.GLM3, Model.BAICHUAN_TURBO]
+)
 def test_react2(model):
     tools: List[Callable] = [get_current_weather, search_baidu]
     llm = ReActChain(model=model, tools=tools)

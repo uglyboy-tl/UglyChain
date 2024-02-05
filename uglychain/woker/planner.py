@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Callable, List, Optional, cast
+from typing import Callable, List, Optional, Union, cast
 
 from loguru import logger
 from pydantic import BaseModel, Field
@@ -86,6 +86,11 @@ class Tasks(BaseModel):
                 return task
         return None
 
+    @classmethod
+    def from_list(cls, objective: str, task_list: List[str]) -> "Tasks":
+        tasks = [Task(id=i + 1, task=task) for i, task in enumerate(task_list)]
+        return cls(objective=objective, tasks=tasks)
+
 
 def execute_task(
     tasks: Tasks,
@@ -139,7 +144,7 @@ class Planner(BaseWorker):
     def run(
         self,
         objective: str = "",
-        tasks: Optional[Tasks] = None,
+        tasks: Optional[Union[Tasks, List[str]]] = None,
     ):
         if self.objective and objective and self.objective != objective:
             logger.warning(f"Objective has different values: {self.objective} and {objective}. use the original one.")
@@ -151,6 +156,9 @@ class Planner(BaseWorker):
             first_task = Task(id=1, task=YOUR_FIRST_TASK)
             tasks = Tasks(objective=self.objective, tasks=[first_task])
             execute_task(tasks, text_completion, objective=self.objective)
+        elif isinstance(tasks, list):
+            tasks = Tasks.from_list(self.objective, tasks)
+            return tasks
         completed_tasks = tasks.completed_tasks
         task = cast(Task_with_result, completed_tasks[0])
         result = task.result

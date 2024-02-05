@@ -1,10 +1,15 @@
+import pytest
+
 from examples.schema import ClassifyResponse
 from uglychain import Model
 from uglychain.woker.classify import Classify
 
 
-def test_classify():
-    worker = Classify(model=Model.YI_32K, label=ClassifyResponse)
+@pytest.mark.parametrize(
+    "model", [Model.GPT3_TURBO, Model.YI, Model.YI_32K, Model.QWEN, Model.GLM3, Model.BAICHUAN_TURBO]
+)
+def test_classify(model):
+    worker = Classify(model=model, label=ClassifyResponse)
 
     input = [
         "加拿大（英语/法语：Canada），首都渥太华，位于北美洲北部。东临大西洋，西濒太平洋，西北部邻美国阿拉斯加州，南接美国本土，北靠北冰洋。气候大部分为亚寒带针叶林气候和湿润大陆性气候，北部极地区域为极地长寒气候。",
