@@ -50,7 +50,7 @@ class ChatGPT(ChatGPTAPI):
             else:
                 raise e
 
-        logger.trace(f"kwargs:{kwargs}\nresponse:{response.choices[0].dict()}")
+        logger.trace(f"kwargs:{kwargs}\nresponse:{response.choices[0].model_dump()}")
         if self.use_native_tools and tools and response.choices[0].message.tool_calls:
             result = response.choices[0].message.tool_calls[0].function
             return json.dumps({"name": result.name, "args": json.loads(result.arguments)})

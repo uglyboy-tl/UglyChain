@@ -46,7 +46,7 @@ class ChatGPTAPI(BaseLanguageModel):
     ) -> str:
         kwargs = self.get_kwargs(prompt, response_model, tools, stop)
         response = self.completion_with_backoff(**kwargs)
-        logger.trace(f"kwargs:{kwargs}\nresponse:{response.choices[0].dict()}")
+        logger.trace(f"kwargs:{kwargs}\nresponse:{response.choices[0].model_dump()}")
         return response.choices[0].message.content.strip()
 
     @retry_decorator(not_notry_exception)
