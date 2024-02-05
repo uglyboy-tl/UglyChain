@@ -36,7 +36,7 @@ def get_language(language: str):
     return None
 
 
-def run_code(code: str, language: Language):
+def run_code(code: str, language: Language) -> str:
     """This function allows you to execute code **on the user's machine** and retrieve the terminal output. Notice the Python code is sent to a Jupyter kernel for execution.
 
     Args:
