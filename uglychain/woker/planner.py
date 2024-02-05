@@ -37,7 +37,7 @@ class Task(BaseModel):
     )
 
 
-class Task_with_result(Task):
+class Task_Completed(Task):
     completed: bool = True
     result: Optional[str] = Field(
         default=None, description="The task result. If the task is not completed, this field should be empty."
@@ -47,7 +47,7 @@ class Task_with_result(Task):
     )
 
     @classmethod
-    def from_task(cls, task: Task, result: Optional[str], result_summary: Optional[str]) -> "Task_with_result":
+    def from_task(cls, task: Task, result: Optional[str], result_summary: Optional[str]) -> "Task_Completed":
         return cls(
             id=task.id,
             task=task.task,
@@ -120,7 +120,7 @@ def execute_task(
         result_summary = summarizer_agent(result)
     try:
         index = tasks.tasks.index(task)
-        tasks.tasks[index] = Task_with_result.from_task(task, result, result_summary)
+        tasks.tasks[index] = Task_Completed.from_task(task, result, result_summary)
     except ValueError:
         pass  # 旧值不在列表中
 
@@ -160,7 +160,7 @@ class Planner(BaseWorker):
             tasks = Tasks.from_list(self.objective, tasks)
             return tasks
         completed_tasks = tasks.completed_tasks
-        task = cast(Task_with_result, completed_tasks[0])
+        task = cast(Task_Completed, completed_tasks[0])
         result = task.result
         original_task_list = tasks.tasks.copy()
         minified_task_list = [
@@ -180,7 +180,7 @@ class Planner(BaseWorker):
             if updated_task.task != original_task.task:
                 logger.warning(f"Task {updated_task.id} has been changed. use the new one.")
                 original_task.task = updated_task.task
-            if isinstance(original_task, Task_with_result):
+            if isinstance(original_task, Task_Completed):
                 tasks.tasks[i] = original_task
         if self.storage:
             self.storage.save(tasks)
