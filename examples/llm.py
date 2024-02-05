@@ -34,5 +34,6 @@ if __name__ == "__main__":
     llm(Model.QWEN)
     llm(Model.GPT3_TURBO)
     llm(Model.COPILOT3_TURBO)
+    llm(Model.BAICHUAN_TURBO)
     prompt(Model.YI)
     instructor(Model.YI)
