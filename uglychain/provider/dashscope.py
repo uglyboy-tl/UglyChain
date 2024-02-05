@@ -96,7 +96,7 @@ class DashScope(BaseLanguageModel):
             "model": self.model,
             "seed": random.getrandbits(16),
             "temperature": self.temperature,
-            "top_p": self.top_p / 1.25,
+            "top_p": self.top_p,
             "repetition_penalty": self.presence_penalty / 2 + 1,
             "result_format": "message",
         }
