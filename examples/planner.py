@@ -11,7 +11,7 @@ logger.add(sink=sys.stdout, level="TRACE")
 
 
 def planner(model: Model | None = None):
-    objective = "安装零一万物的 YI-32K 模型。"
+    objective = "安装零一万物的 YI-32K 模型"
     tools = [search_knowledgebase, run_code]
     if model:
         worker = Planner(model=model, tools=tools)

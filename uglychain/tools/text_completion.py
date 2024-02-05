@@ -7,5 +7,5 @@ def text_completion(prompt: str) -> str:
     Args:
         prompt (str): The prompt to complete.
     """
-    llm = LLM(model=Model.YI_32K)
+    llm = LLM()
     return llm(prompt)

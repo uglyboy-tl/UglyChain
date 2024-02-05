@@ -21,6 +21,7 @@ You need to follow these rules:
 - Do not reorder completed tasks. Only reorder and dedupe incomplete tasks.
 - Make sure all task IDs are in chronological order.
 - The last task is always to provide a final summary report including tasks executed and summary of knowledge acquired.
+- task descriptions should be in Chinese.
 
 The last completed task has the following result: {result}.
 """
