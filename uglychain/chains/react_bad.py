@@ -79,7 +79,7 @@ class ReActChain(LLM[GenericResponseType]):
         self._response_model = self.response_model
         self.response_model = None
         self.tools_schema = str(tools_schema(self.tools))
-        self.tool_names = ", ".join([tool.__name__ for tool in self.tools])
+        self.tool_names = ", ".join([f"`{tool.__name__}`" for tool in self.tools])
         self._tools = self.tools
         self._tools.insert(0, finish)
         self.tools = None
