@@ -1,5 +1,5 @@
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Type, Union
 
 from loguru import logger
@@ -15,6 +15,7 @@ class ChatGLM(BaseLanguageModel):
     model: str
     use_max_tokens: bool = False
     MAX_TOKENS: int = 128000
+    top_p: float = field(init=False, default=0.7)
 
     def generate(
         self,

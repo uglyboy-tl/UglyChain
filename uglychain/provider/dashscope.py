@@ -2,7 +2,7 @@
 # -*-coding:utf-8-*-
 
 import random
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from http import HTTPStatus
 from typing import Any, Callable, Dict, List, Optional, Type, Union
 
@@ -38,6 +38,8 @@ class DashScope(BaseLanguageModel):
     model: str
     use_max_tokens: bool = True
     MAX_TOKENS: int = 6000
+    presence_penalty: float = field(init=False, default=1.1)
+    top_p: float = field(init=False, default=0.8)
 
     def generate(
         self,
@@ -97,7 +99,7 @@ class DashScope(BaseLanguageModel):
             "seed": random.getrandbits(16),
             "temperature": self.temperature,
             "top_p": self.top_p,
-            "repetition_penalty": self.presence_penalty / 2 + 1,
+            "repetition_penalty": self.presence_penalty,
             "result_format": "message",
         }
         if self.use_max_tokens:
