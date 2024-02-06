@@ -61,6 +61,12 @@ llm = LLM(tools=tools)
 print(llm("用百度查一查牛顿生于哪一年？"))
 ```
 
+!!! info "工具使用的注意事项"
+
+    在各种 Chain 中，我们都提供了 `tools` 参数，用于传入工具函数。但需要注意的是，并不是所有的 Chain 都支持外部函数调用和结构化返回的同时使用。因为这两个功能的实现是相互冲突的——结构化返回需要返回一个特定的类型，而外部函数调用则需要返回 `FunctionCall`。
+
+    当前仅有 `ReActChain` 支持外部函数调用和结构化返回的同时使用。
+
 ### 返回结果的类型
 
 使用函数调用功能时，我们严格要求函数的返回结果必须是一个 `FunctionCall` 类型的对象，这个对象包含了函数的名称和参数。
@@ -81,6 +87,13 @@ for tool in tools:
     if tool.__name__ == response.name:
         # 使用 {tool.__name__} 工具解析
         print(tool(**response.args))
+```
+
+同时我们也提供了一个工具函数，用于解析返回结果。
+
+```python
+from uglychain.llm import run_function
+def run_function (tools: List[Callable], response: FunctionCall)
 ```
 
 ### 如果不确定是否需要调用函数

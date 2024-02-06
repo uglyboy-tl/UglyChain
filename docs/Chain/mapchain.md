@@ -2,7 +2,7 @@
 
 > 这是一个可以并行对同类型 Prompt 进行调用的类，可以大大提高调用效率。
 
-快速使用：
+## 快速使用
 
 ```python
 from uglychain import MapChain
@@ -15,7 +15,9 @@ print(llm([
     ]))
 ```
 
-类似于 LLM，也可以对 MapChain 进行更高阶的使用：
+## 高阶技巧
+
+可以使用 `prompt_template` 来对 Prompt 进行参数化，使用 [response_model](../Agent/structured.md) 来对返回结果进行结构化。
 
 ```python
 class AUTHOR(BaseModel):
@@ -31,3 +33,5 @@ input = [
 ]
 print(llm(book=input, position="作者"))
 ```
+
+也可以使用 [Tools](../Agent/tools.md) 来批量调用工具（似乎这个需求不太重要，误）。

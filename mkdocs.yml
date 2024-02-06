@@ -18,32 +18,41 @@ nav:
   - 主页:
     - 介绍: index.md
     - 快速开始: quickstart.md
-    - 路线图: roadmap.md
-  - 入门:
-    - 安装: install.md
     - 配置: config.md
+    - 例子: examples.md
   - Chain:
     - LLM: Chain/llm.md
     - MapChain: Chain/mapchain.md
     - ReduceChain: Chain/reducechain.md
+    - ReActChain: Chain/reactchain.md
   - Agent:
+    - Structured : Agent/structured.md
     - Tools: Agent/tools.md
     - ReAct: Agent/react.md
     - Retriever: Agent/retriever.md
   - Worker:
     - Base: Worker/worker.md
-    - Summary: Worker/summary.md
     - Classify: Worker/classify.md
-    - Plan: Worker/plan.md
+    - Summary: Worker/summary.md
     - Code Interpreter: Worker/ci.md
-    - Code: Worker/code.md
-    - Continue: Worker/continue.md
-  - 参考: examples.md
+    - Plan: Worker/plan.md
   - 关于: about.md
 
 markdown_extensions:
   - toc:
       permalink: true
+  - pymdownx.highlight:
+      linenums: true
+      anchor_linenums: true
+      auto_title: true
+      line_spans: __span
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tabbed:
+      alternate_style: true
 
 plugins:
   - git-revision-date
