@@ -6,6 +6,8 @@ from typing import Any, Callable, Dict, List, Union
 
 from loguru import logger
 
+from uglychain.llm import run_function
+
 from .llm import LLM, FunctionCall, GenericResponseType
 
 
@@ -21,12 +23,9 @@ class ReduceChain(LLM[GenericResponseType]):
             self._format = self.format
 
             def format_for_tools(response: FunctionCall) -> str:
-                for tool in self.tools:  # type: ignore
-                    if tool.__name__ == response.name:
-                        result = tool(**response.args)
-                        logger.debug(f"{tool.__name__}({response.args}) -> {result}")
-                        return self._format(result)
-                raise ValueError(f"Cannot find tool {response.name}")
+                assert self.tools, "Redefine format_for_tools need tools."
+                result = run_function(self.tools, response)
+                return self._format(result)
 
             self.format = format_for_tools  # type: ignore
 
