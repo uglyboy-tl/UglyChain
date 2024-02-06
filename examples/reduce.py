@@ -19,7 +19,7 @@ def reduce(model: Model | None = None):
 
 
 def reduce_function(model: Model | None = None):
-    def string(obj: Any) -> str:
+    def string(obj: str) -> str:
         """Converts an object to a string.
 
         Args:
