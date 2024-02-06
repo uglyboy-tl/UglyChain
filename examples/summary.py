@@ -3,7 +3,7 @@
 from loguru import logger
 
 from uglychain import Model
-from uglychain.woker.summary import Summary
+from uglychain.worker.summary import Summary
 
 # logger.remove()
 # logger.add(sink=sys.stdout, level="TRACE")

@@ -4,7 +4,7 @@ from loguru import logger
 
 from examples.schema import ClassifyResponse
 from uglychain import Model
-from uglychain.woker.classify import Classify
+from uglychain.worker.classify import Classify
 
 # logger.remove()
 # logger.add(sink=sys.stdout, level="TRACE")

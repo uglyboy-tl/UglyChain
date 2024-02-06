@@ -4,7 +4,7 @@ from loguru import logger
 
 from uglychain import Model
 from uglychain.tools import run_code, search_knowledgebase, text_completion
-from uglychain.woker.planner import Planner, Tasks
+from uglychain.worker.planner import Planner, Tasks
 
 logger.remove()
 logger.add(sink=sys.stdout, level="TRACE")

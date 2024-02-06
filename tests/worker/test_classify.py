@@ -2,7 +2,7 @@ import pytest
 
 from examples.schema import ClassifyResponse
 from uglychain import Model
-from uglychain.woker.classify import Classify
+from uglychain.worker.classify import Classify
 
 
 @pytest.mark.parametrize(
