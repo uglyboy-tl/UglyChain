@@ -1,11 +1,11 @@
-from uglychain import LLM, Model
+from uglychain import LLM
 
 
 def text_completion(prompt: str) -> str:
-    """Text completion tool.
+    """A tool that uses LLM to generate, summarize, and/or analyze text and code.
 
     Args:
-        prompt (str): The prompt to complete.
+        prompt (str): The prompt to use for text generation.
     """
     llm = LLM()
     return llm(prompt)
