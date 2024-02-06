@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*-coding:utf-8-*-
 
 from uglychain.llm import BaseLanguageModel
 from uglychain.utils import config

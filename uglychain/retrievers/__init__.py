@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*-coding:utf-8-*-
 
 from .arxiv import ArxivRetriever
 from .base import BaseRetriever, StoresRetriever

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*-coding:utf-8-*-
 
 import concurrent.futures
 import heapq
@@ -122,7 +121,7 @@ class BM25Retriever(StoresRetriever):
     def _load(self) -> None:
         if self.path and Path(self.path).exists():
             try:
-                with open(self.path, "r") as f:
+                with open(self.path) as f:
                     data = json.load(f)
                 data["word_sets"] = [set(v) for v in data["word_sets"]]
                 self.texts = data.pop("texts")
