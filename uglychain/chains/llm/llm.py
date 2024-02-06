@@ -130,3 +130,54 @@ class LLM(Chain, Generic[GenericResponseType]):
             prompt_template: The template for the prompt.
         """
         self._prompt = Prompt(prompt_template)
+
+    # 通过修改 @property 和 @x.setter 快速设置 llm 的如下内部变量 temperature、top_p、frequency_penalty、presence_penalty、use_max_tokens、seed
+    @property
+    def temperature(self) -> float:
+        """Get the temperature."""
+        return self.llm.temperature
+
+    @temperature.setter
+    def temperature(self, temperature: float) -> None:
+        """Set the temperature."""
+        self.llm.temperature = temperature
+
+    @property
+    def top_p(self) -> float:
+        """Get the top_p."""
+        return self.llm.top_p
+
+    @top_p.setter
+    def top_p(self, top_p: float) -> None:
+        """Set the top_p."""
+        self.llm.top_p = top_p
+
+    @property
+    def frequency_penalty(self) -> float:
+        """Get the frequency_penalty."""
+        return self.llm.frequency_penalty
+
+    @frequency_penalty.setter
+    def frequency_penalty(self, frequency_penalty: float) -> None:
+        """Set the frequency_penalty."""
+        self.llm.frequency_penalty = frequency_penalty
+
+    @property
+    def presence_penalty(self) -> float:
+        """Get the presence_penalty."""
+        return self.llm.presence_penalty
+
+    @presence_penalty.setter
+    def presence_penalty(self, presence_penalty: float) -> None:
+        """Set the presence_penalty."""
+        self.llm.presence_penalty = presence_penalty
+
+    @property
+    def seed(self) -> int:
+        """Get the seed."""
+        return self.llm.seed
+
+    @seed.setter
+    def seed(self, seed: int) -> None:
+        """Set the seed."""
+        self.llm.seed = seed
