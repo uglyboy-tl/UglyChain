@@ -4,6 +4,8 @@
 
 这些任务更适合通过提前规划，将任务分解成多个节点，然后再具体执行。而这就是任务规划节点的作用。
 
+Planner 的实现参考了 [BabyAGI](https://github.com/yoheinakajima/babyagi) 的实现
+
 ## 任务规划节点的使用
 
 ```python
