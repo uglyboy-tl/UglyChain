@@ -130,7 +130,16 @@ class LLM(Chain, Generic[GenericResponseType]):
         """
         self._prompt = Prompt(prompt_template)
 
-    # 通过修改 @property 和 @x.setter 快速设置 llm 的如下内部变量 temperature、top_p、frequency_penalty、presence_penalty、use_max_tokens、seed
+    @property
+    def custom_model_name(self) -> str:
+        """Get the custom model name."""
+        return self.llm.model
+
+    @custom_model_name.setter
+    def custom_model_name(self, custom_model_name: str) -> None:
+        """Set the custom model name."""
+        self.llm.model = custom_model_name
+
     @property
     def temperature(self) -> float:
         """Get the temperature."""
