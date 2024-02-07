@@ -22,4 +22,5 @@ class Model(Enum):
     QWEN_PLUS = "qwen-plus"
     GLM4 = "glm-4"
     GLM3 = "glm-3"
+    OLLAMA = "ollama"
     DEFAULT = config.llm_provider

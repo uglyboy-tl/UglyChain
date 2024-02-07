@@ -9,6 +9,7 @@ from .copilot import Copilot
 from .custom import Custom
 from .dashscope import DashScope
 from .gemini import Gemini
+from .ollama import Ollama
 from .yi import Yi
 from .zhipu import ChatGLM
 
@@ -23,7 +24,7 @@ LLM_PROVIDERS = {
     "baichuan-turbo": (Baichuan, {"model": "Baichuan2-Turbo"}),
     "baichuan-turbo-192k": (Baichuan, {"model": "Baichuan2-Turbo-192k"}),
     "baichuan-pro": (Baichuan, {"model": "Baichuan2-53B"}),
-    "custom": (Custom, {}),
+    "custom": (Custom, {"model": config.custom_model}),
     "gemini": (Gemini, {"model": "gemini-pro"}),
     "qwen": (DashScope, {"model": "qwen-max", "MAX_TOKENS": 6000}),
     "qwen-turbo": (DashScope, {"model": "qwen-turbo", "MAX_TOKENS": 6000}),
@@ -31,6 +32,7 @@ LLM_PROVIDERS = {
     "qwen-28k": (DashScope, {"model": "qwen-max-longcontext", "MAX_TOKENS": 28000}),
     "glm-4": (ChatGLM, {"model": "glm-4", "MAX_TOKENS": 128000}),
     "glm-3": (ChatGLM, {"model": "glm-3-turbo", "MAX_TOKENS": 128000}),
+    "ollama": (Ollama, {"model": config.ollama_model}),
 }
 
 

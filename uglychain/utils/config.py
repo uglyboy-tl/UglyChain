@@ -24,6 +24,8 @@ class Config:
     custom_token: Optional[str] = os.getenv("CUSTOM_TOKEN")
     custom_url: Optional[str] = os.getenv("CUSTOM_URL")
     custom_model: Optional[str] = os.getenv("CUSTOM_MODEL")
+    # Ollama
+    ollama_model: Optional[str] = os.getenv("OLLAMA_MODEL")
 
     # Gemini
     gemini_api_key: Optional[str] = os.getenv("GEMINI_API_KEY")
