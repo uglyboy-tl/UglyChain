@@ -1,7 +1,5 @@
 from enum import Enum
 
-from uglychain.utils import config
-
 
 class Model(Enum):
     GPT3_TURBO = "gpt-3.5-turbo"
@@ -23,4 +21,3 @@ class Model(Enum):
     GLM4 = "glm-4"
     GLM3 = "glm-3"
     OLLAMA = "ollama"
-    DEFAULT = config.llm_provider

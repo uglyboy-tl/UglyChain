@@ -6,14 +6,17 @@ from typing import Any, Callable, Dict, Generic, List, Optional, Tuple, Type, Ty
 from loguru import logger
 from pydantic import BaseModel
 
-from uglychain.llm import BaseLanguageModel, Model, ParseError
+from uglychain.llm import BaseLanguageModel, ParseError
 from uglychain.llm.tools import ActionResopnse, FunctionCall
-from uglychain.provider import get_llm_provider
+from uglychain.provider import Model, get_llm_provider
+from uglychain.utils import config
 
 from ..base import Chain
 from .prompt import Prompt
 
 GenericResponseType = TypeVar("GenericResponseType", bound=BaseModel)
+
+DEFAULT_MODEL = getattr(Model, config.default_llm, Model.GPT3_TURBO)
 
 
 @dataclass
@@ -28,7 +31,7 @@ class LLM(Chain, Generic[GenericResponseType]):
     """
 
     prompt_template: str = "{prompt}"
-    model: Model = Model.DEFAULT
+    model: Model = DEFAULT_MODEL
     system_prompt: Optional[str] = None
     response_model: Optional[Type[GenericResponseType]] = None
     tools: Optional[List[Callable]] = None
@@ -47,7 +50,7 @@ class LLM(Chain, Generic[GenericResponseType]):
             assert (
                 self.response_model is None or self.response_model == ActionResopnse
             ), "response_model must be ActionResopnse if tools is set"
-        self.llm = get_llm_provider(self.model.value, self.is_init_delay)
+        self.llm = get_llm_provider(self.model, self.is_init_delay)
         logger.success(f"{self.model} loaded")
         if self.system_prompt:
             self.llm.set_system_prompt(self.system_prompt)

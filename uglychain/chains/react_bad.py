@@ -5,10 +5,10 @@ from typing import Any, Callable, Dict, List, Optional, Type, Union, cast
 
 from loguru import logger
 
-from uglychain.llm import Model, finish, run_function
+from uglychain.llm import finish, run_function
 from uglychain.llm.tools import ActionResopnse, tools_schema
 
-from .llm import LLM, GenericResponseType
+from .llm import LLM, GenericResponseType, Model
 from .react import Action
 from .react import ReActChain as ReActChainGood
 
