@@ -1,4 +1,4 @@
-# import sys
+import sys
 
 from loguru import logger
 
@@ -6,10 +6,10 @@ from examples.schema import ClassifyResponse
 from uglychain import Model
 from uglychain.worker.classify import Classify
 
-# logger.remove()
-# logger.add(sink=sys.stdout, level="TRACE")
+logger.remove()
+logger.add(sink=sys.stdout, level="TRACE")
 
-worker = Classify(model=Model.YI, label=ClassifyResponse)
+worker = Classify(model=Model.GLM4, label=ClassifyResponse)
 
 input = [
     "加拿大（英语/法语：Canada），首都渥太华，位于北美洲北部。东临大西洋，西濒太平洋，西北部邻美国阿拉斯加州，南接美国本土，北靠北冰洋。气候大部分为亚寒带针叶林气候和湿润大陆性气候，北部极地区域为极地长寒气候。",
