@@ -9,5 +9,5 @@ class Storage(ABC):
         pass
 
     @abstractmethod
-    def load(self):
+    def load(self,*args, **kwargs):
         pass
