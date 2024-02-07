@@ -38,4 +38,4 @@ def react(model: Model | None = None):
 
 
 if __name__ == "__main__":
-    react(Model.YI_32K)
+    react(Model.YI)

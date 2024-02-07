@@ -11,7 +11,7 @@ Code Interpreter 最早是 ChatGPT 官方提供的功能插件，可以在聊天
 ## 代码解释器的使用
 
 ```python
-worker = CodeInterpreter(model=Model.YI_32K)
+worker = CodeInterpreter(model=Model.YI)
 worker.run("更新系统软件包")
 ```
 

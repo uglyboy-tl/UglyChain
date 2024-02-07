@@ -32,7 +32,7 @@ def search_baidu(query: str) -> str:
 
 
 @pytest.mark.parametrize(
-    "model", [Model.GPT3_TURBO, Model.YI, Model.YI_32K, Model.QWEN, Model.GLM3, Model.BAICHUAN_TURBO]
+    "model", [Model.GPT3_TURBO, Model.YI, Model.YI_200K, Model.QWEN, Model.GLM3, Model.BAICHUAN_TURBO]
 )
 def test_react1(model):
     tools: List[Callable] = [get_current_weather, search_baidu]
@@ -43,7 +43,7 @@ def test_react1(model):
 
 
 @pytest.mark.parametrize(
-    "model", [Model.GPT3_TURBO, Model.YI, Model.YI_32K, Model.QWEN, Model.GLM3, Model.BAICHUAN_TURBO]
+    "model", [Model.GPT3_TURBO, Model.YI, Model.YI_200K, Model.QWEN, Model.GLM3, Model.BAICHUAN_TURBO]
 )
 def test_react2(model):
     tools: List[Callable] = [get_current_weather, search_baidu]

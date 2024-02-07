@@ -6,8 +6,17 @@ from loguru import logger
 from pydantic import BaseModel
 
 from uglychain.llm import BaseLanguageModel
-from uglychain.llm.tools import tools_schema
 from uglychain.utils import config, retry_decorator
+
+from .error import BadRequestError, RequestLimitError, Unauthorized
+
+
+def not_notry_exception(exception: BaseException):
+    if isinstance(exception, BadRequestError):
+        return False
+    if isinstance(exception, Unauthorized):
+        return False
+    return True
 
 
 @dataclass
@@ -15,6 +24,7 @@ class ChatGLM(BaseLanguageModel):
     use_max_tokens: bool = False
     MAX_TOKENS: int = 128000
     top_p: float = field(init=False, default=0.7)
+    use_native_tools: bool = field(init=False, default=True)
 
     def generate(
         self,
@@ -38,25 +48,6 @@ class ChatGLM(BaseLanguageModel):
             return json.dumps({"name": result.name, "args": json.loads(result.arguments)})
         return response.choices[0].message.content.strip()
 
-    def get_kwargs(
-        self,
-        prompt: str,
-        response_model: Optional[Type],
-        tools: Optional[List[Callable]],
-        stop: Union[Optional[str], List[str]],
-    ) -> Dict[str, Any]:
-        if self.use_native_tools and tools:
-            self._generate_validation()
-            self._generate_messages(prompt)
-            params = self.default_params
-            params["tools"] = tools_schema(tools)
-            if len(tools) == 1:
-                params["tool_choice"] = {"type": "function", "function": {"name": tools[0].__name__}}
-            kwargs = {"messages": self.messages, "stop": stop, **params}
-            return kwargs
-        else:
-            return super().get_kwargs(prompt, response_model, tools, stop)
-
     @property
     def default_params(self) -> Dict[str, Any]:
         kwargs = {
@@ -76,9 +67,30 @@ class ChatGLM(BaseLanguageModel):
             raise ImportError("You need to install `pip install dashscope` to use this provider.") from err
         return ZhipuAI(api_key=config.zhipuai_api_key)
 
-    @retry_decorator()
+    @retry_decorator(not_notry_exception)
     def completion_with_backoff(self, **kwargs):
-        return self.client.chat.completions.create(**kwargs)
+        from zhipuai import APIStatusError
+
+        try:
+            return self.client.chat.completions.create(**kwargs)
+        except APIStatusError as error:
+            status_code = error.status_code
+            error_json = json.loads(error.response.text.strip())
+            code = error_json.get("error").get("code")
+            message = error_json.get("error").get("message")
+            if status_code in [400, 404, 435]:
+                # 400 Bad Request
+                raise BadRequestError(f"code: {code}, message:{message}") from error
+            elif status_code == 429 and code in ["1302", "1303", "1305"]:
+                # 404 Not Found
+                raise RequestLimitError(f"code: {code}, message:{message}") from error
+            elif status_code in [401, 429, 434]:
+                # 401 Unauthorized
+                raise Unauthorized(f"code: {code}, message:{message}") from error
+            else:
+                raise error
+        except Exception as e:
+            raise e
 
     @property
     def max_tokens(self):
