@@ -16,11 +16,10 @@ class Yi(ChatGPTAPI):
     base_url: str = "https://api.01ww.xyz/v1"
     name: str = "Yi"
     use_max_tokens: bool = False
-    use_native_tools: bool = field(init=False)
 
     def __post_init__(self):
         super().__post_init__()
-        if self.model in []:
+        if self.model in ["yi-34b-chat-creation-v01"]:
             self.use_native_tools = True
 
     def generate(
@@ -42,9 +41,13 @@ class Yi(ChatGPTAPI):
             kwargs["functions"] = new_functions
         if "tool_choice" in kwargs:
             kwargs["function_call"] = kwargs.pop("tool_choice")["function"]
+        logger.debug(f"kwargs:{kwargs}")
         response = self.completion_with_backoff(**kwargs)
         logger.trace(f"kwargs:{kwargs}\nresponse:{response.choices[0].model_dump()}")
-        if self.use_native_tools and tools and response.choices[0].message.function_call:
-            result = response.choices[0].message.function_call[0].function
-            return json.dumps({"name": result.name, "args": json.loads(result.arguments)})
+        if self.use_native_tools and response.choices[0].message.tool_calls:
+            tool_calls_response = response.choices[0].message.tool_calls[0].function
+            if tools:
+                return json.dumps({"name": tool_calls_response.name, "args": json.loads(tool_calls_response.arguments)})
+            elif response_model:
+                return tool_calls_response.arguments
         return response.choices[0].message.content.strip()

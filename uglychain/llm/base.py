@@ -128,6 +128,26 @@ class BaseLanguageModel(ABC):
                 tool_names = ", ".join([f"`{tool.__name__}`" for tool in tools])
                 prompt += f"\n{FUNCTION_CALL_FORMAT.format(tool_names = tool_names, tool_schema = tools_schema(tools))}"
         if response_model:
+            if self.use_native_tools:
+                self._generate_messages(prompt)
+                params = self.default_params
+                schema = response_model.model_json_schema()
+                params["tools"] = [
+                    {
+                        "type": "function",
+                        "function": {
+                            "name": schema["title"],
+                            "description": f"Correctly extracted `{schema['title']}` with all the required parameters with correct types",
+                            "parameters": {k: v for k, v in schema.items() if k not in ("title", "description")},
+                        },
+                    }
+                ]
+                params["tool_choice"] = {
+                    "type": "function",
+                    "function": {"name": schema["title"]},
+                }
+                kwargs = {"messages": self.messages, "stop": stop, **params}
+                return kwargs
             instructor = Instructor.from_BaseModel(response_model)
             prompt += "\n" + instructor.get_format_instructions()
         self._generate_messages(prompt)
