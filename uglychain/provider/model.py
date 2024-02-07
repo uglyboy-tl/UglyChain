@@ -21,3 +21,4 @@ class Model(Enum):
     GLM4 = "glm-4"
     GLM3 = "glm-3"
     OLLAMA = "ollama"
+    DEFAULT = "default"

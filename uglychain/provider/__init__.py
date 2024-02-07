@@ -36,6 +36,8 @@ LLM_PROVIDERS = {
     Model.OLLAMA: (Ollama, {"model": config.ollama_model}),
 }
 
+DEFAULT_MODEL = getattr(Model, config.default_llm, Model.GPT3_TURBO)
+
 
 def get_llm_provider(llm_provider: Model, is_init_delay: bool = False) -> BaseLanguageModel:
     """
@@ -47,7 +49,8 @@ def get_llm_provider(llm_provider: Model, is_init_delay: bool = False) -> BaseLa
     Returns:
         The LLMProvider object.
     """
-
+    if llm_provider == Model.DEFAULT:
+        llm_provider = DEFAULT_MODEL
     if llm_provider in LLM_PROVIDERS.keys():
         provider, kwargs = LLM_PROVIDERS[llm_provider]
         kwargs["is_init_delay"] = is_init_delay

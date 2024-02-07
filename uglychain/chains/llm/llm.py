@@ -9,14 +9,11 @@ from pydantic import BaseModel
 from uglychain.llm import BaseLanguageModel, ParseError
 from uglychain.llm.tools import ActionResopnse, FunctionCall
 from uglychain.provider import Model, get_llm_provider
-from uglychain.utils import config
 
 from ..base import Chain
 from .prompt import Prompt
 
 GenericResponseType = TypeVar("GenericResponseType", bound=BaseModel)
-
-DEFAULT_MODEL = getattr(Model, config.default_llm, Model.GPT3_TURBO)
 
 
 @dataclass
@@ -31,7 +28,7 @@ class LLM(Chain, Generic[GenericResponseType]):
     """
 
     prompt_template: str = "{prompt}"
-    model: Model = DEFAULT_MODEL
+    model: Model = Model.DEFAULT
     system_prompt: Optional[str] = None
     response_model: Optional[Type[GenericResponseType]] = None
     tools: Optional[List[Callable]] = None
