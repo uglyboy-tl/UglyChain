@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import json
 from dataclasses import dataclass
 from typing import Callable, List, Optional, Type, Union
 
@@ -46,6 +47,9 @@ class ChatGPTAPI(BaseLanguageModel):
         kwargs = self.get_kwargs(prompt, response_model, tools, stop)
         response = self.completion_with_backoff(**kwargs)
         logger.trace(f"kwargs:{kwargs}\nresponse:{response.choices[0].model_dump()}")
+        if self.use_native_tools and tools and response.choices[0].message.tool_calls:
+            result = response.choices[0].message.tool_calls[0].function
+            return json.dumps({"name": result.name, "args": json.loads(result.arguments)})
         return response.choices[0].message.content.strip()
 
     @retry_decorator(not_notry_exception)

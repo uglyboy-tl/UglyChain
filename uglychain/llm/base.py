@@ -109,6 +109,14 @@ class BaseLanguageModel(ABC):
     ) -> Dict[str, Any]:
         self._generate_validation()
         if tools:
+            if self.use_native_tools:
+                self._generate_messages(prompt)
+                params = self.default_params
+                params["tools"] = tools_schema(tools)
+                if len(tools) == 1:
+                    params["tool_choice"] = {"type": "function", "function": {"name": tools[0].__name__}}
+                kwargs = {"messages": self.messages, "stop": stop, **params}
+                return kwargs
             if not response_model:
                 response_model = cast(Type[T], FunctionCall)
             try:
