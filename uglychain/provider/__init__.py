@@ -21,6 +21,7 @@ LLM_PROVIDERS = {
     Model.COPILOT3_TURBO: (Copilot, {"model": "gpt-3.5-turbo"}),
     Model.COPILOT4: (Copilot, {"model": "gpt-4"}),
     Model.YI: (Yi, {"MAX_TOKENS": 4096}),
+    Model.YI_FUNCTION: (Yi, {"MAX_TOKENS": 16384}),
     Model.YI_LONGCONTEXT: (Yi, {"MAX_TOKENS": 32768}),
     Model.BAICHUAN_TURBO: (Baichuan, {}),
     Model.BAICHUAN_TURBO_192K: (Baichuan, {}),
