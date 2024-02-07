@@ -24,7 +24,7 @@ class ChatGLM(BaseLanguageModel):
     use_max_tokens: bool = False
     MAX_TOKENS: int = 128000
     top_p: float = field(init=False, default=0.7)
-    use_native_tools: bool = field(init=False, default=True)
+    # use_native_tools: bool = field(init=False, default=True)
 
     def generate(
         self,
@@ -43,9 +43,12 @@ class ChatGLM(BaseLanguageModel):
             kwargs.pop("stop")
         response = self.completion_with_backoff(**kwargs)
         logger.trace(f"kwargs:{kwargs}\nresponse:{response.choices[0].model_dump()}")
-        if self.use_native_tools and tools and response.choices[0].message.tool_calls:
-            result = response.choices[0].message.tool_calls[0].function
-            return json.dumps({"name": result.name, "args": json.loads(result.arguments)})
+        if self.use_native_tools and response.choices[0].message.tool_calls:
+            tool_calls_response = response.choices[0].message.tool_calls[0].function
+            if tools:
+                return json.dumps({"name": tool_calls_response.name, "args": json.loads(tool_calls_response.arguments)})
+            elif response_model:
+                return tool_calls_response.arguments
         return response.choices[0].message.content.strip()
 
     @property
