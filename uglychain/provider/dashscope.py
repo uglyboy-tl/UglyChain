@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
-
 import random
 from dataclasses import dataclass, field
-from http import HTTPStatus
 from typing import Any, Callable, Dict, List, Optional, Type, Union
 
 from loguru import logger
@@ -11,17 +9,7 @@ from pydantic import BaseModel
 from uglychain.llm import BaseLanguageModel
 from uglychain.utils import config, retry_decorator
 
-
-class BadRequestError(Exception):
-    pass
-
-
-class Unauthorized(Exception):
-    pass
-
-
-class RequestLimitError(Exception):
-    pass
+from .error import BadRequestError, HTTPStatus, RequestLimitError, Unauthorized
 
 
 def not_notry_exception(exception: BaseException):
@@ -81,10 +69,10 @@ class DashScope(BaseLanguageModel):
             raise BadRequestError(f"code: {code}, message:{message}")
         elif status_code == 401:
             # 401 Unauthorized
-            raise Unauthorized()
+            raise Unauthorized(f"code: {code}, message:{message}")
         elif status_code == 429:
             # 404 Not Found
-            raise RequestLimitError()
+            raise RequestLimitError(f"code: {code}, message:{message}")
         else:
             raise Exception(
                 f"Failed request_id: {response.request_id}, status_code: {status_code}, code: {code}, message:{message}"

@@ -8,6 +8,16 @@ from pydantic import BaseModel
 from uglychain.llm import BaseLanguageModel
 from uglychain.utils import config, retry_decorator
 
+from .error import BadRequestError, RequestLimitError, Unauthorized
+
+
+def not_notry_exception(exception: BaseException):
+    if isinstance(exception, BadRequestError):
+        return False
+    if isinstance(exception, Unauthorized):
+        return False
+    return True
+
 
 @dataclass
 class ChatGLM(BaseLanguageModel):
@@ -57,9 +67,30 @@ class ChatGLM(BaseLanguageModel):
             raise ImportError("You need to install `pip install dashscope` to use this provider.") from err
         return ZhipuAI(api_key=config.zhipuai_api_key)
 
-    @retry_decorator()
+    @retry_decorator(not_notry_exception)
     def completion_with_backoff(self, **kwargs):
-        return self.client.chat.completions.create(**kwargs)
+        from zhipuai import APIStatusError
+
+        try:
+            return self.client.chat.completions.create(**kwargs)
+        except APIStatusError as error:
+            status_code = error.status_code
+            error_json = json.loads(error.response.text.strip())
+            code = error_json.get("error").get("code")
+            message = error_json.get("error").get("message")
+            if status_code in [400, 404, 435]:
+                # 400 Bad Request
+                raise BadRequestError(f"code: {code}, message:{message}") from error
+            elif status_code == 429 and code in ["1302", "1303", "1305"]:
+                # 404 Not Found
+                raise RequestLimitError(f"code: {code}, message:{message}") from error
+            elif status_code in [401, 429, 434]:
+                # 401 Unauthorized
+                raise Unauthorized(f"code: {code}, message:{message}") from error
+            else:
+                raise error
+        except Exception as e:
+            raise e
 
     @property
     def max_tokens(self):
