@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "uglychain"
-version = "0.1.1"
+version = "0.1.2"
 description = "UglyChain：更好用的 LLM 应用构建工具"
 authors = ["uglyboy <uglyboy@uglyboy.cn>"]
 readme = "README.md"
