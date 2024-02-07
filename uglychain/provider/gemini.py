@@ -12,7 +12,6 @@ from uglychain.utils import config, retry_decorator
 
 @dataclass
 class Gemini(BaseLanguageModel):
-    model: str
     use_max_tokens: bool = False
 
     def generate(
