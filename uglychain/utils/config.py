@@ -24,6 +24,8 @@ class Config:
     custom_token: Optional[str] = os.getenv("CUSTOM_TOKEN")
     custom_url: Optional[str] = os.getenv("CUSTOM_URL")
     custom_model: Optional[str] = os.getenv("CUSTOM_MODEL")
+    # Ollama
+    ollama_model: Optional[str] = os.getenv("OLLAMA_MODEL")
 
     # Gemini
     gemini_api_key: Optional[str] = os.getenv("GEMINI_API_KEY")
@@ -31,7 +33,7 @@ class Config:
     dashscope_api_key: Optional[str] = os.getenv("DASHSCOPE_API_KEY")
     # Zhipuai
     zhipuai_api_key: Optional[str] = os.getenv("ZHIPUAI_API_KEY")
-    llm_provider: str = os.getenv("LLM_PROVIDER", "gpt-3.5-turbo")
+    default_llm: str = os.getenv("DEFAULT_LLM", "GPT3_TURBO")
 
     # Bing Search
     bing_subscription_key: Optional[str] = os.getenv("BING_SUBSCRIPTION_KEY")

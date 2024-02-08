@@ -6,9 +6,9 @@ from typing import Any, Callable, Dict, Generic, List, Optional, Tuple, Type, Ty
 from loguru import logger
 from pydantic import BaseModel
 
-from uglychain.llm import BaseLanguageModel, Model, ParseError
+from uglychain.llm import BaseLanguageModel, ParseError
 from uglychain.llm.tools import ActionResopnse, FunctionCall
-from uglychain.provider import get_llm_provider
+from uglychain.provider import Model, get_llm_provider
 
 from ..base import Chain
 from .prompt import Prompt
@@ -47,7 +47,7 @@ class LLM(Chain, Generic[GenericResponseType]):
             assert (
                 self.response_model is None or self.response_model == ActionResopnse
             ), "response_model must be ActionResopnse if tools is set"
-        self.llm = get_llm_provider(self.model.value, self.is_init_delay)
+        self.llm = get_llm_provider(self.model, self.is_init_delay)
         logger.success(f"{self.model} loaded")
         if self.system_prompt:
             self.llm.set_system_prompt(self.system_prompt)
@@ -130,7 +130,16 @@ class LLM(Chain, Generic[GenericResponseType]):
         """
         self._prompt = Prompt(prompt_template)
 
-    # 通过修改 @property 和 @x.setter 快速设置 llm 的如下内部变量 temperature、top_p、frequency_penalty、presence_penalty、use_max_tokens、seed
+    @property
+    def custom_model_name(self) -> str:
+        """Get the custom model name."""
+        return self.llm.model
+
+    @custom_model_name.setter
+    def custom_model_name(self, custom_model_name: str) -> None:
+        """Set the custom model name."""
+        self.llm.model = custom_model_name
+
     @property
     def temperature(self) -> float:
         """Get the temperature."""

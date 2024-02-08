@@ -48,7 +48,9 @@ def search_bing(query: str) -> str:
     return f"{query}是一个技术博主"
 
 
-@pytest.mark.parametrize("model", [Model.GPT3_TURBO, Model.QWEN, Model.YI_32K, Model.YI])
+@pytest.mark.parametrize(
+    "model", [Model.GPT3_TURBO, Model.YI, Model.QWEN, Model.GLM3, Model.BAICHUAN_TURBO, Model.OLLAMA]
+)
 def test_llm_tool(model):
     tools = [get_current_weather]
     llm = LLM(model=model, tools=tools)
@@ -59,7 +61,9 @@ def test_llm_tool(model):
     assert not hasattr(response.args, "unit") or response.args["unit"] in {"CELSIUS", "FAHRENHEIT"}
 
 
-@pytest.mark.parametrize("model", [Model.GPT3_TURBO, Model.QWEN, Model.YI_32K, Model.YI])
+@pytest.mark.parametrize(
+    "model", [Model.GPT3_TURBO, Model.YI, Model.QWEN, Model.GLM3, Model.BAICHUAN_TURBO, Model.OLLAMA]
+)
 def test_llm_tools(model):
     tools = [get_current_weather, search_baidu, search_google, search_bing]
     llm = LLM(model=model, tools=tools)

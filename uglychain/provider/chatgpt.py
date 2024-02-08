@@ -1,11 +1,10 @@
 import json
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Type, Union
+from typing import Callable, List, Optional, Type, Union
 
 from loguru import logger
 from pydantic import BaseModel
 
-from uglychain.llm.tools import tools_schema
 from uglychain.utils import config
 
 from .openai_api import ChatGPTAPI
@@ -51,29 +50,13 @@ class ChatGPT(ChatGPTAPI):
                 raise e
 
         logger.trace(f"kwargs:{kwargs}\nresponse:{response.choices[0].model_dump()}")
-        if self.use_native_tools and tools and response.choices[0].message.tool_calls:
-            result = response.choices[0].message.tool_calls[0].function
-            return json.dumps({"name": result.name, "args": json.loads(result.arguments)})
+        if self.use_native_tools and response.choices[0].message.tool_calls:
+            tool_calls_response = response.choices[0].message.tool_calls[0].function
+            if tools:
+                return json.dumps({"name": tool_calls_response.name, "args": json.loads(tool_calls_response.arguments)})
+            elif response_model:
+                return tool_calls_response.arguments
         return response.choices[0].message.content.strip()
-
-    def get_kwargs(
-        self,
-        prompt: str,
-        response_model: Optional[Type],
-        tools: Optional[List[Callable]],
-        stop: Union[Optional[str], List[str]],
-    ) -> Dict[str, Any]:
-        if self.use_native_tools and tools:
-            self._generate_validation()
-            self._generate_messages(prompt)
-            params = self.default_params
-            params["tools"] = tools_schema(tools)
-            if len(tools) == 1:
-                params["tool_choice"] = {"type": "function", "function": {"name": tools[0].__name__}}
-            kwargs = {"messages": self.messages, "stop": stop, **params}
-            return kwargs
-        else:
-            return super().get_kwargs(prompt, response_model, tools, stop)
 
     def _num_tokens(self, messages: list, model: str):
         try:

@@ -57,12 +57,10 @@ def to_json_schema_type(type_name: str) -> str:
         "float": "number",
         "bool": "boolean",
         "None": "null",
-        "Any": "any",
         "Dict": "object",
         "List": "array",
-        "Optional": "any",
     }
-    return type_map.get(type_name, "any")
+    return type_map.get(type_name, "string")
 
 
 def parse_annotation(annotation):

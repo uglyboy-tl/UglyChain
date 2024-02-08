@@ -4,6 +4,8 @@
 
 ReAct 就是为了解决这个问题而设计的，它是一个基于事件（Action）的工作流引擎，可以根据事件的结果来重新推理（Thought）并形成新的事件，最终判断任务是否完成。
 
+ReAct 出自[《SYNERGIZING REASONING AND ACTING IN LANGUAGE MODELS》](https://arxiv.org/abs/2210.03629) 这篇论文。作者提出了 ReAct 范式，通过将推理和动作相结合来克服 LLM 胡言乱语的问题，同时提高了结果的可解释性和可信赖度。
+
 ## 使用方式
 
 几乎同普通的工具调用方式一样，但需要使用 [ReActChain](../Chain/reactchain.md) 来包装工具的调用。

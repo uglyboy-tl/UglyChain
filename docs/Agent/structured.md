@@ -32,6 +32,8 @@ Ensure the response can be parsed by Python json.loads
 
 我们已经对支持的模型进行了适配。
 
-### 通过 Function Call 实现[未实现]
+### 通过 Function Call 实现
 
 对于部分模型，我们可以通过调用模型的 Function Call 接口，来实现结构化输出。这种方法可以让模型直接返回 Python 对象，从而可以直接使用。
+
+相关功能可以通过底层模型的 `use_native_tools` 参数来控制。

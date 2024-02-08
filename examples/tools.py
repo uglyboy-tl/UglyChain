@@ -1,8 +1,12 @@
+import sys
 from enum import Enum
 
 from loguru import logger
 
 from uglychain import LLM, Model, finish, run_function
+
+logger.remove()
+logger.add(sink=sys.stdout, level="TRACE")
 
 
 class Unit(Enum):
@@ -71,5 +75,5 @@ def tools(model: Model | None = None):
 
 
 if __name__ == "__main__":
-    # functian_call(Model.QWEN)
-    tools(Model.GPT4_TURBO)
+    functian_call(Model.GLM3)
+    # tools(Model.YI)

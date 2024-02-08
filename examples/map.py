@@ -54,5 +54,5 @@ def instructor(model: Model | None = None):
 
 if __name__ == "__main__":
     # map()
-    # map_input(Model.YI_32K)
+    # map_input(Model.YI_200K)
     instructor()

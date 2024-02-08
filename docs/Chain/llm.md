@@ -45,3 +45,25 @@ print(llm("Extract Jason is 25 years old")) # UserDetail(name='Jason', age=25)
 ## 使用工具
 
 参见 [工具](../Agent/tools.md)。
+
+## 设置模型细节参数
+
+我们可以通过直接修改 `llm` 的参数来设置模型的细节参数，支持的参数如下：
+
+- `custom_model_name`：自定义模型名称。
+- `temperature`：温度参数。
+- `top_p`：top-p 参数。
+- `frequency_penalty`：频率惩罚参数。
+- `presence_penalty`：存在惩罚参数。
+- `seed`：随机种子。
+
+需要注意不同的模型对参数的支持情况可能不同，包括参数的名称和取值范围。
+
+```python
+llm = LLM()
+llm.temperature = 0.5
+llm.top_p = 0.9
+llm.frequency_penalty = 0.5
+llm.presence_penalty = 0.5
+llm.seed = 42
+```
