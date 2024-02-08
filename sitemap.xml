@@ -2,92 +2,92 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://uglyboy-tl.github.io/UglyChain/</loc>
-         <lastmod>2024-02-06</lastmod>
+         <lastmod>2024-02-08</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://uglyboy-tl.github.io/UglyChain/about/</loc>
-         <lastmod>2024-02-06</lastmod>
+         <lastmod>2024-02-08</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://uglyboy-tl.github.io/UglyChain/config/</loc>
-         <lastmod>2024-02-06</lastmod>
+         <lastmod>2024-02-08</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://uglyboy-tl.github.io/UglyChain/examples/</loc>
-         <lastmod>2024-02-06</lastmod>
+         <lastmod>2024-02-08</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://uglyboy-tl.github.io/UglyChain/quickstart/</loc>
-         <lastmod>2024-02-06</lastmod>
+         <lastmod>2024-02-08</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://uglyboy-tl.github.io/UglyChain/Agent/react/</loc>
-         <lastmod>2024-02-06</lastmod>
+         <lastmod>2024-02-08</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://uglyboy-tl.github.io/UglyChain/Agent/retriever/</loc>
-         <lastmod>2024-02-06</lastmod>
+         <lastmod>2024-02-08</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://uglyboy-tl.github.io/UglyChain/Agent/structured/</loc>
-         <lastmod>2024-02-06</lastmod>
+         <lastmod>2024-02-08</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://uglyboy-tl.github.io/UglyChain/Agent/tools/</loc>
-         <lastmod>2024-02-06</lastmod>
+         <lastmod>2024-02-08</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://uglyboy-tl.github.io/UglyChain/Chain/llm/</loc>
-         <lastmod>2024-02-06</lastmod>
+         <lastmod>2024-02-08</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://uglyboy-tl.github.io/UglyChain/Chain/mapchain/</loc>
-         <lastmod>2024-02-06</lastmod>
+         <lastmod>2024-02-08</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://uglyboy-tl.github.io/UglyChain/Chain/reactchain/</loc>
-         <lastmod>2024-02-06</lastmod>
+         <lastmod>2024-02-08</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://uglyboy-tl.github.io/UglyChain/Chain/reducechain/</loc>
-         <lastmod>2024-02-06</lastmod>
+         <lastmod>2024-02-08</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://uglyboy-tl.github.io/UglyChain/Worker/ci/</loc>
-         <lastmod>2024-02-06</lastmod>
+         <lastmod>2024-02-08</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://uglyboy-tl.github.io/UglyChain/Worker/classify/</loc>
-         <lastmod>2024-02-06</lastmod>
+         <lastmod>2024-02-08</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://uglyboy-tl.github.io/UglyChain/Worker/plan/</loc>
-         <lastmod>2024-02-06</lastmod>
+         <lastmod>2024-02-08</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://uglyboy-tl.github.io/UglyChain/Worker/summary/</loc>
-         <lastmod>2024-02-06</lastmod>
+         <lastmod>2024-02-08</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://uglyboy-tl.github.io/UglyChain/Worker/worker/</loc>
-         <lastmod>2024-02-06</lastmod>
+         <lastmod>2024-02-08</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>
