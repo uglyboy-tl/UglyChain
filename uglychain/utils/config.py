@@ -26,6 +26,7 @@ class Config:
     custom_model: Optional[str] = os.getenv("CUSTOM_MODEL")
     # Ollama
     ollama_model: Optional[str] = os.getenv("OLLAMA_MODEL")
+    ollama_host: str = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 
     # Gemini
     gemini_api_key: Optional[str] = os.getenv("GEMINI_API_KEY")
