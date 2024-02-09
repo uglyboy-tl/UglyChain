@@ -5,7 +5,7 @@ from loguru import logger
 from pydantic import BaseModel
 
 from uglychain.llm import BaseLanguageModel
-from uglychain.utils import retry_decorator
+from uglychain.utils import config, retry_decorator
 
 
 @dataclass
@@ -55,10 +55,10 @@ class Ollama(BaseLanguageModel):
 
     def _create_client(self):
         try:
-            import ollama
+            from ollama import Client
         except ImportError as err:
             raise ImportError("You need to install `pip install ollama` to use this provider.") from err
-        return ollama
+        return Client(host=config.ollama_host)
 
     @retry_decorator()
     def completion_with_backoff(self, **kwargs):
