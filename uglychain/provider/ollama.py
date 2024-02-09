@@ -27,7 +27,7 @@ class Ollama(BaseLanguageModel):
     def get_kwargs(
         self,
         prompt: str,
-        response_model: Optional[Type],
+        response_model: Optional[Type[BaseModel]],
         tools: Optional[List[Callable]],
         stop: Union[Optional[str], List[str]],
     ) -> Dict[str, Any]:
