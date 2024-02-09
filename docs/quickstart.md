@@ -34,6 +34,7 @@
 
 - [ ] 完善 LlamaIndex Retriever
 - [ ] 增加 Combine Retriever
+- [ ] 增加 DB Retriever
 - [ ] 增加快捷调用默认 Retriver 的入口函数
 
 ### 完善 Worker
@@ -43,5 +44,3 @@
 - [x] 增加 Classify 的 Worker
 - [x] 增加 Code Interpreter 的 Worker
 - [x] 增加 Planner 的 Worker
-- [ ] 增加 Code 的 Worker
-- [ ] 增加 Fix 的 Worker

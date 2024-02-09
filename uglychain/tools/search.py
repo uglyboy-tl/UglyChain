@@ -1,4 +1,4 @@
-from uglychain.retrievers import get_retriever
+from uglychain.retrievers import Retriever
 
 
 def search_knowledgebase(query: str) -> str:
@@ -10,5 +10,5 @@ def search_knowledgebase(query: str) -> str:
     Returns:
         str: The answer to the query
     """
-    retriever = get_retriever()
+    retriever = Retriever.Bing()
     return retriever.get(query)

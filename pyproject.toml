@@ -2,6 +2,7 @@
 name = "uglychain"
 version = "0.1.2"
 description = "UglyChain：更好用的 LLM 应用构建工具"
+license = "MIT"
 authors = ["uglyboy <uglyboy@uglyboy.cn>"]
 readme = "README.md"
 repository = "https://github.com/uglyboy-tl/uglychain"
@@ -9,35 +10,43 @@ documentation = "https://uglychain.uglyboy.cn"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-pydantic = "^2.5.3"
+pydantic = "^2.0.2"
 loguru = "^0.7.2"
 tenacity = "^8.2.3"
 pathos = "^0.3.1"
 requests = "^2.31.0"
-openai = "^1.10.0"
+openai = "^1.1.0"
 docstring-parser = "^0.15"
 jupyter-client = "^8.6.0"
-ipykernel = "^6.29.0"
-
+ipykernel = "^6.26.0"
 
 [tool.poetry.group.dev.dependencies]
-jieba-fast = "^0.53"
-zhipuai = "^2.0.1"
-dashscope = "^1.14.1"
-tiktoken = "^0.5.2"
-google-generativeai = "^0.3.2"
-ollama = "^0.1.6"
-
+dashscope = {version = "^1.14.1", extras = ["dashscope"]}
+zhipuai = {version = "^2.0.1", extras = ["chatglm"]}
+ollama = {version = "^0.1.6", extras = ["ollama"]}
+google-generativeai = {version = "^0.3.2", extras = ["gemini"]}
+tiktoken = {version = "^0.5.2", extras = ["openai"]}
+jieba-fast = {version = "^0.53", extras = ["bm25"]}
+llama-index = {version = "^0.9.45.post1", extras = ["LlamaIndex"]}
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.0.0"
 ruff = "^0.1.15"
 
-
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.5.3"
 mkdocs-material = "^9.5.6"
 mkdocs-git-revision-date-plugin = "^0.3.2"
+
+[tool.poetry.extras]
+gemini = ["google-generativeai"]
+dashscope = ["dashscope"]
+chatglm = ["zhipuai"]
+ollama = ["ollama"]
+openai = ["tiktoken"]
+bm25 = ["jieba-fast"]
+LlamaIndex = ["llama-index"]
+
 
 [build-system]
 requires = ["poetry-core"]
