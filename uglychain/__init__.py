@@ -3,7 +3,7 @@ from .llm import BaseLanguageModel, finish, run_function
 from .retrievers import BaseRetriever, Retriever, StorageRetriever
 from .worker import BaseWorker
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 
 __all__ = [
     "BaseLanguageModel",
