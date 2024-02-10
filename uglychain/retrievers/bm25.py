@@ -3,17 +3,16 @@
 import concurrent.futures
 import heapq
 import itertools
-import json
 import math
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
 from loguru import logger
 
+from uglychain.storage import DillStorage
 from uglychain.utils import segment
 
-from .base import StoresRetriever
+from .base import StorageRetriever
 
 
 class PathNotFoundError(Exception):
@@ -54,7 +53,7 @@ class BM25:
             score += tf_idf_value * score_part
         return score
 
-    def search(self, query: str, n: int = StoresRetriever.default_n) -> List[Tuple[int, float]]:
+    def search(self, query: str, n: int = StorageRetriever.default_n) -> List[Tuple[int, float]]:
         num = len(self.text_lens)
         with concurrent.futures.ThreadPoolExecutor() as executor:
             scores = list(executor.map(self.calculate_bm25_score, range(num), itertools.repeat(query)))
@@ -78,12 +77,13 @@ class BM25:
 
 
 @dataclass
-class BM25Retriever(StoresRetriever):
+class BM25Retriever(StorageRetriever):
+    storage: DillStorage
     texts: List[str] = field(default_factory=list)
     metadatas: List[Dict[str, str]] = field(default_factory=list)
     _data: BM25 = field(init=False)
 
-    def search(self, query: str, n: int = StoresRetriever.default_n) -> List[str]:
+    def search(self, query: str, n: int = StorageRetriever.default_n) -> List[str]:
         if not query or self.is_empty:
             return []
         top_n_scores = self._data.search(query, n)
@@ -102,36 +102,26 @@ class BM25Retriever(StoresRetriever):
         self._save()
 
     def init(self) -> None:
-        if not hasattr(self, "_data") or not self._data or not self.is_empty:
-            self._data = BM25()
-            self.texts = []
-            self.metadatas = []
+        self._data = BM25()
+        self.texts = []
+        self.metadatas = []
+        self._save()
 
     def _save(self) -> None:
-        if not self.path:
-            raise PathNotFoundError("Path not found, unable to save.")
         data = self._data.__dict__.copy()
         data["texts"] = self.texts
         data["metadatas"] = self.metadatas
-        data["word_sets"] = [list(v) for v in data["word_sets"]]
-        with open(self.path, "w") as f:
-            json.dump(data, f)
-        self._data.word_sets = [set(v) for v in data["word_sets"]]
+        self.storage.save(data)
 
     def _load(self) -> None:
-        if self.path and Path(self.path).exists():
-            try:
-                with open(self.path) as f:
-                    data = json.load(f)
-                data["word_sets"] = [set(v) for v in data["word_sets"]]
-                self.texts = data.pop("texts")
-                self.metadatas = data.pop("metadatas")
-                self._data = BM25(**data)
-                return
-            except json.JSONDecodeError as e:
-                logger.error(e)
-                raise
-        self.init()
+        try:
+            data = self.storage.load()
+            self.texts = data.pop("texts")
+            self.metadatas = data.pop("metadatas")
+            self._data = BM25(**data)
+            return
+        except Exception:
+            self.init()
 
     @property
     def is_empty(self):

@@ -1,7 +1,11 @@
+# Project specific files
+data/
+/*.py
+
+# IDE - specific files
 .vs/
 .vscode/
 .idea/
-/*.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

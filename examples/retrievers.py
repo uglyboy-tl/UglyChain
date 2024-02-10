@@ -1,11 +1,12 @@
 from loguru import logger
 
-from uglychain.retrievers import get_retriever
-from uglychain.retrievers.bm25 import BM25Retriever
+from uglychain.retrievers import Retriever
+from uglychain.storage import DillStorage
 
 
 def BM25():
-    bm25 = BM25Retriever("/tmp/bm25_data.json")
+    storage = DillStorage("data/test.pkl")
+    bm25 = Retriever.BM25.getStorage(storage)
     query = "天安门"
     logger.info(bm25.search(query, 2))
     bm25.init()
@@ -18,18 +19,18 @@ def BM25():
 
 
 def arxiv():
-    retriever = get_retriever("arxiv")
+    retriever = Retriever.Arxiv()
     query = "quantum computing"
     print(retriever.search(query, 2))
 
 
 def bing():
-    retriever = get_retriever("bing")
+    retriever = Retriever.Bing()
     query = "quantum computing"
     print(retriever.search(query, 2))
 
 
 if __name__ == "__main__":
-    # BM25()
+    BM25()
     # arxiv()
-    bing()
+    # bing()

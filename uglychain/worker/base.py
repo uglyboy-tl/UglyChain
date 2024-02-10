@@ -6,8 +6,7 @@ from typing import Any, Optional
 
 from uglychain import LLM, Model
 from uglychain.retrievers import BaseRetriever
-
-from .storage import Storage
+from uglychain.storage import Storage
 
 RETRIEVER_PROMPT = """# Context from Retriever(Maybe useful for you to resolve the problem):
 ---
