@@ -4,6 +4,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
+from uglychain.storage import Storage
+
 DEFAULT_N = 5
 
 
@@ -22,8 +24,8 @@ class BaseRetriever(ABC):
 
 
 @dataclass
-class StoresRetriever(BaseRetriever, ABC):
-    path: str
+class StorageRetriever(BaseRetriever, ABC):
+    storage: Storage
     start_init: bool = False
 
     def __post_init__(self):
