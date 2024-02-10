@@ -28,18 +28,18 @@
 - [x] 增加 FunctionCall 的能力
 - [ ] 增加 Memory 的能力
 - [x] 增加 Chain 中快速便捷的调整模型参数的能力
-- [ ] 支持更多的本地部署的模型，例如 vllm, llama.cpp, ollama, etc.
+- [x] 支持更多的本地部署的模型，例如 vllm, llama.cpp, ollama, etc.
 
 ### 完善 Retriever
 
 - [ ] 完善 LlamaIndex Retriever
 - [ ] 增加 Combine Retriever
 - [ ] 增加 DB Retriever
-- [ ] 增加快捷调用默认 Retriver 的入口函数
+- [x] 增加快捷调用默认 Retriver 的入口函数
 
 ### 完善 Worker
 
-- [ ] 完善 Worker 的存储功能
+- [x] 完善 Storage 的存储功能
 - [x] 增加 Summary 的 Worker
 - [x] 增加 Classify 的 Worker
 - [x] 增加 Code Interpreter 的 Worker

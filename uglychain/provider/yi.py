@@ -1,5 +1,5 @@
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Callable, List, Optional, Type, Union
 
 from loguru import logger
@@ -41,7 +41,6 @@ class Yi(ChatGPTAPI):
             kwargs["functions"] = new_functions
         if "tool_choice" in kwargs:
             kwargs["function_call"] = kwargs.pop("tool_choice")["function"]
-        logger.debug(f"kwargs:{kwargs}")
         response = self.completion_with_backoff(**kwargs)
         logger.trace(f"kwargs:{kwargs}\nresponse:{response.choices[0].model_dump()}")
         if self.use_native_tools and response.choices[0].message.tool_calls:

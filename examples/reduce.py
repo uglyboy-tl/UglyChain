@@ -19,7 +19,7 @@ def reduce(model: Model | None = None):
 
 
 def reduce_function(model: Model | None = None):
-    def string(obj: str) -> str:
+    def string(obj: Any) -> str:
         """Converts an object to a string.
 
         Args:
@@ -42,4 +42,4 @@ def reduce_function(model: Model | None = None):
 
 if __name__ == "__main__":
     reduce(Model.YI)
-    reduce_function(Model.GPT4_TURBO)
+    reduce_function(Model.GLM4)
