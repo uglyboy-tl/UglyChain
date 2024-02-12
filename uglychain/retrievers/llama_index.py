@@ -9,20 +9,21 @@ class LlamaIndexRetriever(BaseRetriever):
     index: Any
     query_kwargs: Dict = field(default_factory=dict)
 
-    def search(self, query: str, n: int = BaseRetriever.default_n) -> list[str]:
+    def __post_init__(self):
         try:
-            from llama_index.indices.base import BaseGPTIndex  # type: ignore
-            from llama_index.response.schema import Response  # type: ignore
+            from llama_index.indices.base import BaseGPTIndex
         except ImportError as err:
             raise ImportError("You need to install `pip install llama-index` to use this retriever.") from err
-        index = cast(BaseGPTIndex, self.index)
+        self.index = cast(BaseGPTIndex, self.index)
 
-        response = index.query(query, response_mode="no_text", **self.query_kwargs)
-        response = cast(Response, response)
+    def search(self, query: str, n: int = BaseRetriever.default_n) -> list[str]:
+        query_engine = self.index.as_query_engine(response_mode="no_text", similarity_top_k=n, **self.query_kwargs)
+        response = query_engine.query(query)
+
         # parse source nodes
         docs = []
         for source_node in response.source_nodes:
-            docs.append(source_node.source_text)
+            docs.append(source_node.text)
         return docs
 
 
@@ -46,6 +47,7 @@ class LlamaIndexGraphRetriever(BaseRetriever):
         # for now, inject response_mode="no_text" into query configs
         for query_config in self.query_configs:
             query_config["response_mode"] = "no_text"
+            query_config["similarity_top_k"] = n
         query_configs = cast(List[QUERY_CONFIG_TYPE], self.query_configs)
         response = graph.query(query, query_configs=query_configs)
         response = cast(Response, response)
@@ -53,5 +55,5 @@ class LlamaIndexGraphRetriever(BaseRetriever):
         # parse source nodes
         docs = []
         for source_node in response.source_nodes:
-            docs.append(source_node.source_text)
+            docs.append(source_node.text)
         return docs
