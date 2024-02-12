@@ -32,7 +32,7 @@
 
 ### 完善 Retriever
 
-- [ ] 完善 LlamaIndex Retriever
+- [x] 完善 LlamaIndex Retriever
 - [ ] 增加 Combine Retriever
 - [ ] 增加 DB Retriever
 - [x] 增加快捷调用默认 Retriver 的入口函数
