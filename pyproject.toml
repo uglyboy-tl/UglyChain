@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "uglychain"
-version = "0.1.3"
+version = "0.1.4"
 description = "UglyChain：更好用的 LLM 应用构建工具"
 license = "MIT"
 authors = ["uglyboy <uglyboy@uglyboy.cn>"]
@@ -19,8 +19,6 @@ openai = "^1.1.0"
 docstring-parser = "^0.15"
 jupyter-client = "^8.6.0"
 ipykernel = "^6.26.0"
-
-[tool.poetry.group.dev.dependencies]
 dashscope = {version = "^1.14.1", extras = ["dashscope"]}
 zhipuai = {version = "^2.0.1", extras = ["chatglm"]}
 ollama = {version = "^0.1.6", extras = ["ollama"]}
