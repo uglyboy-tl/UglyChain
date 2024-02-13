@@ -17,15 +17,17 @@ pathos = "^0.3.1"
 requests = "^2.31.0"
 openai = "^1.1.0"
 docstring-parser = "^0.15"
-jupyter-client = "^8.6.0"
-ipykernel = "^6.26.0"
-dashscope = {version = "^1.14.1", extras = ["dashscope"]}
-zhipuai = {version = "^2.0.1", extras = ["chatglm"]}
-ollama = {version = "^0.1.6", extras = ["ollama"]}
-google-generativeai = {version = "^0.3.2", extras = ["gemini"]}
-tiktoken = {version = "^0.5.2", extras = ["openai"]}
-jieba-fast = {version = "^0.53", extras = ["bm25"]}
-llama-index = {version = "^0.9.45.post1", extras = ["LlamaIndex"]}
+ipykernel = {version ="^6.26.0", extras = ["code-interpreter"], optional = true}
+dashscope = {version = "^1.14.1", extras = ["dashscope"], optional = true}
+zhipuai = {version = "^2.0.1", extras = ["chatglm"], optional = true}
+ollama = {version = "^0.1.6", extras = ["ollama"], optional = true}
+google-generativeai = {version = "^0.3.2", extras = ["gemini"], optional = true}
+tiktoken = {version = "^0.5.2", extras = ["openai"], optional = true}
+jieba-fast = {version = "^0.53", extras = ["bm25"], optional = true}
+llama-index-core = {version = "^0.10.1", extras = ["llama-index"], optional = true}
+
+[tool.poetry.group.dev.dependencies]
+llama-index-embeddings-openai = {version = "^0.1.1", python = ">=3.11,<3.12"}
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.0.0"
@@ -43,8 +45,8 @@ chatglm = ["zhipuai"]
 ollama = ["ollama"]
 openai = ["tiktoken"]
 bm25 = ["jieba-fast"]
-LlamaIndex = ["llama-index"]
-
+llama-index = ["llama-index-core"]
+code-interpreter = ["ipykernel"]
 
 [build-system]
 requires = ["poetry-core"]
