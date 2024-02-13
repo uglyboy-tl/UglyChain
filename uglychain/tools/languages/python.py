@@ -6,8 +6,6 @@ import threading
 import time
 import traceback
 
-from jupyter_client.manager import KernelManager
-
 from .base import BaseLanguage
 
 DEBUG_MODE = False
@@ -22,6 +20,11 @@ class Python(BaseLanguage):
     name = "Python"
 
     def __init__(self):
+        try:
+            from jupyter_client.manager import KernelManager
+        except ImportError as err:
+            raise ImportError("You need to install ipykernel to use the Python language.") from err
+
         self.km = KernelManager()
         self.km.start_kernel()
         self.kc = self.km.client()

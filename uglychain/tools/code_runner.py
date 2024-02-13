@@ -3,9 +3,13 @@ from typing import Literal
 from .languages.applescript import AppleScript
 from .languages.javascript import JavaScript
 from .languages.powershell import PowerShell
-from .languages.python import Python
 from .languages.r import R
 from .languages.shell import Shell
+
+try:
+    from .languages.python import Python
+except ImportError:
+    Python = None
 
 LANGUAGES = [
     Shell,
@@ -19,7 +23,9 @@ LANGUAGES = [
 
 def get_language(language: str):
     for lang in LANGUAGES:
-        if language.lower() == lang.name.lower() or (hasattr(lang, "aliases") and language in lang.aliases):
+        if lang is not None and (
+            language.lower() == lang.name.lower() or (hasattr(lang, "aliases") and language in lang.aliases)
+        ):
             return lang
     return None
 
