@@ -41,5 +41,5 @@ def reduce_function(model: Model | None = None):
 
 
 if __name__ == "__main__":
-    reduce(Model.YI)
-    reduce_function(Model.GLM4)
+    reduce()
+    reduce_function(Model.GPT4_TURBO)

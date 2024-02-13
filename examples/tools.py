@@ -75,5 +75,5 @@ def tools(model: Model | None = None):
 
 
 if __name__ == "__main__":
-    functian_call(Model.GLM3)
-    # tools(Model.YI)
+    functian_call()
+    tools()
