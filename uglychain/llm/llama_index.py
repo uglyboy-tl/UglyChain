@@ -1,12 +1,15 @@
 from typing import Any
 
-from llama_index.core.llms import (
-    CompletionResponse,
-    CompletionResponseGen,
-    CustomLLM,
-    LLMMetadata,
-)
-from llama_index.core.llms.callbacks import llm_completion_callback
+try:
+    from llama_index.core.llms import (
+        CompletionResponse,
+        CompletionResponseGen,
+        CustomLLM,
+        LLMMetadata,
+    )
+    from llama_index.core.llms.callbacks import llm_completion_callback
+except ImportError as err:
+    raise ImportError("Please install the `llama-index-core` package to use this LLM.") from err
 
 from .base import BaseLanguageModel
 

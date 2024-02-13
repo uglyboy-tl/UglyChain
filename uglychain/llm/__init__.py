@@ -2,7 +2,6 @@
 
 from .base import BaseLanguageModel
 from .instructor import Instructor, ParseError
-from .llama_index import LlamaIndexLLM
 from .tools import FunctionCall, finish, run_function
 
 __all__ = [
@@ -12,5 +11,4 @@ __all__ = [
     "FunctionCall",
     "finish",
     "run_function",
-    "LlamaIndexLLM",
 ]
