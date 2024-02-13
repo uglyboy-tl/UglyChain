@@ -7,7 +7,7 @@ from .arxiv import ArxivRetriever
 from .base import BaseRetriever, StorageRetriever
 from .bing import BingRetriever
 from .bm25 import BM25Retriever
-from .llama_index import LlamaIndexGraphRetriever, LlamaIndexRetriever
+from .llama_index import LlamaIndexRetriever
 from .open_procedures import OpenProceduresRetriever
 
 
@@ -16,7 +16,6 @@ class Retriever(Enum):
     Arxiv = ArxivRetriever
     OpenProcedures = OpenProceduresRetriever
     LlamaIndex = LlamaIndexRetriever
-    LLamaIndexGraph = LlamaIndexGraphRetriever
     BM25 = BM25Retriever
 
     def __call__(self, *args, **kwargs) -> BaseRetriever:
