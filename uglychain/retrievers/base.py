@@ -4,6 +4,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Dict, List, Literal, Optional
 
+from loguru import logger
+
 from uglychain.storage import Storage
 
 from .retrieve_with_llm import answer_with_llm, answer_with_map_llm, answer_with_reduce_llm
@@ -24,6 +26,8 @@ class BaseRetriever(ABC):
         if n == 0:
             n = self.default_n
         context = self.search(query, n)
+        if response_mode != "no_text" and context:
+            logger.trace(context)
         try:
             if response_mode == "no_text":
                 return str(context)
