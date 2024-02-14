@@ -2,9 +2,11 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Dict, List, Literal, Optional
 
 from uglychain.storage import Storage
+
+from .retrieve_with_llm import answer_with_llm, answer_with_map_llm, answer_with_reduce_llm
 
 DEFAULT_N = 5
 
@@ -16,9 +18,21 @@ class BaseRetriever(ABC):
     def search(self, query: str, n: int) -> List[str]:
         pass
 
-    def get(self, query: str) -> str:
+    def get(
+        self, query: str, response_mode: Literal["no_text", "compact", "refine", "summary"] = "no_text", n: int = 0
+    ) -> str:
+        if n == 0:
+            n = self.default_n
+        context = self.search(query, n)
         try:
-            return self.search(query, 1)[0]
+            if response_mode == "no_text":
+                return str(context)
+            elif response_mode == "compact":
+                return answer_with_llm(query, context)
+            elif response_mode == "refine":
+                return answer_with_reduce_llm(query, context)
+            elif response_mode == "summary":
+                return answer_with_map_llm(query, context)
         except Exception:
             return ""
 
