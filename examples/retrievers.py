@@ -21,16 +21,16 @@ def BM25():
 def arxiv():
     retriever = Retriever.Arxiv()
     query = "quantum computing"
-    print(retriever.search(query, 2))
+    logger.info(retriever.get(query, "refine"))
 
 
 def bing():
     retriever = Retriever.Bing()
-    query = "quantum computing"
-    print(retriever.search(query, 2))
+    query = "量子计算是什么？"
+    logger.info(retriever.get(query, "summary"))
 
 
 if __name__ == "__main__":
-    BM25()
+    # BM25()
     # arxiv()
-    # bing()
+    bing()
