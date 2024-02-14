@@ -1,5 +1,7 @@
 from typing import Any
 
+from pydantic.v1 import Field, root_validator
+
 try:
     from llama_index.core.llms import (
         CompletionResponse,
@@ -11,11 +13,20 @@ try:
 except ImportError as err:
     raise ImportError("Please install the `llama-index-core` package to use this LLM.") from err
 
+from uglychain.provider import Model, get_llm_provider
+
 from .base import BaseLanguageModel
 
 
 class LlamaIndexLLM(CustomLLM):
-    llm: BaseLanguageModel
+    model: Model = Model.DEFAULT
+    llm: BaseLanguageModel = Field(init=False, default=None)
+
+    @root_validator(pre=False, skip_on_failure=True)
+    def create_llm(cls, values):
+        model_name = values.get("model")
+        values["llm"] = get_llm_provider(model_name)
+        return values
 
     @property
     def metadata(self) -> LLMMetadata:
