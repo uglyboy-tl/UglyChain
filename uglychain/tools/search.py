@@ -11,4 +11,4 @@ def search_knowledgebase(query: str) -> str:
         str: The answer to the query
     """
     retriever = Retriever.Bing()
-    return retriever.get(query)
+    return retriever.get(query, "compact", 5)
