@@ -7,8 +7,7 @@ from uglychain.storage import DillStorage
 
 
 def BM25():
-    storage = DillStorage("data/test.pkl")
-    bm25 = Retriever.BM25.getStorage(storage)
+    bm25 = Retriever.BM25.getStorage(storage=DillStorage("data/test.pkl"))
     query = "天安门"
     logger.info(bm25.search(query, 2))
     bm25.init()
@@ -50,5 +49,5 @@ def custom():
 if __name__ == "__main__":
     # BM25()
     # arxiv()
-    #combine()
+    # combine()
     custom()
