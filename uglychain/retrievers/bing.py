@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import requests
 from loguru import logger
@@ -15,6 +15,8 @@ BING_SEARCH_API_URL = "https://api.bing.microsoft.com/v7.0/search"
 
 @dataclass
 class BingRetriever(BaseRetriever):
+    use_keyword_query: bool = field(default=True, init=False)
+
     def __post_init__(self):
         assert hasattr(config, "bing_subscription_key"), "Bing subscription key not found in config"
         assert isinstance(config.bing_subscription_key, str), "Bing subscription key should be a string"

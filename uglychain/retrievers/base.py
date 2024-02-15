@@ -15,6 +15,7 @@ DEFAULT_N = 5
 
 class BaseRetriever(ABC):
     default_n: int = DEFAULT_N
+    use_keyword_query: bool = field(default=False, init=False)
 
     @abstractmethod
     def search(self, query: str, n: int) -> List[str]:

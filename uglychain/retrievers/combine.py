@@ -36,7 +36,7 @@ class CombineRetriever(BaseRetriever):
             logger.trace(f"query_keywords: {query_keywords}")
         for retriever in self.retrievers:
             instance = retriever()
-            if retriever in {Retriever.Arxiv, Retriever.Bing}:
+            if instance.use_keyword_query:
                 results.extend(instance.search(query_keywords, n))
             else:
                 results.extend(instance.search(query, n))

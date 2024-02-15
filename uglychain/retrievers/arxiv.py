@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List
 from xml.etree import ElementTree
 
@@ -15,6 +15,8 @@ ARXIV_SEARCH_API_URL = "http://export.arxiv.org/api/query"
 
 @dataclass
 class ArxivRetriever(BaseRetriever):
+    use_keyword_query: bool = field(default=True, init=False)
+
     def search(self, query: str, n: int = BaseRetriever.default_n) -> List[str]:
         try:
             response = self._send_request(query, n)
