@@ -1,33 +1,29 @@
-import logging
-import sys
-
-from llama_index.core import (
-    Settings,
-    StorageContext,
-    load_index_from_storage,
-)
-from llama_index.embeddings.openai import OpenAIEmbedding
 from loguru import logger
 
-from uglychain.llm.llama_index import LlamaIndexLLM
-from uglychain.retrievers import LlamaIndexRetriever
-from uglychain.utils import config
+from uglychain.retrievers import Retriever
+from uglychain.retrievers.llama_index import LlamaIndexStorageRetriever
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
+LlamaIndexStorageRetriever()
 
-embed_model = OpenAIEmbedding(
-    api_base="https://api.01ww.xyz/v1", api_key=config.yi_api_key, model="text-embedding-ada-002"
-)
-Settings.embed_model = embed_model
-Settings.llm = LlamaIndexLLM()
+def load_index():
+    retriever = Retriever.LlamaIndex.getStorage(persist_dir="./data/storage")
+    out = retriever.get("组织共情是什么？")
+    logger.info(out)
 
-# check if storage already exists
-PERSIST_DIR = "./data/storage"
-# load the existing index
-storage_context = StorageContext.from_defaults(persist_dir=PERSIST_DIR)
-index = load_index_from_storage(storage_context)
 
-retriever = LlamaIndexRetriever(index)
-out = retriever.get("组织共情是什么？")
-logger.info(out)
+def llama_index():
+    llama_index = Retriever.LlamaIndex.getStorage(True)
+    query = "天安门"
+    logger.info(llama_index.search(query, 2))
+    llama_index.init()
+    logger.info(llama_index.search(query, 2))
+    llama_index.add("我爱北京天安门")
+    llama_index.add("天安门上太阳升")
+    llama_index.add("伟大领袖毛主席")
+    llama_index.add("指引我们向前进")
+    logger.info(llama_index.search(query, 2))
+
+
+if __name__ == "__main__":
+    # load_index()
+    llama_index()

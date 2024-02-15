@@ -36,6 +36,11 @@ class Config:
     zhipuai_api_key: Optional[str] = os.getenv("ZHIPUAI_API_KEY")
     default_llm: str = os.getenv("DEFAULT_LLM", "GPT3_TURBO")
 
+    # Embedding Options
+    embedding_api_base: str = os.getenv("EMBEDDING_API_BASE", "https://api.openai.com/v1")
+    embedding_api_key: Optional[str] = os.getenv("EMBEDDING_API_KEY", openai_api_key)
+    embedding_model: str = os.getenv("EMBEDDING_MODEL", "text-embedding-ada-002")
+
     # Bing Search
     bing_subscription_key: Optional[str] = os.getenv("BING_SUBSCRIPTION_KEY")
     # Stop Words Dictionary

@@ -1,13 +1,11 @@
 from enum import Enum
 
-from uglychain.storage import Storage
-
 from .arxiv import ArxivRetriever
 from .base import BaseRetriever, StorageRetriever
 from .bing import BingRetriever
 from .bm25 import BM25Retriever
 from .custom import CustomRetriever
-from .llama_index import LlamaIndexRetriever
+from .llama_index import LlamaIndexRetriever, LlamaIndexStorageRetriever
 
 
 class Retriever(Enum):
@@ -25,8 +23,11 @@ class Retriever(Enum):
             return CombineRetriever(*args, **kwargs)
         return self.value(*args, **kwargs)  # type: ignore
 
-    def getStorage(self, storage: Storage, **kwargs) -> StorageRetriever:
-        retriever = self(storage=storage, **kwargs)
+    def getStorage(self, *args, **kwargs) -> StorageRetriever:
+        if self.name == "LlamaIndex":
+            retriever = LlamaIndexStorageRetriever(*args, **kwargs)
+        else:
+            retriever = self(*args, **kwargs)
         if not isinstance(retriever, StorageRetriever):
             raise TypeError(f"{self.name} is not a StoresRetriever")
         return retriever

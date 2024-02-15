@@ -25,6 +25,7 @@ tiktoken = {version = "^0.5.2", extras = ["openai"], optional = true}
 jieba-fast = {version = "^0.53", extras = ["bm25"], optional = true}
 ipykernel = {version ="^6.26.0", extras = ["ipython"], optional = true}
 llama-index-core = {version = "^0.10.1", extras = ["llama-index"], optional = true}
+llama-index-embeddings-openai = {version = "^0.1.0", python=">=3.11,<3.12", extras = ["llama-index"], optional = true}
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.0.0"
@@ -43,7 +44,7 @@ ollama = ["ollama"]
 gemini = ["google-generativeai"]
 bm25 = ["jieba-fast"]
 ipython = ["ipykernel"]
-llama-index = ["llama-index-core"]
+llama-index = ["llama-index-core", "llama-index-embeddings-openai"]
 
 [build-system]
 requires = ["poetry-core"]

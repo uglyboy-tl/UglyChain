@@ -9,7 +9,7 @@ from typing import Dict, List, Optional, Set, Tuple
 
 from loguru import logger
 
-from uglychain.storage import DillStorage
+from uglychain.storage import DillStorage, Storage
 from uglychain.utils import segment
 
 from .base import StorageRetriever
@@ -78,9 +78,9 @@ class BM25:
 
 @dataclass
 class BM25Retriever(StorageRetriever):
-    storage: DillStorage
-    texts: List[str] = field(default_factory=list)
-    metadatas: List[Dict[str, str]] = field(default_factory=list)
+    storage: Storage = field(default_factory=DillStorage)
+    texts: List[str] = field(init=False, default_factory=list)
+    metadatas: List[Dict[str, str]] = field(init=False, default_factory=list)
     _data: BM25 = field(init=False)
 
     def search(self, query: str, n: int = StorageRetriever.default_n) -> List[str]:
