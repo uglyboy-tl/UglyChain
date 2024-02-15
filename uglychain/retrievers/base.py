@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, List, Literal, Optional
 
 from loguru import logger
@@ -43,8 +43,8 @@ class BaseRetriever(ABC):
 
 @dataclass
 class StorageRetriever(BaseRetriever, ABC):
-    storage: Storage
     start_init: bool = False
+    storage: Storage = field(init=False)
 
     def __post_init__(self):
         if self.start_init:
