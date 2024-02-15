@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "uglychain"
-version = "0.1.6"
+version = "0.1.7"
 description = "UglyChain：更好用的 LLM 应用构建工具"
 license = "MIT"
 authors = ["uglyboy <uglyboy@uglyboy.cn>"]

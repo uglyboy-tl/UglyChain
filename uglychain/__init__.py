@@ -3,7 +3,7 @@ from .llm import BaseLanguageModel, finish, run_function
 from .retrievers import BaseRetriever, Retriever, StorageRetriever
 from .worker import BaseWorker
 
-__version__ = "0.1.6"
+__version__ = "0.1.7"
 
 __all__ = [
     "BaseLanguageModel",
@@ -19,5 +19,3 @@ __all__ = [
     "StorageRetriever",
     "BaseWorker",
 ]
-
-retriver = Retriever.Arxiv()
