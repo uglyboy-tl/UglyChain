@@ -35,6 +35,10 @@ class Config:
     # Zhipuai
     zhipuai_api_key: Optional[str] = os.getenv("ZHIPUAI_API_KEY")
     default_llm: str = os.getenv("DEFAULT_LLM", "GPT3_TURBO")
+    # SparkAPI
+    spark_api_key: Optional[str] = os.getenv("SPARK_API_KEY")
+    spark_api_secret: Optional[str] = os.getenv("SPARK_API_SECRET")
+    spark_app_id: Optional[str] = os.getenv("SPARK_APP_ID")
 
     # Embedding Options
     embedding_api_base: str = os.getenv("EMBEDDING_API_BASE", "https://api.openai.com/v1")

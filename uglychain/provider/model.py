@@ -22,4 +22,5 @@ class Model(Enum):
     GLM4 = "glm-4"
     GLM3 = "glm-3-turbo"
     OLLAMA = "ollama"
+    SPARK = "v3.5"
     DEFAULT = "default"
