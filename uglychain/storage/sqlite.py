@@ -32,14 +32,14 @@ class SQLiteStorage(Storage):
         )
         self._conn.commit()
 
-    def load(self, keys: List[str] | str | None, condition: str | None = None) -> Dict[str, str]:
+    def load(self, keys: List[str] | str | None = None, condition: str | None = None) -> Dict[str, str]:
         if keys is None:
             query_sql = (
-                f"SELECT key, value FROM {self.table} WHERE date('now', 'localtime') < date(timestamp, '+? day')"
+                f"SELECT key, value FROM {self.table} WHERE date('now', 'localtime') < date(timestamp, '+' || ? || ' day')"
             )
             if condition is not None:
                 query_sql += f" and {condition}"
-            self._cur.execute(query_sql, (self.expirationIntervalInDays,))
+            self._cur.execute(query_sql, (str(self.expirationIntervalInDays),))
             return {row[0]: row[1] for row in self._cur.fetchall()}
         if isinstance(keys, str):
             keys = [keys]
