@@ -8,7 +8,7 @@ from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union, ca
 from loguru import logger
 from pydantic import BaseModel
 
-from .instructor import Instructor
+from .instructor_yaml import Instructor
 from .tools import FUNCTION_CALL_FORMAT, FUNCTION_CALL_WITH_FINISH_FORMAT, FunctionCall, finish, tools_schema
 
 TEMPERATURE = 0.3
