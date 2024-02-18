@@ -11,6 +11,7 @@ from .dashscope import DashScope
 from .gemini import Gemini
 from .model import Model
 from .ollama import Ollama
+from .sparkapi import SparkAPI
 from .yi import Yi
 from .zhipu import ChatGLM
 
@@ -35,6 +36,7 @@ LLM_PROVIDERS = {
     Model.GLM4: (ChatGLM, {"MAX_TOKENS": 128000}),
     Model.GLM3: (ChatGLM, {"MAX_TOKENS": 128000}),
     Model.OLLAMA: (Ollama, {"model": config.ollama_model}),
+    Model.SPARK: (SparkAPI, {}),
 }
 
 DEFAULT_MODEL = getattr(Model, config.default_llm, Model.GPT3_TURBO)
