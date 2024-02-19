@@ -43,7 +43,7 @@ def test_react1(model):
 
 
 @pytest.mark.parametrize(
-    "model", [Model.GPT3_TURBO, Model.YI, Model.YI_LONGCONTEXT, Model.QWEN, Model.GLM3, Model.BAICHUAN_TURBO]
+    "model", [Model.GPT3_TURBO, Model.YI, Model.YI_LONGCONTEXT, Model.QWEN, Model.GLM4, Model.BAICHUAN_TURBO]
 )
 def test_react2(model):
     tools: List[Callable] = [get_current_weather, search_baidu]
