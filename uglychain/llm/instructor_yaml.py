@@ -14,9 +14,8 @@ The output must be a YAML object , according to the following schema:
 =====
 
 
-As an example, for the schema {{"properties": {{"foo": {{"title": "Foo", "description": "a list of strings", "type": "array", "items": {{"type": "string"}}}}}}, "required": ["foo"]}}
-the object ```yaml\nfoo:\n- bar\n- baz\n``` is a well-formatted instance of the schema.
-
+As an example, for the schema {{"$defs": {{"Gender": {{"enum": ["FEMALE", "MALE"], "title": "Gender", "type": "string"}}}}, "properties": {{"name": {{"title": "Name", "type": "string"}}}}, "gender": {{"$ref": "#/$defs/Gender"}}}}, "required": ["name", "gender"]}}
+the object ```yaml\nname: Jason\ngender: MALE\n``` is a well-formatted instance of the schema.
 
 Answer:
 ```yaml\
