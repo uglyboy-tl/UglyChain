@@ -29,8 +29,8 @@ class ChatGPT(ChatGPTAPI):
         if (
             response_model
             and not self.use_native_tools
-            and self.model
             and config.output_format == "json"
+            and self.model
             in [
                 "gpt-3.5-turbo-0125",
                 "gpt-3.5-turbo",
