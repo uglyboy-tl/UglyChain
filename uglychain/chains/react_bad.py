@@ -52,6 +52,13 @@ New input:
 {history}
 """
 
+TRANSFORM_PROMPT = """
+Here is a ReAct flow that you will do next, transform them in the format of output
+=====
+{prompt}
+=====
+"""
+
 
 @dataclass
 class ReActChain(LLM[GenericResponseType]):
@@ -84,7 +91,7 @@ class ReActChain(LLM[GenericResponseType]):
         self.tools = None
         self.stop = "Observation:"
         super().__post_init__()
-        self.formatchain = LLM(model=self.model, tools=self._tools, response_model=ActionResopnse)
+        self.formatchain = LLM(TRANSFORM_PROMPT, model=self.model, tools=self._tools, response_model=ActionResopnse)
         self.formatchain.llm.use_native_tools = False
 
     def _validate_inputs(self, inputs: Dict[str, Any]) -> None:

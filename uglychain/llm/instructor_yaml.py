@@ -7,7 +7,8 @@ from loguru import logger
 from pydantic import BaseModel, ValidationError, create_model
 from pydantic_yaml import parse_yaml_raw_as
 
-PYDANTIC_FORMAT_INSTRUCTIONS = """The output must be a YAML object , according to the following schema:
+PYDANTIC_FORMAT_INSTRUCTIONS = """
+The output must be a YAML object , according to the following schema:
 =====
 {schema}
 =====
