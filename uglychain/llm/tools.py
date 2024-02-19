@@ -32,21 +32,21 @@ def run_function(tools: List[Callable], response: FunctionCall):
 
 
 FUNCTION_CALL_FORMAT = """
------
 You can use tools: [{tool_names}]
 
 Respond with tool name and tool arguments to achieve the instruction:
-
+=====
 {tool_schema}
+=====
 """
 
 FUNCTION_CALL_WITH_FINISH_FORMAT = """
------
 You can use tools: [{tool_names}]
 
 Respond with tool name and tool arguments to achieve the instruction. if you can respond directly, use the tool 'finish' to return the answer and finishes the task:
-
+=====
 {tool_schema}
+=====
 """
 
 

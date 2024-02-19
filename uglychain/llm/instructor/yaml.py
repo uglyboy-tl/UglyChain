@@ -3,37 +3,38 @@ import re
 from functools import wraps
 from typing import Type
 
+from loguru import logger
 from pydantic import BaseModel, ValidationError, create_model
+from pydantic_yaml import parse_yaml_raw_as
+
+from .errors import ParseError
 
 PYDANTIC_FORMAT_INSTRUCTIONS = """
------
-The output should be formatted as a JSON instance that conforms to the JSON schema below.
-
-As an example, for the schema {{"properties": {{"foo": {{"title": "Foo", "description": "a list of strings", "type": "array", "items": {{"type": "string"}}}}}}, "required": ["foo"]}}
-the object {{"foo": ["bar", "baz"]}} is a well-formatted instance of the schema. The object {{"properties": {{"foo": ["bar", "baz"]}}}} is not well-formatted.
-
-Here is the output schema:
-```
+The output must be a YAML object , according to the following schema:
+=====
 {schema}
-```
-
-Ensure the response can be parsed by Python json.loads"""
+=====
 
 
-class ParseError(Exception):
-    pass
+As an example, for the schema {{"$defs": {{"Gender": {{"enum": ["FEMALE", "MALE"], "title": "Gender", "type": "string"}}}}, "properties": {{"name": {{"title": "Name", "type": "string"}}}}, "gender": {{"$ref": "#/$defs/Gender"}}}}, "required": ["name", "gender"]}}
+the object ```yaml\nname: Jason\ngender: MALE\n``` is a well-formatted instance of the schema.
 
+Answer:
+```yaml\
+"""
 
 class Instructor(BaseModel):
     @classmethod
     def from_response(cls, response: str) -> "Instructor":
         try:
-            # Greedy search for 1st json candidate.
-            match = re.search(r"(\{.*\})", response.strip(), re.MULTILINE | re.IGNORECASE | re.DOTALL)
-            json_str = ""
+            match = re.search(r"```\w*\n(.*?)(```|$)", response.strip(), re.IGNORECASE | re.DOTALL)
+            yaml_str = response.strip()
+            if yaml_str.endswith("```"):
+                yaml_str = yaml_str[:-3]
             if match:
-                json_str = match.group()
-            return cls.model_validate_json(json_str)
+                yaml_str = match.group(1).strip()
+            logger.trace(f"yaml_str: {yaml_str}")
+            return parse_yaml_raw_as(cls, yaml_str)
 
         except (json.JSONDecodeError, ValidationError) as e:
             name = cls.__name__
