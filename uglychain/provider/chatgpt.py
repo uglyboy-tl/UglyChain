@@ -26,11 +26,11 @@ class ChatGPT(ChatGPTAPI):
         stop: Union[Optional[str], List[str]] = None,
     ) -> str:
         kwargs = self.get_kwargs(prompt, response_model, tools, stop)
-        """
         if (
             response_model
             and not self.use_native_tools
             and self.model
+            and config.output_format == "json"
             in [
                 "gpt-3.5-turbo-0125",
                 "gpt-3.5-turbo",
@@ -38,7 +38,6 @@ class ChatGPT(ChatGPTAPI):
             ]
         ):
             kwargs["response_format"] = {"type": "json_object"}
-        """
         try:
             response = self.completion_with_backoff(**kwargs)
         except Exception as e:

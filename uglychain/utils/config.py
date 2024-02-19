@@ -10,6 +10,9 @@ from .singleton import singleton
 @singleton
 @dataclass
 class Config:
+    # General
+    output_format: str = os.getenv("OUTPUT_FORMAT", "yaml")
+
     # API keys
     # OpenAI
     openai_api_key: Optional[str] = os.getenv("OPENAI_API_KEY")

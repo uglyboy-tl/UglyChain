@@ -7,6 +7,8 @@ from loguru import logger
 from pydantic import BaseModel, ValidationError, create_model
 from pydantic_yaml import parse_yaml_raw_as
 
+from .errors import ParseError
+
 PYDANTIC_FORMAT_INSTRUCTIONS = """
 The output must be a YAML object , according to the following schema:
 =====
@@ -21,16 +23,11 @@ Answer:
 ```yaml\
 """
 
-
-class ParseError(Exception):
-    pass
-
-
 class Instructor(BaseModel):
     @classmethod
     def from_response(cls, response: str) -> "Instructor":
         try:
-            match = re.search(r"```yaml(.*?)(```|$)", response.strip(), re.IGNORECASE | re.DOTALL)
+            match = re.search(r"```\w*\n(.*?)(```|$)", response.strip(), re.IGNORECASE | re.DOTALL)
             yaml_str = response.strip()
             if yaml_str.endswith("```"):
                 yaml_str = yaml_str[:-3]

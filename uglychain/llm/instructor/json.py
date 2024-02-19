@@ -5,6 +5,8 @@ from typing import Type
 
 from pydantic import BaseModel, ValidationError, create_model
 
+from .errors import ParseError
+
 PYDANTIC_FORMAT_INSTRUCTIONS = """
 -----
 The output should be formatted as a JSON instance that conforms to the JSON schema below.
@@ -18,11 +20,6 @@ Here is the output schema:
 ```
 
 Ensure the response can be parsed by Python json.loads"""
-
-
-class ParseError(Exception):
-    pass
-
 
 class Instructor(BaseModel):
     @classmethod
