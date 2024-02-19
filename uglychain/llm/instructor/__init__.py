@@ -7,7 +7,7 @@ if config.output_format == "yaml":
 elif config.output_format == "json":
     from .json import Instructor
 else:
-    Instructor = None
+    raise ValueError(f"Invalid output format: {config.output_format}")
 
 __all__ = [
     "ParseError",
