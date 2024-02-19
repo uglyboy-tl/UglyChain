@@ -17,6 +17,7 @@ pathos = "^0.3.1"
 requests = "^2.31.0"
 openai = "^1.1.0"
 docstring-parser = "^0.15"
+pydantic-yaml = "^1.2.1"
 dashscope = {version = "^1.14.1", extras = ["dashscope"], optional = true}
 zhipuai = {version = "^2.0.1", extras = ["chatglm"], optional = true}
 ollama = {version = "^0.1.6", extras = ["ollama"], optional = true}
@@ -36,10 +37,6 @@ ruff = "^0.1.15"
 mkdocs = "^1.5.3"
 mkdocs-material = "^9.5.6"
 mkdocs-git-revision-date-plugin = "^0.3.2"
-
-
-[tool.poetry.group.dev.dependencies]
-pydantic-yaml = "^1.2.1"
 
 [tool.poetry.extras]
 openai = ["tiktoken"]
