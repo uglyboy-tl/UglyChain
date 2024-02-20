@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import random
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Type, Union
 
@@ -82,10 +81,10 @@ class DashScope(BaseLanguageModel):
     def default_params(self) -> Dict[str, Any]:
         kwargs = {
             "model": self.model,
-            "seed": random.getrandbits(16),
             "temperature": self.temperature,
             "top_p": self.top_p,
             "repetition_penalty": self.presence_penalty,
+            # "seed": self.seed,
             "result_format": "message",
         }
         if self.use_max_tokens:

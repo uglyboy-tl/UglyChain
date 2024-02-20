@@ -13,7 +13,7 @@ from uglychain.utils import config
 from .instructor import Instructor_json, Instructor_yaml
 from .tools import FUNCTION_CALL_FORMAT, FUNCTION_CALL_WITH_FINISH_FORMAT, FunctionCall, finish, tools_schema
 
-TEMPERATURE = 0.3
+TEMPERATURE = 0.1
 FREQUENCY_PENALTY = 0
 PRESENCE_PENALTY = 0
 TOP_P = 1
@@ -191,7 +191,7 @@ class BaseLanguageModel(ABC):
             "top_p": self.top_p,
             "frequency_penalty": self.frequency_penalty,
             "presence_penalty": self.presence_penalty,
-            "seed": self.seed,
+            # "seed": self.seed,
         }
         if self.use_max_tokens:
             kwargs["max_tokens"] = self.max_tokens
