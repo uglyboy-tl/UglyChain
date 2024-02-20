@@ -2,7 +2,7 @@ from enum import Enum
 
 
 class Model(Enum):
-    GPT3_TURBO = "gpt-3.5-turbo-0125"
+    GPT3_TURBO = "gpt-3.5-turbo"
     GPT4 = "gpt-4"
     GPT4_TURBO = "gpt-4-turbo-preview"
     COPILOT3_TURBO = "copilot-gpt-3.5-turbo"

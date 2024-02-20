@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, Generic, List, Optional, Tuple, Type, TypeVar, Union
+from typing import Any, Callable, Dict, Generic, List, Literal, Optional, Tuple, Type, TypeVar, Union
 
 from loguru import logger
 from pydantic import BaseModel
@@ -189,3 +189,13 @@ class LLM(Chain, Generic[GenericResponseType]):
     def seed(self, seed: int) -> None:
         """Set the seed."""
         self.llm.seed = seed
+
+    @property
+    def output_format(self) -> str:
+        """Get the output format."""
+        return self.llm.output_format
+
+    @output_format.setter
+    def output_format(self, output_format: Literal["json", "yaml"]) -> None:
+        """Set the output format."""
+        self.llm.output_format = output_format

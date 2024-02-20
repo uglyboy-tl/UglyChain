@@ -1,15 +1,9 @@
-from uglychain.utils import config
-
 from .errors import ParseError
-
-if config.output_format == "yaml":
-    from .yaml import Instructor
-elif config.output_format == "json":
-    from .json import Instructor
-else:
-    raise ValueError(f"Invalid output format: {config.output_format}")
+from .json import Instructor as Instructor_json
+from .yaml import Instructor as Instructor_yaml
 
 __all__ = [
     "ParseError",
-    "Instructor",
+    "Instructor_yaml",
+    "Instructor_json",
 ]
