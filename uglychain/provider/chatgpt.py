@@ -32,7 +32,6 @@ class ChatGPT(ChatGPTAPI):
             and self.output_format == "json"
             and self.model
             in [
-                "gpt-3.5-turbo-0125",
                 "gpt-3.5-turbo",
                 "gpt-4-turbo-preview",
             ]
