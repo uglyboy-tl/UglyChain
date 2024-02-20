@@ -34,7 +34,7 @@ class Ollama(BaseLanguageModel):
         kwargs = super().get_kwargs(prompt, response_model, tools, stop)
         stop_value = kwargs.pop("stop")
         kwargs["options"]["stop"] = stop_value
-        if response_model and not self.use_native_tools and config.output_format == "json":
+        if response_model and not self.use_native_tools and self.output_format == "json":
             kwargs["format"] = "json"
         return kwargs
 

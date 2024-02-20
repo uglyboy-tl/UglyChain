@@ -8,7 +8,9 @@ from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union, ca
 from loguru import logger
 from pydantic import BaseModel
 
-from .instructor import Instructor
+from uglychain.utils import config
+
+from .instructor import Instructor_json, Instructor_yaml
 from .tools import FUNCTION_CALL_FORMAT, FUNCTION_CALL_WITH_FINISH_FORMAT, FunctionCall, finish, tools_schema
 
 TEMPERATURE = 0.3
@@ -59,6 +61,7 @@ class BaseLanguageModel(ABC):
     is_continuous: bool = field(init=False, default=False)
     messages: list = field(init=False, default_factory=list)
     use_native_tools: bool = field(init=False, default=False)
+    output_format: str = field(init=False, default=config.output_format)
 
     def __post_init__(self):
         if not self.is_init_delay:
@@ -148,7 +151,7 @@ class BaseLanguageModel(ABC):
                 }
                 kwargs = {"messages": self.messages, "stop": stop, **params}
                 return kwargs
-            instructor = Instructor.from_BaseModel(response_model)
+            instructor = self.Instructor.from_BaseModel(response_model)
             prompt += "\n" + instructor.get_format_instructions()
         self._generate_messages(prompt)
         if stop and isinstance(stop, str):
@@ -167,7 +170,7 @@ class BaseLanguageModel(ABC):
             BaseModel: The parsed response.
 
         """
-        instructor = Instructor.from_BaseModel(response_model)
+        instructor = self.Instructor.from_BaseModel(response_model)
         return cast(T, instructor.from_response(response))
 
     @abstractmethod
@@ -250,3 +253,15 @@ class BaseLanguageModel(ABC):
 
         """
         pass
+
+    @property
+    def Instructor(self) -> Union[Type[Instructor_json], Type[Instructor_yaml]]:
+        if hasattr(self, "_Instrutor"):
+            return self._Instructor
+        if self.output_format == "json":
+            self._Instructor = Instructor_json
+        elif self.output_format == "yaml":
+            self._Instructor = Instructor_yaml
+        else:
+            raise ValueError(f"Invalid output format: {self.output_format}")
+        return self._Instructor
