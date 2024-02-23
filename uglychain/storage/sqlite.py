@@ -1,7 +1,7 @@
 import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional, Union
 
 from .base import Storage
 
@@ -32,11 +32,9 @@ class SQLiteStorage(Storage):
         )
         self._conn.commit()
 
-    def load(self, keys: List[str] | str | None = None, condition: str | None = None) -> Dict[str, str]:
+    def load(self, keys: Optional[Union[List[str], str]] = None, condition: Optional[str] = None) -> Dict[str, str]:
         if keys is None:
-            query_sql = (
-                f"SELECT key, value FROM {self.table} WHERE date('now', 'localtime') < date(timestamp, '+' || ? || ' day')"
-            )
+            query_sql = f"SELECT key, value FROM {self.table} WHERE date('now', 'localtime') < date(timestamp, '+' || ? || ' day')"
             if condition is not None:
                 query_sql += f" and {condition}"
             self._cur.execute(query_sql, (str(self.expirationIntervalInDays),))

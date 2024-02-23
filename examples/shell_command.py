@@ -1,7 +1,7 @@
 import platform
 import sys
 from pathlib import Path
-from typing import Callable, List
+from typing import Callable, List, Optional
 
 from loguru import logger
 
@@ -16,7 +16,7 @@ ROLE = """
 """
 
 
-def react(model: Model | None = None):
+def react(model: Optional[Model] = None):
     tools: List[Callable] = [run_code]
     system_prompt = ROLE.format(os_version=platform.system())
     if model:

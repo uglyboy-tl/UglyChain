@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Callable, List
+from typing import Callable, List, Optional
 
 from loguru import logger
 
@@ -33,7 +33,7 @@ def search_baidu(query: str) -> str:
     return "牛顿出生于1642年"
 
 
-def react(model: Model | None = None):
+def react(model: Optional[Model] = None):
     tools: List[Callable] = [get_current_weather, search_baidu]
     if model:
         llm = ReActChain(model=model, tools=tools)

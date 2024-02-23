@@ -1,11 +1,11 @@
-from typing import Any
+from typing import Any, Optional
 
 from loguru import logger
 
 from uglychain import Model, ReduceChain
 
 
-def reduce(model: Model | None = None):
+def reduce(model: Optional[Model] = None):
     if model:
         llm = ReduceChain(model=model)
     else:
@@ -18,7 +18,7 @@ def reduce(model: Model | None = None):
     logger.info(llm(input=input, history="锄禾日当午"))
 
 
-def reduce_function(model: Model | None = None):
+def reduce_function(model: Optional[Model] = None):
     def string(obj: Any) -> str:
         """Converts an object to a string.
 
@@ -41,5 +41,5 @@ def reduce_function(model: Model | None = None):
 
 
 if __name__ == "__main__":
-    reduce()
+    #reduce()
     reduce_function(Model.GPT4_TURBO)

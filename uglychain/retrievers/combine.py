@@ -25,7 +25,7 @@ class Keywords(BaseModel):
 
 @dataclass
 class CombineRetriever(BaseRetriever):
-    retrievers: list[Retriever]
+    retrievers: List[Retriever]
     model: Model = Model.DEFAULT
 
     def search(self, query: str, n: int = BaseRetriever.default_n) -> List[str]:

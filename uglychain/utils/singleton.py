@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+from typing import Type, TypeVar
+
+T = TypeVar("T")
 
 
 class _SingletonWrapper:
@@ -18,7 +21,7 @@ class _SingletonWrapper:
         return self._instance
 
 
-def singleton(cls):
+def singleton(cls: Type[T]) -> Type[T]:
     """A singleton decorator.
 
     Returns a wrapper object. A call on that object returns a single instance

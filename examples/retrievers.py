@@ -1,3 +1,5 @@
+from typing import List
+
 import requests
 from loguru import logger
 
@@ -32,7 +34,7 @@ def combine():
 
 
 def custom():
-    def search(query: str, n: int) -> list[str]:
+    def search(query: str, n: int) -> List[str]:
         response = requests.get(
             "https://open-procedures.replit.app/search/",
             params={"query": query},
@@ -47,7 +49,7 @@ def custom():
 
 
 if __name__ == "__main__":
-    # BM25()
-    # arxiv()
-    # combine()
+    BM25()
+    bing()
+    combine()
     custom()

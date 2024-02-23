@@ -1,5 +1,6 @@
 import sys
 from enum import Enum
+from typing import Optional
 
 from loguru import logger
 
@@ -51,7 +52,7 @@ def search_bing(query: str) -> str:
     return f"{query}是一个技术博主"
 
 
-def functian_call(model: Model | None = None):
+def functian_call(model: Optional[Model] = None):
     tools = [get_current_weather]
     if model:
         llm = LLM(model=model, tools=tools)
@@ -60,7 +61,7 @@ def functian_call(model: Model | None = None):
     logger.info(llm("What's the weather in Beijing?"))
 
 
-def tools(model: Model | None = None):
+def tools(model: Optional[Model] = None):
     tools = [get_current_weather, search_baidu, search_google, search_bing, finish]
     if model:
         llm = LLM(
