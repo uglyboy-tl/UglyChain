@@ -9,7 +9,7 @@ repository = "https://github.com/uglyboy-tl/uglychain"
 documentation = "https://uglychain.uglyboy.cn"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 pydantic = "^2.0.2"
 loguru = "^0.7.2"
 tenacity = "^8.2.3"
@@ -22,7 +22,7 @@ dashscope = {version = "^1.14.1", extras = ["dashscope"], optional = true}
 zhipuai = {version = "^2.0.1", extras = ["chatglm"], optional = true}
 ollama = {version = "^0.1.6", extras = ["ollama"], optional = true}
 websockets = {version = "^12.0", optional = true, extras = ["sparkapi"]}
-#google-generativeai = {version = "^0.3.2", extras = ["gemini"], optional = true}
+google-generativeai = {version = "^0.3.2", extras = ["gemini"], optional = true}
 tiktoken = {version = "^0.5.2", extras = ["openai"], optional = true}
 jieba-fast = {version = "^0.53", extras = ["bm25"], optional = true}
 ipykernel = {version ="^6.26.0", extras = ["ipython"], optional = true}
@@ -44,7 +44,7 @@ dashscope = ["dashscope"]
 chatglm = ["zhipuai"]
 sparkapi = ["websockets"]
 ollama = ["ollama"]
-#gemini = ["google-generativeai"]
+gemini = ["google-generativeai"]
 bm25 = ["jieba-fast"]
 ipython = ["ipykernel"]
 llama-index = ["llama-index-core", "llama-index-embeddings-openai"]
