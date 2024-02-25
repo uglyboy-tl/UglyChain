@@ -1,4 +1,4 @@
-from enum import Enum
+from uglychain.utils import ExtendableEnum as Enum
 
 from .arxiv import ArxivRetriever
 from .base import BaseRetriever, StorageRetriever

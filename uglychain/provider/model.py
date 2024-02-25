@@ -1,4 +1,4 @@
-from enum import Enum
+from uglychain.utils import ExtendableEnum as Enum
 
 
 class Model(Enum):
