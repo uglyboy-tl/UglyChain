@@ -16,7 +16,7 @@ def prompt(model: Model | None = None):
     if model:
         llm = LLM("{cite} 的市长是谁？", model)
     else:
-        llm = LLM()
+        llm = LLM("{cite} 的市长是谁？")
     logger.info(llm("上海"))
 
 
