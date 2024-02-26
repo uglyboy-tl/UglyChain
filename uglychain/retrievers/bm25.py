@@ -57,7 +57,7 @@ class BM25:
         num = len(self.text_lens)
         with concurrent.futures.ThreadPoolExecutor() as executor:
             scores = list(executor.map(self.calculate_bm25_score, range(num), itertools.repeat(query)))
-        scores = list(zip(range(num), scores))
+        scores = list(zip(range(num), scores, strict=False))
         top_n_scores = heapq.nlargest(n, scores, key=lambda x: x[1])
         return top_n_scores
 

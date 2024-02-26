@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, cast
 
 from pydantic.v1 import Field, root_validator
 
@@ -13,7 +13,7 @@ try:
 except ImportError as err:
     raise ImportError("Please install the `llama-index-core` package to use this LLM.") from err
 
-from uglychain.provider import Model, get_llm_provider
+from uglychain.llm import Model
 
 from .base import BaseLanguageModel
 
@@ -24,8 +24,8 @@ class LlamaIndexLLM(CustomLLM):
 
     @root_validator(pre=False, skip_on_failure=True)
     def create_llm(cls, values):
-        model_name = values.get("model")
-        values["llm"] = get_llm_provider(model_name)
+        model_name = cast(Model, values.get("model"))
+        values["llm"] = model_name()
         return values
 
     @property
