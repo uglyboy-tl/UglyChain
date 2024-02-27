@@ -10,8 +10,9 @@ class CustomModel(Model):
 
 
 def llm():
-    llm = LLM(model=CustomModel.YI_NEW)
+    llm = LLM(model=CustomModel.DEFAULT)
     logger.info(llm("你是谁？"))
+
 
 def prompt():
     llm = LLM("{cite} 的市长是谁？", CustomModel.YI_NEW)
@@ -19,12 +20,11 @@ def prompt():
 
 
 def instructor():
-    llm = LLM(model=CustomModel.YI, response_model=UserDetail)
+    llm = LLM(model=CustomModel.YI_NEW, response_model=UserDetail)
     logger.info(llm("Extract Jason is a boy"))
 
 
 if __name__ == "__main__":
-    #llm()
-    #prompt()
+    llm()
+    prompt()
     instructor()
-
