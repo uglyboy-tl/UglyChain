@@ -1,4 +1,6 @@
-from uglychain.utils import ExtendableEnum as Enum
+from enum import Enum
+
+from uglychain.utils import inheritable_enum
 
 from .arxiv import ArxivRetriever
 from .base import BaseRetriever, StorageRetriever
@@ -8,6 +10,7 @@ from .custom import CustomRetriever
 from .llama_index import LlamaIndexRetriever, LlamaIndexStorageRetriever
 
 
+@inheritable_enum
 class Retriever(Enum):
     Bing = BingRetriever
     Arxiv = ArxivRetriever

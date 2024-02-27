@@ -9,7 +9,7 @@ from loguru import logger
 from pydantic import BaseModel
 from requests.exceptions import SSLError
 
-from uglychain.llm import BaseLanguageModel
+from uglychain.llm.base import BaseLanguageModel
 from uglychain.utils import retry_decorator
 
 

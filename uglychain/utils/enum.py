@@ -1,16 +1,16 @@
 from enum import Enum, EnumMeta
+from typing import TypeVar
+
+T = TypeVar("T", bound=Enum)
 
 
-class ExtendableEnumMeta(EnumMeta):
-    def __init__(cls, name, bases, atrtrs):
-        super().__init__(name, bases, atrtrs)
-        if not hasattr(cls, "_member_names_"):
-            return
-        base_names = {name for base in bases for name in getattr(base, "_member_names_", [])}
-        for name in cls._member_names_:
-            if name in base_names:
-                delattr(cls, name)
+def inheritable_enum(the_enum: T) -> T:
+    if type(the_enum) is not EnumMeta:
+        raise TypeError("Cannot add inheritable enum members to a non-enum object!")
+    the_enum.__inheritable_members__ = []
+    # noinspection PyProtectedMember
+    for member in the_enum._member_names_:
+        the_enum.__inheritable_members__.append(member)
+    the_enum._member_names_ = []
 
-
-class ExtendableEnum(Enum, metaclass=ExtendableEnumMeta):
-    pass
+    return the_enum

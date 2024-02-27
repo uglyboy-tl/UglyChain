@@ -6,9 +6,8 @@ from typing import Any, Callable, Dict, Generic, List, Literal, Optional, Tuple,
 from loguru import logger
 from pydantic import BaseModel
 
-from uglychain.llm import BaseLanguageModel, ParseError
+from uglychain.llm import BaseLanguageModel, Model, ParseError
 from uglychain.llm.tools import ActionResopnse, FunctionCall
-from uglychain.provider import Model, get_llm_provider
 
 from ..base import Chain
 from .prompt import Prompt
@@ -47,7 +46,7 @@ class LLM(Chain, Generic[GenericResponseType]):
             assert (
                 self.response_model is None or self.response_model == ActionResopnse
             ), "response_model must be ActionResopnse if tools is set"
-        self.llm = get_llm_provider(self.model, self.is_init_delay)
+        self.llm = self.model(self.is_init_delay)
         logger.success(f"{self.model} loaded")
         if self.system_prompt:
             self.llm.set_system_prompt(self.system_prompt)

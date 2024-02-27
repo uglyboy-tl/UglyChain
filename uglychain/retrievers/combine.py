@@ -7,7 +7,7 @@ from loguru import logger
 from pydantic import BaseModel
 
 from uglychain.chains import LLM
-from uglychain.provider import Model
+from uglychain.llm import Model
 
 from .base import BaseRetriever
 from .model import Retriever
