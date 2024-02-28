@@ -47,6 +47,7 @@ class LLM(Chain, Generic[GenericResponseType]):
                 self.response_model is None or self.response_model == ActionResopnse
             ), "response_model must be ActionResopnse if tools is set"
         self.llm = self.model(self.is_init_delay)
+        del self.model
         logger.success(f"{self.model} loaded")
         if self.system_prompt:
             self.llm.set_system_prompt(self.system_prompt)

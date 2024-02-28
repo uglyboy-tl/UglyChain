@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-
+import time
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Union
 
 from loguru import logger
 from pathos.multiprocessing import ProcessingPool as Pool
+from tqdm import tqdm
 
 from uglychain.llm import ParseError
 
@@ -16,6 +17,7 @@ class MapChain(LLM[GenericResponseType]):
     prompt_template: str = "{map_key}"
     is_init_delay: bool = field(init=False, default=True)
     map_keys: List[str] = field(default_factory=lambda: ["map_key"])
+    show_progress: bool = True
 
     def _validate_inputs(self, inputs: Dict[str, Any]) -> None:
         self.num = len(inputs[self.map_keys[0]])
@@ -32,7 +34,17 @@ class MapChain(LLM[GenericResponseType]):
         inputs_list = self._generate_inputs_list(inputs)
 
         with Pool() as pool:
-            response = pool.map(self._map_func(inputs), inputs_list)
+            if self.show_progress:
+                start = time.time()
+                # imap方法
+                with tqdm(total=len(inputs_list), desc="计算进度") as t:  # 进度条设置
+                    response = []
+                    for i in pool.imap(self._map_func(inputs), inputs_list):
+                        response.append(i)
+                        t.set_postfix({"计算花销": "%ds" % (time.time() - start)})
+                        t.update()
+            else:
+                response = pool.map(self._map_func(inputs), inputs_list)
 
         results = self._process_results(response)
 
@@ -61,7 +73,6 @@ class MapChain(LLM[GenericResponseType]):
                         instructor_response = self.llm.parse_response(response, self.response_model).model_dump_json()
                         if self.memory_callback:
                             self.memory_callback((prompt, response))
-                        logger.debug(f"MapChain: {input['index']} finished")
                         return {"index": input["index"], "result": instructor_response}
                     elif self.tools:
                         instructor_response = self.llm.parse_response(response, FunctionCall).model_dump_json()
@@ -71,7 +82,6 @@ class MapChain(LLM[GenericResponseType]):
                     else:
                         if self.memory_callback:
                             self.memory_callback((prompt, response))
-                        logger.debug(f"MapChain: {input['index']} finished")
                         return {"index": input["index"], "result": response}
                 except ParseError as e:  # 捕获所有异常
                     attempts += 1  # 尝试次数增加
