@@ -6,7 +6,9 @@ from loguru import logger
 from pydantic import BaseModel, Field
 
 from uglychain import LLM
-from uglychain.worker.base import BaseWorker
+from uglychain.storage import FileStorage
+
+from .base import BaseWorker
 
 
 class CodeType(BaseModel):
@@ -32,6 +34,7 @@ Return only python code in Markdown format, e.g.:
 class Developer(BaseWorker):
     prompt: str = PROMPT_TEMPLATE
     name: str = ""
+    file_path: str = "data/code/test.py"
 
     def __post_init__(self):
         self.llm = LLM(
@@ -40,6 +43,8 @@ class Developer(BaseWorker):
             f"{self.role}{FORMAT_PROMPT}",
             CodeType,
         )
+        if not self.storage:
+            self.storage = FileStorage(self.file_path)
 
     def run(self, *args, **kwargs):
         logger.info(f"正在执行 {self.name} 的任务...")

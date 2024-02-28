@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 
 from uglychain import Model
-from uglychain.storage import FileStorage
 from uglychain.worker.developer import Developer
 
 ROLE_WRITER = """
@@ -57,10 +56,10 @@ class CodeReviewer(Developer):
 
 
 def coder(content: str, model: Model.YI, file_path: str = "data/code/test.py"):
-    writer = CodeWriter(model=model, storage=FileStorage(file_path))
+    writer = CodeWriter(model=model, file_path=file_path)
     code = writer.run(context=content)
 
-    reviewer = CodeReviewer(model=model, storage=FileStorage(file_path))
+    reviewer = CodeReviewer(model=model, file_path=file_path)
     reviewer.run(context=content, code=code)
 
 
