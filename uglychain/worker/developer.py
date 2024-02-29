@@ -12,8 +12,8 @@ from .base import BaseWorker
 
 
 class CodeType(BaseModel):
-    reason: str = Field(..., description="你的思考过程和解决方案")
-    code: str = Field(..., description="最终优化后的代码文件中的内容")
+    reason: str = Field(..., description="your thought process and solution")
+    code: str = Field(..., description="the final code in the optimized file")
 
 
 PROMPT_TEMPLATE = """

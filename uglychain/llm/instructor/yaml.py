@@ -13,7 +13,7 @@ from .errors import ParseError
 PYDANTIC_FORMAT_INSTRUCTIONS = """
 **The output must be a YAML object**. For example, for the schema ```yaml\n$defs:\n  Gender:\n    enum:\n    - FEMALE\n    - MALE\n    title: Gender\n    type: string\nproperties:\n  gender:\n    $ref: '#/$defs/Gender'\n  name:\n    title: Name\n    type: string\nrequired:\n- name\n- gender\n\n```, the object ```yaml\nname: Jason\ngender: MALE\n``` is a well-formatted instance of the schema.
 
-Only Response Your Answer, according to the following schema:
+Only Response Your Final YAML, according to the following schema:
 ```yaml
 {schema}
 ```
