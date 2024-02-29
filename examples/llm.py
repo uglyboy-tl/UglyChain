@@ -1,7 +1,12 @@
+import sys
+
 from loguru import logger
 
 from examples.schema import UserDetail
 from uglychain import LLM, Model
+
+logger.remove()
+logger.add(sink=sys.stdout, level="TRACE")
 
 
 def llm(model: Model | None = None):
