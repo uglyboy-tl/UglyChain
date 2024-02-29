@@ -13,22 +13,18 @@ Given the new context, refine the original answer to better answer the query. If
 Refined Answer:
 """
 
-DEFAULT_PROMPT = """Context information is below.
+DEFAULT_PROMPT = """Answer the question based only on the following context:
 ---------------------
 {context_str}
 ---------------------
-Given the context information and not prior knowledge, answer the query.
-Query: {query_str}
-Answer:
+Question: {query_str}
 """
 
 SUMMARY_PROMPT = """
 Write a summary of the following. Try to use only the information provided. Try to include as many key details as possible.
-
-
+---------------------
 {context_str}
-
-
+---------------------
 SUMMARY:
 """
 
@@ -46,6 +42,6 @@ def answer_with_reduce_llm(query: str, context: List[str], model: Model):
 
 
 def answer_with_map_llm(query: str, context: List[str], model: Model):
-    llm = MapChain(SUMMARY_PROMPT, model, ROLE, map_keys=["context_str"])
+    llm = MapChain(SUMMARY_PROMPT, model, map_keys=["context_str"])
     summaries = llm(context_str=context)
     return answer_with_llm(query, summaries, model)
