@@ -8,6 +8,7 @@ import openai
 from loguru import logger
 from pydantic import BaseModel
 from requests.exceptions import SSLError
+from yaml import dump
 
 from uglychain.llm.base import BaseLanguageModel
 from uglychain.utils import retry_decorator
@@ -49,7 +50,10 @@ class ChatGPTAPI(BaseLanguageModel):
         logger.trace(f"kwargs:{kwargs}\nresponse:{response.choices[0].model_dump()}")
         if self.use_native_tools and tools and response.choices[0].message.tool_calls:
             result = response.choices[0].message.tool_calls[0].function
-            return json.dumps({"name": result.name, "args": json.loads(result.arguments)})
+            if self.output_format == "json":
+                return json.dumps({"name": result.name, "args": json.loads(result.arguments)})
+            elif self.output_format == "yaml":
+                return dump({"name": result.name, "args": json.loads(result.arguments)}, default_flow_style=False)
         return response.choices[0].message.content.strip()
 
     @retry_decorator(not_notry_exception)

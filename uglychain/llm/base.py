@@ -11,7 +11,12 @@ from pydantic import BaseModel
 from uglychain.utils import config
 
 from .instructor import Instructor_json, Instructor_yaml
-from .tools import FUNCTION_CALL_FORMAT, FUNCTION_CALL_WITH_FINISH_FORMAT, FunctionCall, finish, tools_schema
+from .tools import (
+    FunctionCall,
+    finish,
+    openai_tools_schema,
+    tools_instructions,
+)
 
 TEMPERATURE = 0.1
 FREQUENCY_PENALTY = 0
@@ -115,7 +120,7 @@ class BaseLanguageModel(ABC):
             if self.use_native_tools:
                 self._generate_messages(prompt)
                 params = self.default_params
-                params["tools"] = tools_schema(tools)
+                params["tools"] = openai_tools_schema(tools)
                 if len(tools) == 1:
                     params["tool_choice"] = {"type": "function", "function": {"name": tools[0].__name__}}
                 kwargs = {"messages": self.messages, "stop": stop, **params}
@@ -125,11 +130,9 @@ class BaseLanguageModel(ABC):
             try:
                 index = tools.index(finish)
                 tools[:] = [tools[index]] + tools[:index] + tools[index + 1 :]
-                tool_names = ", ".join([f"`{tool.__name__}`" for tool in tools])
-                prompt += f"\n{FUNCTION_CALL_WITH_FINISH_FORMAT.format(tool_names = tool_names, tool_schema = tools_schema(tools))}"
+                prompt += f"\n{tools_instructions(tools, self.output_format, True)}"
             except ValueError:
-                tool_names = ", ".join([f"`{tool.__name__}`" for tool in tools])
-                prompt += f"\n{FUNCTION_CALL_FORMAT.format(tool_names = tool_names, tool_schema = tools_schema(tools))}"
+                prompt += f"\n{tools_instructions(tools, self.output_format, False)}"
         if response_model:
             if self.use_native_tools:
                 self._generate_messages(prompt)

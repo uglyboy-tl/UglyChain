@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Type, Union, cast
 
 from loguru import logger
+from yaml import dump
 
 from uglychain.llm import finish, run_function
 from uglychain.llm.tools import ActionResopnse, tools_schema
@@ -13,46 +14,60 @@ from .react import Action
 from .react import ReActChain as ReActChainGood
 
 REACT_PROMPT = """
-Assistant is a large language model trained by Human.
+You are designed to help with a variety of tasks, from answering questions to providing summaries to other types of analyses.
 
-Assistant is designed to be able to assist with a wide range of tasks, from answering simple questions to providing in-depth explanations and discussions on a wide range of topics. As a language model, Assistant is able to generate human-like text based on the input it receives, allowing it to engage in natural-sounding conversations and provide responses that are coherent and relevant to the topic at hand.
+## Tools
+You have access to a wide variety of tools. You are responsible for using the tools in any sequence you deem appropriate to complete the task at hand. This may require breaking the task into subtasks and using different tools to complete each subtask.
 
-Assistant is constantly learning and improving, and its capabilities are constantly evolving. It is able to process and understand large amounts of text, and can use this knowledge to provide accurate and informative responses to a wide range of questions. Additionally, Assistant is able to generate its own text based on the input it receives, allowing it to engage in discussions and provide explanations and descriptions on a wide range of topics.
-
-Overall, Assistant is a powerful tool that can help with a wide range of tasks and provide valuable insights and information on a wide range of topics. Whether you need help with a specific question or just want to have a conversation about a particular topic, Assistant is here to assist.
-
-TOOLS:
-------
-
-Assistant has access to the following tools:
-
+You have access to the following tools:
 {tools}
 
-To use a tool, please use the following format:
+## Output Format
+To answer the question, please use the following format.
 
 ```
-Thought: Do I need to use a tool? Yes
-Action: the action to take, should be one of [{tool_names}]
-Action Input: the input to the action
-Observation: the result of the action
+Thought: I need to use a tool to help me answer the question.
+Action: tool name (one of {tool_names})
+Action Input: the input to the tool, in a JSON format representing the kwargs (e.g. {{"text": "hello world", "num_beams": 5}})
+```
+Please use a valid JSON format for the action input. Do NOT do this {{'text': 'hello world', 'num_beams': 5}}.
+
+If this format is used, the user will respond in the following format:
+
+```
+Observation: tool response
 ```
 
-When you have a response to say to the Human, or if you do not need to use a tool, you MUST use the format:
+You should keep repeating the above format until you have enough information to answer the question without using any more tools. At that point, you MUST respond in the following format:
 
 ```
-Thought: Do I need to use a tool? No
-Final Answer: [your response here]
+Thought: I can answer without using any more tools.
+Action: Finish
+Answer: [your answer here]
 ```
 
-Begin!
+## Current Conversation
 
-New input:
-{input}
-
+Question: {input}
 {history}
 """
 
-TRANSFORM_PROMPT = """
+TRANSFORM_PROMPT_4_YAML = """
+Here is a ReAct flow that you will do next
+=====
+{prompt}
+=====
+Transform them in the format of output such as:
+```yaml
+thought: <thought>
+action:
+  name: <tool name>
+  args:
+    <tool args>
+```
+"""
+
+TRANSFORM_PROMPT_4_JSON = """
 Here is a ReAct flow that you will do next, transform them in the format of output
 =====
 {prompt}
@@ -84,15 +99,17 @@ class ReActChain(LLM[GenericResponseType]):
         self.prompt_template = REACT_PROMPT.replace("{input}", self.prompt_template)
         self._response_model = self.response_model
         self.response_model = None
-        self.tools_schema = str(tools_schema(self.tools))
+        self.tools_schema = f"```yaml\n{dump(tools_schema(self.tools), default_flow_style=False)}\n```"
+        # self.tools_schema = str(tools_schema(self.tools))
         self.tool_names = ", ".join([f"`{tool.__name__}`" for tool in self.tools])
         self._tools = self.tools
         self._tools.insert(0, finish)
         self.tools = None
         self.stop = "Observation:"
-        super().__post_init__()
-        self.formatchain = LLM(TRANSFORM_PROMPT, model=self.model, tools=self._tools, response_model=ActionResopnse)
+        self.formatchain = LLM(model=self.model, tools=self._tools, response_model=ActionResopnse)
         self.formatchain.llm.use_native_tools = False
+        super().__post_init__()
+        self.formatchain.prompt = TRANSFORM_PROMPT_4_YAML if self.output_format == "yaml" else TRANSFORM_PROMPT_4_JSON
 
     def _validate_inputs(self, inputs: Dict[str, Any]) -> None:
         assert "tools" in self.input_keys, "ReduceChain expects history to be in input_keys"

@@ -1,9 +1,10 @@
 import inspect
 from enum import Enum
-from typing import Callable, List, Literal, Union, cast, get_args, get_origin
+from typing import Any, Callable, Dict, List, Literal, Union, cast, get_args, get_origin
 
 from docstring_parser import parse
 from pydantic import BaseModel, Field
+from yaml import dump
 
 
 class FunctionCall(BaseModel):
@@ -31,22 +32,18 @@ def run_function(tools: List[Callable], response: FunctionCall):
     raise ValueError(f"Can't find tool {response.name}")
 
 
-FUNCTION_CALL_FORMAT = """
+FUNCTION_CALL_PROMPT = """
 You can use tools: [{tool_names}]
 
 Respond with tool name and tool arguments to achieve the instruction:
-=====
 {tool_schema}
-=====
 """
 
-FUNCTION_CALL_WITH_FINISH_FORMAT = """
+FUNCTION_CALL_WITH_FINISH_PROMPT = """
 You can use tools: [{tool_names}]
 
 Respond with tool name and tool arguments to achieve the instruction. if you can respond directly, use the tool 'finish' to return the answer and finishes the task:
-=====
 {tool_schema}
-=====
 """
 
 
@@ -110,7 +107,7 @@ def get_pydantic_schema(pydantic_obj: BaseModel, visited_models=None) -> dict:
     return schema
 
 
-def function_schema(func: Callable):
+def function_schema(func: Callable) -> Dict[str, Any]:
     signature = inspect.signature(func)
     docstring = inspect.getdoc(func)
     if docstring:
@@ -163,10 +160,31 @@ def function_schema(func: Callable):
     return function_info
 
 
-def tools_schema(tools: List[Callable]):
+def openai_tools_schema(tools: List[Callable]) -> List[Dict[str, Any]]:
     tools_schema = []
 
     for tool in tools:
         tool_schema = {"type": "function", "function": function_schema(tool)}
         tools_schema.append(tool_schema)
     return tools_schema
+
+
+def tools_schema(tools: List[Callable]) -> List[Dict[str, Any]]:
+    tools_schema = []
+
+    for tool in tools:
+        tools_schema.append(function_schema(tool))
+    return tools_schema
+
+
+def tools_instructions(tools: List[Callable], output_format: Literal["json", "yaml"], with_finish: bool = False) -> str:
+    prompt = FUNCTION_CALL_WITH_FINISH_PROMPT if with_finish else FUNCTION_CALL_PROMPT
+    # output_format = "json"
+    if output_format == "json":
+        tool_names = ", ".join([f"`{tool.__name__}`" for tool in tools])
+        return prompt.format(tool_names=tool_names, tool_schema=f"=====\n{tools_schema(tools)}\n=====")
+    elif output_format == "yaml":
+        tool_names = ", ".join([f"`{tool.__name__}`" for tool in tools])
+        return prompt.format(
+            tool_names=tool_names, tool_schema=f"```yaml\n{dump(tools_schema(tools), default_flow_style=False)}\n```"
+        )

@@ -1,3 +1,4 @@
+import sys
 from enum import Enum
 from typing import Callable, List, Optional
 
@@ -7,6 +8,9 @@ from uglychain import Model
 from uglychain.chains.react_bad import ReActChain
 
 # from uglychain.chains.react import ReActChain
+
+logger.remove()
+logger.add(sink=sys.stdout, level="TRACE")
 
 
 class Unit(Enum):
