@@ -48,4 +48,4 @@ def answer_with_reduce_llm(query: str, context: List[str], model: Model):
 def answer_with_map_llm(query: str, context: List[str], model: Model):
     llm = MapChain(SUMMARY_PROMPT, model, ROLE, map_keys=["context_str"])
     summaries = llm(context_str=context)
-    return answer_with_llm(query, summaries)
+    return answer_with_llm(query, summaries, model)
