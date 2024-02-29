@@ -7,7 +7,16 @@ from uglychain.worker.classify import Classify
 
 @pytest.mark.parametrize(
     "model",
-    [Model.GPT3_TURBO, Model.YI, Model.YI_LONGCONTEXT, Model.YI_FUNCTION, Model.QWEN, Model.GLM4, Model.BAICHUAN_TURBO],
+    [
+        Model.GPT3_TURBO,
+        Model.YI,
+        Model.YI_LONGCONTEXT,
+        Model.YI_FUNCTION,
+        Model.QWEN,
+        Model.GLM3,
+        Model.BAICHUAN_TURBO,
+        Model.OLLAMA,
+    ],
 )
 def test_classify(model):
     worker = Classify(model=model, label=ClassifyResponse)
