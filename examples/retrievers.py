@@ -28,8 +28,8 @@ def bing():
 
 
 def combine():
-    retriever = Retriever.Combine([Retriever.Arxiv, Retriever.Bing], Model.GPT3_TURBO)
-    query = "大语言模型在 Agent 方面现在有什么新技术？"
+    retriever = Retriever.Combine([Retriever.Arxiv, Retriever.Bing], Model.GPT4_TURBO)
+    query = "有哪些代码大模型？效果都如何？"
     logger.info(retriever.get(query, "compact"))
 
 
@@ -49,7 +49,7 @@ def custom():
 
 
 if __name__ == "__main__":
-    BM25()
-    bing()
+    # BM25()
+    # bing()
     combine()
-    custom()
+    # custom()

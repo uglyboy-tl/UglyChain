@@ -6,6 +6,7 @@ from typing import Dict, List, Literal, Optional
 
 from loguru import logger
 
+from uglychain.llm import Model
 from uglychain.storage import Storage
 
 from .retrieve_with_llm import answer_with_llm, answer_with_map_llm, answer_with_reduce_llm
@@ -30,14 +31,18 @@ class BaseRetriever(ABC):
         if response_mode != "no_text" and context:
             logger.trace(context)
         try:
+            if hasattr(self, "model"):
+                model = self.model
+            else:
+                model = Model.DEFAULT
             if response_mode == "no_text":
                 return str(context)
             elif response_mode == "compact":
-                return answer_with_llm(query, context)
+                return answer_with_llm(query, context, model)
             elif response_mode == "refine":
-                return answer_with_reduce_llm(query, context)
+                return answer_with_reduce_llm(query, context, model)
             elif response_mode == "summary":
-                return answer_with_map_llm(query, context)
+                return answer_with_map_llm(query, context, model)
         except Exception:
             return ""
 
