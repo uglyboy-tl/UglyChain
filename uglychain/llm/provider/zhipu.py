@@ -4,6 +4,7 @@ from typing import Any, Callable, Dict, List, Optional, Type, Union
 
 from loguru import logger
 from pydantic import BaseModel
+from yaml import dump
 
 from uglychain.llm.base import BaseLanguageModel
 from uglychain.utils import config, retry_decorator
@@ -46,9 +47,20 @@ class ChatGLM(BaseLanguageModel):
         if self.use_native_tools and response.choices[0].message.tool_calls:
             tool_calls_response = response.choices[0].message.tool_calls[0].function
             if tools:
-                return json.dumps({"name": tool_calls_response.name, "args": json.loads(tool_calls_response.arguments)})
+                if self.output_format == "json":
+                    return json.dumps(
+                        {"name": tool_calls_response.name, "args": json.loads(tool_calls_response.arguments)}
+                    )
+                elif self.output_format == "yaml":
+                    return dump(
+                        {"name": tool_calls_response.name, "args": json.loads(tool_calls_response.arguments)},
+                        default_flow_style=False,
+                    )
             elif response_model:
-                return tool_calls_response.arguments
+                if self.output_format == "json":
+                    return tool_calls_response.arguments
+                elif self.output_format == "yaml":
+                    return dump(json.loads(tool_calls_response.arguments), default_flow_style=False)
         return response.choices[0].message.content.strip()
 
     @property

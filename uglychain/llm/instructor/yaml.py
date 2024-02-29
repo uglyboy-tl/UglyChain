@@ -6,22 +6,22 @@ from typing import Type
 from loguru import logger
 from pydantic import BaseModel, ValidationError, create_model
 from pydantic_yaml import parse_yaml_raw_as
+from yaml import dump
 
 from .errors import ParseError
 
 PYDANTIC_FORMAT_INSTRUCTIONS = """
-The output must be a YAML object , according to the following schema:
-=====
+**The output must be a YAML object**. For example, for the schema ```yaml\n$defs:\n  Gender:\n    enum:\n    - FEMALE\n    - MALE\n    title: Gender\n    type: string\nproperties:\n  gender:\n    $ref: '#/$defs/Gender'\n  name:\n    title: Name\n    type: string\nrequired:\n- name\n- gender\n\n```, the object ```yaml\nname: Jason\ngender: MALE\n``` is a well-formatted instance of the schema.
+
+Only Response Your Answer, according to the following schema:
+```yaml
 {schema}
-=====
-
-
-As an example, for the schema {{"$defs": {{"Gender": {{"enum": ["FEMALE", "MALE"], "title": "Gender", "type": "string"}}}}, "properties": {{"name": {{"title": "Name", "type": "string"}}}}, "gender": {{"$ref": "#/$defs/Gender"}}}}, "required": ["name", "gender"]}}
-the object ```yaml\nname: Jason\ngender: MALE\n``` is a well-formatted instance of the schema.
+```
 
 Answer:
 ```yaml\
 """
+
 
 class Instructor(BaseModel):
     @classmethod
@@ -52,7 +52,7 @@ class Instructor(BaseModel):
         if "type" in reduced_schema:
             del reduced_schema["type"]
         # Ensure json in context is well-formed with double quotes.
-        schema_str = json.dumps(reduced_schema, ensure_ascii=False)
+        schema_str = dump(reduced_schema, default_flow_style=False)
 
         return PYDANTIC_FORMAT_INSTRUCTIONS.format(schema=schema_str)
 
