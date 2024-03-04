@@ -16,6 +16,7 @@ class FileNotFoundInWorkspaceError(Exception):
 class FileStorage(Storage):
     file: str = "data/temp"
     path: Path = field(init=False)
+    append: bool = False
 
     def __post_init__(self):
         self.path = Path(self.file)
@@ -26,8 +27,11 @@ class FileStorage(Storage):
             self._backup(self.path)
         else:
             self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.path.write_text(data)
-        logger.debug(f"保存文件至 `{self.path}`")
+        self.path.write_text(data, append=self.append)
+        if self.append:
+            logger.debug(f"追加数据至文件 `{self.path}`")
+        else:
+            logger.debug(f"保存文件至 `{self.path}`")
 
     def load(self) -> str:
         if not self.path.exists():
