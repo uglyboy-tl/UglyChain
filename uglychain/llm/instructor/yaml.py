@@ -27,7 +27,7 @@ class Instructor(BaseModel):
     @classmethod
     def from_response(cls, response: str) -> "Instructor":
         try:
-            match = re.search(r"```\w*\n(.*?)(```|$)", response.strip(), re.IGNORECASE | re.DOTALL)
+            match = re.search(r"```yaml\s*\n(.*?)(```|$)", response.strip(), re.IGNORECASE | re.DOTALL)
             yaml_str = response.strip()
             if yaml_str.endswith("```"):
                 yaml_str = yaml_str[:-3]
