@@ -20,19 +20,11 @@ PROMPT_TEMPLATE = """
 {context}
 """
 
-FORMAT_PROMPT = """
------
-Return only python code in Markdown format, e.g.:
-
-```python
-....
-```
-"""
-
 
 @dataclass
 class Developer(BaseWorker):
     prompt: str = PROMPT_TEMPLATE
+    role: str = ""
     name: str = ""
     file_path: str = "data/code/test.py"
 
@@ -40,7 +32,7 @@ class Developer(BaseWorker):
         self.llm = LLM(
             self.prompt,
             self.model,
-            f"{self.role}{FORMAT_PROMPT}",
+            self.role,
             CodeType,
         )
         if not self.storage:
