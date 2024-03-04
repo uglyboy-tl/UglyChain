@@ -16,14 +16,9 @@ class CodeType(BaseModel):
     code: str = Field(..., description="the final code in the optimized file")
 
 
-PROMPT_TEMPLATE = """
-{context}
-"""
-
-
 @dataclass
 class Developer(BaseWorker):
-    prompt: str = PROMPT_TEMPLATE
+    prompt: str = "{context}"
     role: str = ""
     name: str = ""
     file_path: str = "data/code/test.py"
