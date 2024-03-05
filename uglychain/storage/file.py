@@ -27,10 +27,12 @@ class FileStorage(Storage):
             self._backup(self.path)
         else:
             self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.path.write_text(data, append=self.append)
         if self.append:
+            with self.path.open("a") as f:
+                f.write(data)
             logger.debug(f"追加数据至文件 `{self.path}`")
         else:
+            self.path.write_text(data)
             logger.debug(f"保存文件至 `{self.path}`")
 
     def load(self) -> str:
