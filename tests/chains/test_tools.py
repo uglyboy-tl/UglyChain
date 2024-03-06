@@ -49,7 +49,7 @@ def search_bing(query: str) -> str:
 
 
 @pytest.mark.parametrize(
-    "model", [Model.GPT3_TURBO, Model.YI, Model.QWEN, Model.GLM3, Model.BAICHUAN_TURBO, Model.SPARK]
+    "model", [Model.GPT3_TURBO, Model.YI, Model.QWEN, Model.GLM3, Model.BAICHUAN_TURBO, Model.SPARK, Model.CUSTOM]
 )
 def test_llm_tool(model):
     tools = [get_current_weather]
@@ -62,7 +62,7 @@ def test_llm_tool(model):
 
 
 @pytest.mark.parametrize(
-    "model", [Model.GPT3_TURBO, Model.YI, Model.QWEN, Model.GLM3, Model.BAICHUAN_TURBO, Model.SPARK]
+    "model", [Model.GPT3_TURBO, Model.YI, Model.QWEN, Model.GLM3, Model.BAICHUAN_TURBO, Model.SPARK, Model.CUSTOM]
 )
 def test_llm_tools(model):
     tools = [get_current_weather, search_baidu, search_google, search_bing]
