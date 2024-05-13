@@ -11,7 +11,6 @@ from uglychain.worker.classify import Classify
         Model.GPT3_TURBO,
         Model.YI,
         Model.YI_TURBO,
-        Model.YI_FUNCTION,
         Model.QWEN,
         Model.GLM3,
         Model.BAICHUAN_TURBO,
