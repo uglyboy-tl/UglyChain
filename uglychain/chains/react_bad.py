@@ -86,9 +86,9 @@ class ReActChain(LLM[GenericResponseType]):
     tool_names: str = field(init=False)
 
     def __new__(cls, *args, **kwargs):
-        if args and args[1] in [Model.GPT4, Model.GPT4_TURBO, Model.COPILOT4]:
+        if args and args[1] in [Model.GPT4, Model.GPT4_TURBO, Model.GPT4O, Model.COPILOT4]:
             return ReActChainGood(*args, **kwargs)
-        elif kwargs and kwargs.get("model") in [Model.GPT4, Model.GPT4_TURBO, Model.COPILOT4]:
+        elif kwargs and kwargs.get("model") in [Model.GPT4, Model.GPT4_TURBO, Model.GPT4O, Model.COPILOT4]:
             return ReActChainGood(*args, **kwargs)
         return super().__new__(cls)
 

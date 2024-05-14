@@ -20,6 +20,7 @@ class Model(Enum):
     GPT3_TURBO = (ChatGPT, {"model": "gpt-3.5-turbo", "MAX_TOKENS": 16384})
     GPT4 = (ChatGPT, {"model": "gpt-4", "MAX_TOKENS": 8192})
     GPT4_TURBO = (ChatGPT, {"model": "gpt-4-turbo-preview", "MAX_TOKENS": 128000})
+    GPT4O = (ChatGPT, {"model": "gpt-4o", "MAX_TOKENS": 128000})
     COPILOT3_TURBO = (Copilot, {"model": "gpt-3.5-turbo"})
     COPILOT4 = (Copilot, {"model": "gpt-4"})
     YI_TURBO = (Yi, {"model": "yi-34b-chat-0205", "MAX_TOKENS": 4096})

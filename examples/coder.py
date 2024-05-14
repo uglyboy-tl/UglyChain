@@ -64,4 +64,4 @@ def coder(content: str, model: Model.YI, file_path: str = "data/code/test.py"):
 
 
 if __name__ == "__main__":
-    coder("写一个快速计算圆周率的程序", Model.YI, "data/code/pi.py")
+    coder("写一个计算圆周率的程序，计算效率尽量高，多算一些位数。", Model.GPT4O, "data/code/pi.py")
