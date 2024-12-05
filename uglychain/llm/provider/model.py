@@ -3,13 +3,13 @@ from enum import Enum
 from uglychain.llm import BaseLanguageModel
 from uglychain.utils import config, inheritable_enum
 
+from .aisuite import AISuite
 from .baichuan import Baichuan
 from .chatgpt import ChatGPT
 from .copilot import Copilot
 from .custom import Custom
 from .dashscope import DashScope
 from .gemini import Gemini
-from .ollama import Ollama
 from .sparkapi import SparkAPI
 from .yi import Yi
 from .zhipu import ChatGLM
@@ -17,14 +17,15 @@ from .zhipu import ChatGLM
 
 @inheritable_enum
 class Model(Enum):
+    GPT3_TURBO = (ChatGPT, {"model": "gpt-3.5-turbo", "MAX_TOKENS": 4096})
     GPT4 = (ChatGPT, {"model": "gpt-4", "MAX_TOKENS": 8192})
     GPT4_TURBO = (ChatGPT, {"model": "gpt-4-turbo-preview", "MAX_TOKENS": 128000})
     GPT4O = (ChatGPT, {"model": "gpt-4o", "MAX_TOKENS": 128000})
     GPT4O_MINI = (ChatGPT, {"model": "gpt-4o-mini", "MAX_TOKENS": 128000})
     COPILOT3_TURBO = (Copilot, {"model": "gpt-3.5-turbo"})
     COPILOT4 = (Copilot, {"model": "gpt-4"})
-    YI_TURBO = (Yi, {"model": "yi-34b-chat-0205", "MAX_TOKENS": 4096})
-    YI = (Yi, {"model": "yi-large", "MAX_TOKENS": 16384})
+    YI  = (Yi, {"model": "yi-large", "MAX_TOKENS": 16384})
+    YI_MOE = (Yi, {"model": "moyi-22a-dpo-0928-public", "MAX_TOKENS": 16384})
     BAICHUAN_TURBO = (
         Baichuan,
         {
@@ -56,13 +57,15 @@ class Model(Enum):
     QWEN_LONGCONTEXT = (DashScope, {"model": "qwen-max-longcontext", "MAX_TOKENS": 28000})
     GLM4 = (ChatGLM, {"model": "glm-4", "MAX_TOKENS": 128000})
     GLM3 = (ChatGLM, {"model": "glm-3-turbo", "MAX_TOKENS": 128000})
-    OLLAMA = (Ollama, {"model": config.ollama_model})
     SPARK = (
         SparkAPI,
         {
             "model": "v3.5",
         },
     )
+    PHI_3_5_MINI = (AISuite, {"model": "huggingface:microsoft/Phi-3.5-mini-instruct"})
+    QWEN_2_5_72B = (AISuite, {"model": "huggingface:Qwen/Qwen2.5-72B-Instruct"})
+    OLLAMA = (AISuite, {"model": f"ollama:{config.ollama_model}"})
     DEFAULT = "default"
 
     def __call__(self, is_init_delay: bool = False) -> BaseLanguageModel:

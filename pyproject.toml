@@ -9,16 +9,18 @@ repository = "https://github.com/uglyboy-tl/uglychain"
 documentation = "https://uglychain.uglyboy.cn"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 pydantic = "^2.0.2"
 loguru = "^0.7.2"
 tenacity = "^8.2.3"
 pathos = "^0.3.1"
 requests = "^2.31.0"
-openai = "^1.1.0"
 docstring-parser = "^0.15"
 pydantic-yaml = "^1.2.1"
 pyyaml = "^6.0.1"
+python-frontmatter = "^1.1.0"
+aisuite = "^0.1.6"
+openai = {version ="^1.1.0", extras = ["openai"], optional = true}
 dashscope = {version = "^1.14.1", extras = ["dashscope"], optional = true}
 zhipuai = {version = "^2.0.1", extras = ["chatglm"], optional = true}
 ollama = {version = "^0.1.6", extras = ["ollama"], optional = true}
@@ -28,11 +30,11 @@ jieba-fast = {version = "^0.53", extras = ["bm25"], optional = true}
 ipykernel = {version ="^6.26.0", extras = ["ipython"], optional = true}
 llama-index-core = {version = "^0.10.1", python=">=3.8.1,<3.12", extras = ["llama-index"], optional = true}
 llama-index-embeddings-openai = {version = "^0.1.0", python=">=3.8.1,<3.12", extras = ["llama-index"], optional = true}
-python-frontmatter = "^1.1.0"
+
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.0.0"
-ruff = "^0.1.15"
+ruff = "^0.8.1"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.5.3"
@@ -40,6 +42,7 @@ mkdocs-material = "^9.5.6"
 mkdocs-git-revision-date-plugin = "^0.3.2"
 
 [tool.poetry.extras]
+openai = ["openai"]
 dashscope = ["dashscope"]
 chatglm = ["zhipuai"]
 sparkapi = ["websockets"]

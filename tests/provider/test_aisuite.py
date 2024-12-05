@@ -4,13 +4,13 @@ from examples.schema import Gender, UserDetail
 from uglychain import LLM, Model
 
 
-@pytest.mark.parametrize("model", [Model.OLLAMA])
+@pytest.mark.parametrize("model", [Model.PHI_3_5_MINI, Model.QWEN_2_5_72B, Model.OLLAMA])
 def test_llm(model):
     llm = LLM(model=model)
     assert isinstance(llm("你是谁？"), str)
 
 
-@pytest.mark.parametrize("model", [Model.OLLAMA])
+@pytest.mark.parametrize("model", [Model.PHI_3_5_MINI, Model.QWEN_2_5_72B, Model.OLLAMA])
 def test_instructor(model):
     llm = LLM(model=model, response_model=UserDetail)
     obj = llm("Extract Jason is a boy")

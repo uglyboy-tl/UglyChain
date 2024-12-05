@@ -5,7 +5,7 @@ from uglychain import LLM, Model
 
 
 @pytest.mark.parametrize(
-    "model", [Model.GPT3_TURBO, Model.GPT4, Model.GPT4_TURBO, Model.COPILOT3_TURBO, Model.COPILOT4]
+    "model", [Model.GPT3_TURBO, Model.GPT4, Model.GPT4_TURBO, Model.GPT4O, Model.GPT4O_MINI]
 )
 def test_llm(model):
     llm = LLM(model=model)
@@ -13,7 +13,7 @@ def test_llm(model):
 
 
 @pytest.mark.parametrize(
-    "model", [Model.GPT3_TURBO, Model.GPT4, Model.GPT4_TURBO, Model.COPILOT3_TURBO, Model.COPILOT4]
+    "model", [Model.GPT3_TURBO, Model.GPT4, Model.GPT4_TURBO, Model.GPT4O, Model.GPT4O_MINI]
 )
 def test_instructor(model):
     llm = LLM(model=model, response_model=UserDetail)
