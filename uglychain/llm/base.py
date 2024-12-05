@@ -116,6 +116,8 @@ class BaseLanguageModel(ABC):
         stop: Union[Optional[str], List[str]],
     ) -> Dict[str, Any]:
         self._generate_validation()
+        if stop and isinstance(stop, str):
+            stop = [stop]
         if tools:
             if self.use_native_tools:
                 self._generate_messages(prompt)
@@ -123,7 +125,7 @@ class BaseLanguageModel(ABC):
                 params["tools"] = openai_tools_schema(tools)
                 if len(tools) == 1:
                     params["tool_choice"] = {"type": "function", "function": {"name": tools[0].__name__}}
-                kwargs = {"messages": self.messages, "stop": stop, **params}
+                kwargs = {"messages": self.messages, "stop":stop, **params}
                 return kwargs
             if not response_model:
                 response_model = cast(Type[T], FunctionCall)
@@ -152,14 +154,12 @@ class BaseLanguageModel(ABC):
                     "type": "function",
                     "function": {"name": schema["title"]},
                 }
-                kwargs = {"messages": self.messages, "stop": stop, **params}
+                kwargs = {"messages": self.messages, "stop":stop, **params}
                 return kwargs
             instructor = self.Instructor.from_BaseModel(response_model)
             prompt += "\n" + instructor.get_format_instructions()
         self._generate_messages(prompt)
-        if stop and isinstance(stop, str):
-            stop = [stop]
-        kwargs = {"messages": self.messages, "stop": stop, **self.default_params}
+        kwargs = {"messages": self.messages, "stop":stop, **self.default_params}
         return kwargs
 
     def parse_response(self, response: str, response_model: Type[T]) -> T:
