@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, List, Optional, Type, Union
+from typing import Any
 
 from loguru import logger
 from pydantic import BaseModel
@@ -18,9 +20,9 @@ class AISuite(BaseLanguageModel):
     def generate(
         self,
         prompt: str = "",
-        response_model: Optional[Type[BaseModel]] = None,
-        tools: Optional[List[Callable]] = None,
-        stop: Union[Optional[str], List[str]] = None,
+        response_model: type[BaseModel] | None = None,
+        tools: list[Callable] | None = None,
+        stop: str | None | list[str] = None,
     ) -> Any:
         """Ask a question and return the user's response.
 

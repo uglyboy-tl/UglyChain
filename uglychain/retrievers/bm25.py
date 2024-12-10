@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 
 import concurrent.futures
 import heapq
 import itertools
 import math
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set, Tuple
 
 from loguru import logger
 
@@ -23,9 +23,9 @@ class PathNotFoundError(Exception):
 class BM25:
     k1: float = 1.5
     b: float = 0.75
-    preprocessed_texts: List[str] = field(default_factory=list)
-    word_sets: List[Set[str]] = field(default_factory=list)
-    text_lens: List[int] = field(default_factory=list)
+    preprocessed_texts: list[str] = field(default_factory=list)
+    word_sets: list[set[str]] = field(default_factory=list)
+    text_lens: list[int] = field(default_factory=list)
     tf_values: dict = field(default_factory=dict)
     idf_values: dict = field(default_factory=dict)
     sum_len: float = field(default=0)
@@ -53,7 +53,7 @@ class BM25:
             score += tf_idf_value * score_part
         return score
 
-    def search(self, query: str, n: int = StorageRetriever.default_n) -> List[Tuple[int, float]]:
+    def search(self, query: str, n: int = StorageRetriever.default_n) -> list[tuple[int, float]]:
         num = len(self.text_lens)
         with concurrent.futures.ThreadPoolExecutor() as executor:
             scores = list(executor.map(self.calculate_bm25_score, range(num), itertools.repeat(query)))
@@ -79,17 +79,17 @@ class BM25:
 @dataclass
 class BM25Retriever(StorageRetriever):
     storage: Storage = field(default_factory=DillStorage)
-    texts: List[str] = field(init=False, default_factory=list)
-    metadatas: List[Dict[str, str]] = field(init=False, default_factory=list)
+    texts: list[str] = field(init=False, default_factory=list)
+    metadatas: list[dict[str, str]] = field(init=False, default_factory=list)
     _data: BM25 = field(init=False)
 
-    def search(self, query: str, n: int = StorageRetriever.default_n) -> List[str]:
+    def search(self, query: str, n: int = StorageRetriever.default_n) -> list[str]:
         if not query or self.is_empty:
             return []
         top_n_scores = self._data.search(query, n)
         return [self.texts[i] for i, _ in top_n_scores]
 
-    def add(self, text: str, metadata: Optional[Dict[str, str]] = None) -> None:
+    def add(self, text: str, metadata: dict[str, str] | None = None) -> None:
         if not text:
             logger.warning("Text cannot be empty.")
             return
@@ -127,5 +127,5 @@ class BM25Retriever(StorageRetriever):
     def is_empty(self):
         return not self.texts
 
-    def all(self) -> List[str]:
+    def all(self) -> list[str]:
         return self.texts

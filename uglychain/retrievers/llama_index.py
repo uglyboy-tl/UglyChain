@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, cast
 
 from uglychain.storage import LlamaIndexStorage
 from uglychain.utils import config
@@ -20,7 +22,7 @@ except Exception:
 @dataclass
 class LlamaIndexRetriever(BaseRetriever):
     index: Any = None
-    query_kwargs: Dict = field(default_factory=dict)
+    query_kwargs: dict = field(default_factory=dict)
 
     def __post_init__(self):
         assert self.index is not None, "You need to set `index` to use this retriever."
@@ -32,7 +34,7 @@ class LlamaIndexRetriever(BaseRetriever):
             ) from err
         self.index = cast(BaseGPTIndex, self.index)
 
-    def search(self, query: str, n: int = BaseRetriever.default_n) -> List[str]:
+    def search(self, query: str, n: int = BaseRetriever.default_n) -> list[str]:
         retriever = self.index.as_retriever(similarity_top_k=n, **self.query_kwargs)
         response = retriever.retrieve(query)
 
@@ -61,7 +63,7 @@ class LlamaIndexStorageRetriever(LlamaIndexRetriever, StorageRetriever):
         self.index = VectorStoreIndex.from_documents([])
         self.storage.save(self.index)
 
-    def add(self, text: str, metadata: Optional[Dict[str, str]] = None):
+    def add(self, text: str, metadata: dict[str, str] | None = None):
         if not metadata:
             metadata = {}
         try:

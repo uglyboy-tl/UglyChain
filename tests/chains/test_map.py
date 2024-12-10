@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from examples.schema import AUTHOR
+
 from uglychain import MapChain
 
 

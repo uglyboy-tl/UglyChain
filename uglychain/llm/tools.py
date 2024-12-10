@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import inspect
+from collections.abc import Callable
 from enum import Enum
-from typing import Any, Callable, Dict, List, Literal, Union, cast, get_args, get_origin
+from typing import Any, Literal, Union, cast, get_args, get_origin
 
 from docstring_parser import parse
 from pydantic import BaseModel, Field
@@ -25,7 +28,7 @@ def finish(answer: str) -> str:
     return answer
 
 
-def run_function(tools: List[Callable], response: FunctionCall):
+def run_function(tools: list[Callable], response: FunctionCall):
     for tool in tools:
         if tool.__name__ == response.name:
             return tool(**response.args)
@@ -107,7 +110,7 @@ def get_pydantic_schema(pydantic_obj: BaseModel, visited_models=None) -> dict:
     return schema
 
 
-def function_schema(func: Callable) -> Dict[str, Any]:
+def function_schema(func: Callable) -> dict[str, Any]:
     signature = inspect.signature(func)
     docstring = inspect.getdoc(func)
     if docstring:
@@ -160,7 +163,7 @@ def function_schema(func: Callable) -> Dict[str, Any]:
     return function_info
 
 
-def openai_tools_schema(tools: List[Callable]) -> List[Dict[str, Any]]:
+def openai_tools_schema(tools: list[Callable]) -> list[dict[str, Any]]:
     tools_schema = []
 
     for tool in tools:
@@ -169,7 +172,7 @@ def openai_tools_schema(tools: List[Callable]) -> List[Dict[str, Any]]:
     return tools_schema
 
 
-def tools_schema(tools: List[Callable]) -> List[Dict[str, Any]]:
+def tools_schema(tools: list[Callable]) -> list[dict[str, Any]]:
     tools_schema = []
 
     for tool in tools:
@@ -177,7 +180,7 @@ def tools_schema(tools: List[Callable]) -> List[Dict[str, Any]]:
     return tools_schema
 
 
-def tools_instructions(tools: List[Callable], output_format: Literal["json", "yaml"], with_finish: bool = False) -> str:
+def tools_instructions(tools: list[Callable], output_format: Literal["json", "yaml"], with_finish: bool = False) -> str:
     prompt = FUNCTION_CALL_WITH_FINISH_PROMPT if with_finish else FUNCTION_CALL_PROMPT
     # output_format = "json"
     if output_format == "json":

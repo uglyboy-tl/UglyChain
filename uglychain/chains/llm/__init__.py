@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .llm import LLM, FunctionCall, GenericResponseType, Model
 from .prompt import Prompt
 

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, List, Optional, Type, Union
 
 import openai
 from loguru import logger
@@ -41,9 +42,9 @@ class ChatGPTAPI(BaseLanguageModel):
     def generate(
         self,
         prompt: str = "",
-        response_model: Optional[Type[BaseModel]] = None,
-        tools: Optional[List[Callable]] = None,
-        stop: Union[Optional[str], List[str]] = None,
+        response_model: type[BaseModel] | None = None,
+        tools: list[Callable] | None = None,
+        stop: str | None | list[str] = None,
     ) -> str:
         kwargs = self.get_kwargs(prompt, response_model, tools, stop)
         response = self.completion_with_backoff(**kwargs)

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .base import BaseWorker
 from .classify import Classify
 from .code_interpreter import CodeInterpreter

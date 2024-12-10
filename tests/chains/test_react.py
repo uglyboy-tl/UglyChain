@@ -1,5 +1,7 @@
+from __future__ import annotations
+
+from collections.abc import Callable
 from enum import Enum
-from typing import Callable, List
 
 import pytest
 
@@ -35,7 +37,7 @@ def search_baidu(query: str) -> str:
     "model", [Model.GPT3_TURBO, Model.GPT4O, Model.YI, Model.YI_TURBO, Model.QWEN, Model.GLM3, Model.BAICHUAN_TURBO]
 )
 def test_react1(model):
-    tools: List[Callable] = [get_current_weather, search_baidu]
+    tools: list[Callable] = [get_current_weather, search_baidu]
     llm = ReActChain(model=model, tools=tools)
 
     response = llm("What's the weather in San Francisco?")
@@ -46,7 +48,7 @@ def test_react1(model):
     "model", [Model.GPT3_TURBO, Model.GPT4O, Model.YI, Model.YI_TURBO, Model.QWEN, Model.GLM4, Model.BAICHUAN_TURBO]
 )
 def test_react2(model):
-    tools: List[Callable] = [get_current_weather, search_baidu]
+    tools: list[Callable] = [get_current_weather, search_baidu]
     llm = ReActChain(model=model, tools=tools)
 
     response = llm("牛顿生于哪一年")

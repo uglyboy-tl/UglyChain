@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from http import HTTPStatus
 
 
@@ -5,7 +7,7 @@ class BadRequestError(Exception):
     pass
 
 
-class Unauthorized(Exception):
+class UnauthorizedError(Exception):
     pass
 
 
@@ -16,6 +18,6 @@ class RequestLimitError(Exception):
 __all__ = [
     "HTTPStatus",
     "BadRequestError",
-    "Unauthorized",
+    "UnauthorizedError",
     "RequestLimitError",
 ]

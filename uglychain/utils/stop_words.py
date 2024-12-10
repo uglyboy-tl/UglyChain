@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 stop_words = {
     "着呢",
     "doing",

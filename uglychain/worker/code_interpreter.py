@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import getpass
-import os
 import platform
 from dataclasses import dataclass, field
-from typing import Optional
+from pathlib import Path
 
 from loguru import logger
 
@@ -47,12 +48,12 @@ class CodeInterpreter(BaseWorker):
     prompt: str = field(init=False, default=PROMPT)
     model: Model = Model.GPT4_TURBO
     use_react: bool = True
-    retriever: Optional[BaseRetriever] = field(init=False, default=None)
+    retriever: BaseRetriever | None = field(init=False, default=None)
 
     def __post_init__(self):
         if self.role == ROLE_BACK:
             self.role = self.role.format(
-                username=getpass.getuser(), current_working_directory=os.getcwd(), operating_system=platform.system()
+                username=getpass.getuser(), current_working_directory=Path.cwd(), operating_system=platform.system()
             )
         super().__post_init__()
 

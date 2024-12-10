@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
+from __future__ import annotations
+
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Union
+from typing import Any
 
 from loguru import logger
 from pathos.multiprocessing import ProcessingPool as Pool
@@ -16,10 +18,10 @@ from .llm import LLM, FunctionCall, GenericResponseType
 class MapChain(LLM[GenericResponseType]):
     prompt_template: str = "{map_key}"
     is_init_delay: bool = field(init=False, default=True)
-    map_keys: List[str] = field(default_factory=lambda: ["map_key"])
+    map_keys: list[str] = field(default_factory=lambda: ["map_key"])
     show_progress: bool = True
 
-    def _validate_inputs(self, inputs: Dict[str, Any]) -> None:
+    def _validate_inputs(self, inputs: dict[str, Any]) -> None:
         self.num = len(inputs[self.map_keys[0]])
         for map_key in self.map_keys:
             self._validate_map_key(map_key, inputs)
@@ -27,10 +29,10 @@ class MapChain(LLM[GenericResponseType]):
 
     def _validate_map_key(self, map_key, inputs):
         assert (
-            map_key in self.input_keys and isinstance(inputs[map_key], List) and len(inputs[map_key]) == self.num
+            map_key in self.input_keys and isinstance(inputs[map_key], list) and len(inputs[map_key]) == self.num
         ), f"MapChain expects {map_key} to be a list of strings with the same length"
 
-    def _call(self, inputs: Dict[str, Any]) -> List[Union[GenericResponseType, str]]:
+    def _call(self, inputs: dict[str, Any]) -> list[GenericResponseType | str]:
         inputs_list = self._generate_inputs_list(inputs)
 
         with Pool() as pool:
@@ -41,7 +43,7 @@ class MapChain(LLM[GenericResponseType]):
                     response = []
                     for i in pool.imap(self._map_func(inputs), inputs_list):
                         response.append(i)
-                        t.set_postfix({"计算花销": "%ds" % (time.time() - start)})
+                        t.set_postfix({"计算花销": f"{time.time() - start}s"})
                         t.update()
             else:
                 response = pool.map(self._map_func(inputs), inputs_list)
@@ -60,8 +62,8 @@ class MapChain(LLM[GenericResponseType]):
         ]
 
     def _map_func(self, inputs):
-        def func(input) -> Dict[str, Union[int, str, GenericResponseType]]:
-            new_input: Dict = {k: v for k, v in inputs.items() if k not in self.map_keys}
+        def func(input) -> dict[str, int | str | GenericResponseType]:
+            new_input: dict = {k: v for k, v in inputs.items() if k not in self.map_keys}
             new_input.update({mapping_key: input[mapping_key] for mapping_key in self.map_keys})
             prompt = self.prompt.format(**new_input)
             max_retries = 3  # 设置最大重试次数
@@ -99,7 +101,7 @@ class MapChain(LLM[GenericResponseType]):
 
         return func
 
-    def _process_results(self, results) -> List[Union[GenericResponseType, str]]:
+    def _process_results(self, results) -> list[GenericResponseType | str]:
         results = sorted(results, key=lambda x: x["index"])
         if self.response_model:
             new_results = []

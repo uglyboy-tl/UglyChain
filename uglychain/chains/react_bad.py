@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Type, Union, cast
+from typing import Any, cast
 
 from loguru import logger
 from yaml import dump
@@ -78,9 +80,9 @@ Here is a ReAct flow that you will do next, transform them in the format of outp
 @dataclass
 class ReActChain(LLM[GenericResponseType]):
     max_reacts: int = 3
-    _response_model: Optional[Type[GenericResponseType]] = field(init=False, default=None)
+    _response_model: type[GenericResponseType] | None = field(init=False, default=None)
     _prompt_template: str = field(init=False)
-    _tools: List[Callable] = field(init=False)
+    _tools: list[Callable] = field(init=False)
     formatchain: LLM = field(init=False)
     tools_schema: str = field(init=False)
     tool_names: str = field(init=False)
@@ -111,7 +113,7 @@ class ReActChain(LLM[GenericResponseType]):
         super().__post_init__()
         self.formatchain.prompt = TRANSFORM_PROMPT_4_YAML if self.output_format == "yaml" else TRANSFORM_PROMPT_4_JSON
 
-    def _validate_inputs(self, inputs: Dict[str, Any]) -> None:
+    def _validate_inputs(self, inputs: dict[str, Any]) -> None:
         assert "tools" in self.input_keys, "ReduceChain expects history to be in input_keys"
         assert "tool_names" in self.input_keys, "ReduceChain expects history to be in input_keys"
         assert "history" in self.input_keys, "ReduceChain expects history to be in input_keys"
@@ -123,14 +125,14 @@ class ReActChain(LLM[GenericResponseType]):
             inputs["tool_names"] = self.tool_names
         super()._validate_inputs(inputs)
 
-    def _check_args_kwargs(self, args: Any, kwargs: Any) -> Dict[str, Any]:
+    def _check_args_kwargs(self, args: Any, kwargs: Any) -> dict[str, Any]:
         if args and not kwargs:
             if len(args) != 1 or not (isinstance(args[0], str) or isinstance(args[0], list)):
                 raise ValueError("`run` supports only one positional argument of type str or list.")
             return {self.input_keys[2]: args[0]}
         return super()._check_args_kwargs(args, kwargs)
 
-    def _call(self, inputs: Dict[str, str]) -> Union[str, GenericResponseType]:
+    def _call(self, inputs: dict[str, str]) -> str | GenericResponseType:
         react_response = self._process(inputs=inputs, history="")
         logger.trace(f"{react_response}")
         response = self.formatchain(react_response)
@@ -173,7 +175,7 @@ class ReActChain(LLM[GenericResponseType]):
         else:
             return response
 
-    def _process(self, inputs: Dict[str, str], history: str) -> ActionResopnse:
+    def _process(self, inputs: dict[str, str], history: str) -> ActionResopnse:
         new_input = inputs.copy()
         new_input["history"] = history
         response = super()._call(new_input)

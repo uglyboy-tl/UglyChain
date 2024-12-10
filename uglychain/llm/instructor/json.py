@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import json
 import re
 from functools import wraps
-from typing import Type
 
 from pydantic import BaseModel, ValidationError, create_model
 
@@ -21,9 +22,10 @@ Here is the output schema:
 
 Ensure the response can be parsed by Python json.loads"""
 
+
 class Instructor(BaseModel):
     @classmethod
-    def from_response(cls, response: str) -> "Instructor":
+    def from_response(cls, response: str) -> Instructor:
         try:
             # Greedy search for 1st json candidate.
             match = re.search(r"(\{.*\})", response.strip(), re.MULTILINE | re.IGNORECASE | re.DOTALL)
@@ -53,7 +55,7 @@ class Instructor(BaseModel):
         return PYDANTIC_FORMAT_INSTRUCTIONS.format(schema=schema_str)
 
     @classmethod
-    def from_BaseModel(cls, cls1) -> Type["Instructor"]:
+    def from_BaseModel(cls, cls1) -> type[Instructor]:  # noqa: N802
         if not issubclass(cls1, BaseModel):
             raise TypeError("Class must be a subclass of pydantic.BaseModel")
 

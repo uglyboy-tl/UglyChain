@@ -1,4 +1,4 @@
-from typing import List
+from __future__ import annotations
 
 import requests
 from loguru import logger
@@ -8,8 +8,8 @@ from uglychain.retrievers import Retriever
 from uglychain.storage import DillStorage
 
 
-def BM25():
-    bm25 = Retriever.BM25.getStorage(storage=DillStorage("data/test.pkl"))
+def bm25():
+    bm25 = Retriever.BM25.get_storage(storage=DillStorage("data/test.pkl"))
     query = "天安门"
     logger.info(bm25.search(query, 2))
     bm25.init()
@@ -34,7 +34,7 @@ def combine():
 
 
 def custom():
-    def search(query: str, n: int) -> List[str]:
+    def search(query: str, n: int) -> list[str]:
         response = requests.get(
             "https://open-procedures.replit.app/search/",
             params={"query": query},

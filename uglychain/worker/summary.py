@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import List, Optional, Union
 
 from uglychain import LLM, MapChain, ReduceChain
 
@@ -52,12 +53,12 @@ SUMMARY:
 
 @dataclass
 class Summary(BaseWorker):
-    role: Optional[str] = ROLE
+    role: str | None = ROLE
     prompt: str = field(init=False, default=PROMPT)
     char_limit: int = 1000
     use_reduce: bool = False
 
-    def run(self, input: Union[str, List[str]]):
+    def run(self, input: str | list[str]):
         if isinstance(input, str) and (not self.llm or isinstance(self.llm, MapChain)):
             if self.use_reduce:
                 input = [input[i * 2000 : (i + 1) * 2000 + 200] for i in range(len(input) // 2000 + 1)]

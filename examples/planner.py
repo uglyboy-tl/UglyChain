@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import sys
-from typing import Optional
 
 from loguru import logger
 
@@ -11,7 +12,7 @@ logger.remove()
 logger.add(sink=sys.stdout, level="TRACE")
 
 
-def planner(model: Optional[Model] = None):
+def planner(model: Model | None = None):
     objective = "安装零一万物的 YI-32K 模型"
     # objective = "让世界更加和平"
     tools = [search_knowledgebase, run_code]

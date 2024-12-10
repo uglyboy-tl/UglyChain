@@ -1,6 +1,8 @@
-import pytest
+from __future__ import annotations
 
+import pytest
 from examples.schema import ClassifyResponse
+
 from uglychain import Model
 from uglychain.worker.classify import Classify
 

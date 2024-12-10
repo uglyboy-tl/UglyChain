@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Dict, List, Literal, Optional
+from typing import Literal
 
 from loguru import logger
 
@@ -19,7 +20,7 @@ class BaseRetriever(ABC):
     use_keyword_query: bool = False
 
     @abstractmethod
-    def search(self, query: str, n: int) -> List[str]:
+    def search(self, query: str, n: int) -> list[str]:
         pass
 
     def get(
@@ -63,11 +64,11 @@ class StorageRetriever(BaseRetriever, ABC):
         pass
 
     @abstractmethod
-    def add(self, text: str, metadata: Optional[Dict[str, str]] = None):
+    def add(self, text: str, metadata: dict[str, str] | None = None):
         pass
 
     def _load(self):
         self.init()
 
-    def all(self) -> List[str]:
+    def all(self) -> list[str]:
         return []

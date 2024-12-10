@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, Type, Union
+from typing import Any
 
 from loguru import logger
 from pydantic import BaseModel
@@ -17,9 +19,9 @@ class Gemini(BaseLanguageModel):
     def generate(
         self,
         prompt: str = "",
-        response_model: Optional[Type[BaseModel]] = None,
-        tools: Optional[List[Callable]] = None,
-        stop: Union[Optional[str], List[str]] = None,
+        response_model: type[BaseModel] | None = None,
+        tools: list[Callable] | None = None,
+        stop: str | None | list[str] = None,
     ) -> str:
         kwargs = self.get_kwargs(prompt, response_model, tools, stop)
         response = self.completion_with_backoff(**kwargs)
@@ -30,17 +32,17 @@ class Gemini(BaseLanguageModel):
     def get_kwargs(
         self,
         prompt: str,
-        response_model: Optional[Type],
-        tools: Optional[List[Callable]],
-        stop: Union[Optional[str], List[str]] = None,
-    ) -> Dict[str, Any]:
+        response_model: type | None,
+        tools: list[Callable] | None,
+        stop: str | None | list[str] = None,
+    ) -> dict[str, Any]:
         kwargs = super().get_kwargs(prompt, response_model, tools, stop)
         contents = kwargs["messages"]
         kwargs.pop("messages")
         kwargs["contents"] = contents
         return kwargs
 
-    def _generate_messages(self, prompt: str) -> List[Dict[str, str]]:
+    def _generate_messages(self, prompt: str) -> list[dict[str, str]]:
         """Generate the list of messages for the conversation.
 
         Args:
@@ -59,7 +61,7 @@ class Gemini(BaseLanguageModel):
         return self.messages
 
     @property
-    def default_params(self) -> Dict[str, Any]:
+    def default_params(self) -> dict[str, Any]:
         config = self.client.types.GenerationConfig(max_output_tokens=self.max_tokens, temperature=self.temperature)
         kwargs = {
             "generation_config": config,

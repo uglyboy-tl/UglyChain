@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, Generic, List, Literal, Optional, Tuple, Type, TypeVar, Union
+from typing import Any, Generic, Literal, TypeVar
 
 from loguru import logger
 from pydantic import BaseModel
@@ -28,11 +30,11 @@ class LLM(Chain, Generic[GenericResponseType]):
 
     prompt_template: str = "{prompt}"
     model: Model = Model.DEFAULT
-    system_prompt: Optional[str] = None
-    response_model: Optional[Type[GenericResponseType]] = None
-    tools: Optional[List[Callable]] = None
-    stop: Optional[Union[str, List[str]]] = None
-    memory_callback: Optional[Callable[[Tuple[str, str]], None]] = None
+    system_prompt: str | None = None
+    response_model: type[GenericResponseType] | None = None
+    tools: list[Callable] | None = None
+    stop: str | list[str] | None = None
+    memory_callback: Callable[[tuple[str, str]], None] | None = None
     is_init_delay: bool = field(init=False, default=False)
     llm: BaseLanguageModel = field(init=False)
 
@@ -54,7 +56,7 @@ class LLM(Chain, Generic[GenericResponseType]):
         self.prompt = self.prompt_template
 
     @property
-    def input_keys(self) -> List[str]:
+    def input_keys(self) -> list[str]:
         """Get the input keys.
 
         Returns:
@@ -62,7 +64,7 @@ class LLM(Chain, Generic[GenericResponseType]):
         """
         return self.prompt.input_variables
 
-    def _call(self, inputs: Dict[str, Any]) -> Union[GenericResponseType, str]:
+    def _call(self, inputs: dict[str, Any]) -> GenericResponseType | str:
         """Call the LLMChain.
 
         This method calls the LLMChain by formatting the prompt with the inputs and asking the LLM provider.

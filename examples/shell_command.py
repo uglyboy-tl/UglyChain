@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import platform
 import sys
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable, List, Optional
 
 from loguru import logger
 
@@ -16,8 +18,8 @@ ROLE = """
 """
 
 
-def react(model: Optional[Model] = None):
-    tools: List[Callable] = [run_code]
+def react(model: Model | None = None):
+    tools: list[Callable] = [run_code]
     system_prompt = ROLE.format(os_version=platform.system())
     if model:
         if model in {Model.GPT4_TURBO, Model.GLM4}:

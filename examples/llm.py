@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import sys
 
+from examples.schema import UserDetail
 from loguru import logger
 
-from examples.schema import UserDetail
 from uglychain import LLM, Model
 
 logger.remove()

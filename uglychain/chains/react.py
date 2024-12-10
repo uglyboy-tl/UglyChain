@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional, Type, Union, cast
+from typing import Any, cast
 
 from loguru import logger
 
@@ -15,7 +16,7 @@ from .llm import LLM, GenericResponseType
 class Action:
     thought: str
     action: str
-    params: Dict
+    params: dict
     obs: str
     current: bool = True
 
@@ -39,7 +40,7 @@ class Action:
 @dataclass
 class ReActChain(LLM[GenericResponseType]):
     max_reacts: int = 3
-    _response_model: Optional[Type[GenericResponseType]] = field(init=False, default=None)
+    _response_model: type[GenericResponseType] | None = field(init=False, default=None)
     _prompt_template: str = field(init=False)
 
     def __post_init__(self):
@@ -54,13 +55,13 @@ class ReActChain(LLM[GenericResponseType]):
         # self.prompt = self.prompt_template
         self.llm.use_native_tools = False
 
-    def _validate_inputs(self, inputs: Dict[str, Any]) -> None:
+    def _validate_inputs(self, inputs: dict[str, Any]) -> None:
         assert "history" in self.input_keys, "ReduceChain expects history to be in input_keys"
         if "history" not in inputs:
             inputs["history"] = ""
         super()._validate_inputs(inputs)
 
-    def _call(self, inputs: Dict[str, str]) -> Union[str, GenericResponseType]:
+    def _call(self, inputs: dict[str, str]) -> str | GenericResponseType:
         assert self.tools is not None, "tools must be set"
         response = self._process(inputs=inputs, history="")
         thought = response.thought
@@ -100,7 +101,7 @@ class ReActChain(LLM[GenericResponseType]):
         else:
             return response
 
-    def _process(self, inputs: Dict[str, str], history: str) -> ActionResopnse:
+    def _process(self, inputs: dict[str, str], history: str) -> ActionResopnse:
         new_input = inputs.copy()
         new_input["history"] = history
         response = super()._call(new_input)

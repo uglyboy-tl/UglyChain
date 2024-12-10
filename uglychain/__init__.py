@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .chains import LLM, MapChain, ReActChain, ReduceChain
 from .llm import BaseLanguageModel, Model, finish, run_function
 from .retrievers import BaseRetriever, Retriever, StorageRetriever

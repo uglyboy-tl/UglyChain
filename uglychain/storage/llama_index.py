@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import Any, Dict
+from typing import Any
 
 from .base import Storage
 
@@ -7,7 +9,7 @@ from .base import Storage
 @dataclass
 class LlamaIndexStorage(Storage):
     persist_dir: str = "data/llama-index"
-    kwargs: Dict = field(default_factory=dict)
+    kwargs: dict = field(default_factory=dict)
 
     def save(self, index: Any):
         if self.kwargs:

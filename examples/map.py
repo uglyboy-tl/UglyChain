@@ -1,12 +1,12 @@
-from typing import Optional
-
-from loguru import logger
+from __future__ import annotations
 
 from examples.schema import AUTHOR, UserDetail
+from loguru import logger
+
 from uglychain import MapChain, Model
 
 
-def map(model: Optional[Model] = None):
+def map(model: Model | None = None):
     if model:
         llm = MapChain(model=model)
     else:
@@ -20,7 +20,7 @@ def map(model: Optional[Model] = None):
         logger.info(item)
 
 
-def map_input(model: Optional[Model] = None):
+def map_input(model: Model | None = None):
     if model:
         llm = MapChain(
             prompt_template="{book}的{position}是谁？",
@@ -44,7 +44,7 @@ def map_input(model: Optional[Model] = None):
         logger.info(item)
 
 
-def instructor(model: Optional[Model] = None):
+def instructor(model: Model | None = None):
     if model:
         llm = MapChain(model=model, response_model=UserDetail)
     else:

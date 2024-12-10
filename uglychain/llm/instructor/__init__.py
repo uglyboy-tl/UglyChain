@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .errors import ParseError
 from .json import Instructor as Instructor_json
 from .yaml import Instructor as Instructor_yaml

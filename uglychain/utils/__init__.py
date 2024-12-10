@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .config import config
 from .enum import inheritable_enum
 from .nlp import cut_sentences, segment

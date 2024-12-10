@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, List, Optional, Type, Union
 
 from loguru import logger
 from pydantic import BaseModel
@@ -25,9 +27,9 @@ class Yi(ChatGPTAPI):
     def generate(
         self,
         prompt: str = "",
-        response_model: Optional[Type[BaseModel]] = None,
-        tools: Optional[List[Callable]] = None,
-        stop: Union[Optional[str], List[str]] = None,
+        response_model: type[BaseModel] | None = None,
+        tools: list[Callable] | None = None,
+        stop: str | None | list[str] = None,
     ) -> str:
         kwargs = self.get_kwargs(prompt, response_model, tools, stop)
         if "tools" in kwargs:

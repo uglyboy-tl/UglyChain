@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List
 
 import requests
 from loguru import logger
@@ -23,7 +23,7 @@ class BingRetriever(BaseRetriever):
         assert isinstance(config.bing_subscription_key, str), "Bing subscription key should be a string"
         assert config.bing_subscription_key, "Bing subscription key should not be empty"
 
-    def search(self, query: str, n: int = BaseRetriever.default_n) -> List[str]:
+    def search(self, query: str, n: int = BaseRetriever.default_n) -> list[str]:
         try:
             response = self._send_request(query, n)
             json = response.json()

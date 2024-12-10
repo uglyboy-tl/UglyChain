@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 
 from .base import BaseLanguageModel
 from .instructor import ParseError

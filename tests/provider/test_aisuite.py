@@ -1,6 +1,8 @@
-import pytest
+from __future__ import annotations
 
+import pytest
 from examples.schema import Gender, UserDetail
+
 from uglychain import LLM, Model
 
 

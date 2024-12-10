@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
+from __future__ import annotations
+
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Type, Union
+from typing import Any
 
 from loguru import logger
 from pydantic import BaseModel
@@ -8,13 +11,13 @@ from pydantic import BaseModel
 from uglychain.llm.base import BaseLanguageModel
 from uglychain.utils import config, retry_decorator
 
-from .error import BadRequestError, HTTPStatus, RequestLimitError, Unauthorized
+from .error import BadRequestError, HTTPStatus, RequestLimitError, UnauthorizedError
 
 
 def not_notry_exception(exception: BaseException):
     if isinstance(exception, BadRequestError):
         return False
-    if isinstance(exception, Unauthorized):
+    if isinstance(exception, UnauthorizedError):
         return False
     return True
 
@@ -29,9 +32,9 @@ class DashScope(BaseLanguageModel):
     def generate(
         self,
         prompt: str = "",
-        response_model: Optional[Type[BaseModel]] = None,
-        tools: Optional[List[Callable]] = None,
-        stop: Union[Optional[str], List[str]] = None,
+        response_model: type[BaseModel] | None = None,
+        tools: list[Callable] | None = None,
+        stop: str | None | list[str] = None,
     ) -> str:
         kwargs = self.get_kwargs(prompt, response_model, tools, stop)
         try:
@@ -68,7 +71,7 @@ class DashScope(BaseLanguageModel):
             raise BadRequestError(f"code: {code}, message:{message}")
         elif status_code == 401:
             # 401 Unauthorized
-            raise Unauthorized(f"code: {code}, message:{message}")
+            raise UnauthorizedError(f"code: {code}, message:{message}")
         elif status_code == 429:
             # 404 Not Found
             raise RequestLimitError(f"code: {code}, message:{message}")
@@ -78,7 +81,7 @@ class DashScope(BaseLanguageModel):
             )
 
     @property
-    def default_params(self) -> Dict[str, Any]:
+    def default_params(self) -> dict[str, Any]:
         kwargs = {
             "model": self.model,
             "temperature": self.temperature,

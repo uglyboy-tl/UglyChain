@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Dict, List, Union
+from typing import Any
 
 from loguru import logger
 
@@ -16,16 +17,16 @@ class Chain(ABC):
 
     @property
     @abstractmethod
-    def input_keys(self) -> List[str]:
+    def input_keys(self) -> list[str]:
         """Input keys this chain expects."""
 
-    def _validate_inputs(self, inputs: Dict[str, Any]) -> None:
+    def _validate_inputs(self, inputs: dict[str, Any]) -> None:
         """Check that all inputs are present."""
         missing_keys = set(self.input_keys).difference(inputs)
         if missing_keys:
             raise ValueError(f"Missing some input keys: {missing_keys}")
 
-    def _prep_inputs(self, inputs: Union[Dict[str, Any], Any]) -> Dict[str, str]:
+    def _prep_inputs(self, inputs: dict[str, Any] | Any) -> dict[str, str]:
         """Validate and prep inputs."""
         if inputs is None or not inputs:
             raise ValueError("Inputs cannot be empty or None.")
@@ -44,10 +45,10 @@ class Chain(ABC):
         return inputs
 
     @abstractmethod
-    def _call(self, inputs: Dict[str, Any]) -> str:
+    def _call(self, inputs: dict[str, Any]) -> str:
         """Execute the chain."""
 
-    def _check_args_kwargs(self, args: Any, kwargs: Any) -> Dict[str, Any]:
+    def _check_args_kwargs(self, args: Any, kwargs: Any) -> dict[str, Any]:
         """Check the arguments and keyword arguments."""
         if args and not kwargs:
             if len(args) != 1 or not (isinstance(args[0], str) or isinstance(args[0], list)):

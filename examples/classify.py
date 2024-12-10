@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import sys
 
+from examples.schema import ClassifyResponse
 from loguru import logger
 
-from examples.schema import ClassifyResponse
 from uglychain import Model
 from uglychain.worker.classify import Classify
 

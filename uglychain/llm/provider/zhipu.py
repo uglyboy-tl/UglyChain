@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import json
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Type, Union
+from typing import Any
 
 from loguru import logger
 from pydantic import BaseModel
@@ -9,13 +12,13 @@ from yaml import dump
 from uglychain.llm.base import BaseLanguageModel
 from uglychain.utils import config, retry_decorator
 
-from .error import BadRequestError, RequestLimitError, Unauthorized
+from .error import BadRequestError, RequestLimitError, UnauthorizedError
 
 
 def not_notry_exception(exception: BaseException):
     if isinstance(exception, BadRequestError):
         return False
-    if isinstance(exception, Unauthorized):
+    if isinstance(exception, UnauthorizedError):
         return False
     return True
 
@@ -30,9 +33,9 @@ class ChatGLM(BaseLanguageModel):
     def generate(
         self,
         prompt: str = "",
-        response_model: Optional[Type[BaseModel]] = None,
-        tools: Optional[List[Callable]] = None,
-        stop: Union[Optional[str], List[str]] = None,
+        response_model: type[BaseModel] | None = None,
+        tools: list[Callable] | None = None,
+        stop: str | None | list[str] = None,
     ) -> str:
         kwargs = self.get_kwargs(prompt, response_model, tools, stop)
         if stop:
@@ -64,7 +67,7 @@ class ChatGLM(BaseLanguageModel):
         return response.choices[0].message.content.strip()
 
     @property
-    def default_params(self) -> Dict[str, Any]:
+    def default_params(self) -> dict[str, Any]:
         kwargs = {
             "model": self.model,
             "do_sample": True,
@@ -101,7 +104,7 @@ class ChatGLM(BaseLanguageModel):
                 raise RequestLimitError(f"code: {code}, message:{message}") from error
             elif status_code in [401, 429, 434]:
                 # 401 Unauthorized
-                raise Unauthorized(f"code: {code}, message:{message}") from error
+                raise UnauthorizedError(f"code: {code}, message:{message}") from error
             else:
                 raise error
         except Exception as e:

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .code_runner import run_code
 from .search import search_knowledgebase
 from .text_completion import text_completion

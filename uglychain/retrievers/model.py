@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from enum import Enum
 
 from uglychain.utils import inheritable_enum
@@ -26,7 +28,7 @@ class Retriever(Enum):
             return CombineRetriever(*args, **kwargs)
         return self.value(*args, **kwargs)  # type: ignore
 
-    def getStorage(self, *args, **kwargs) -> StorageRetriever:
+    def get_storage(self, *args, **kwargs) -> StorageRetriever:
         if self.name == "LlamaIndex":
             retriever = LlamaIndexStorageRetriever(*args, **kwargs)
         else:

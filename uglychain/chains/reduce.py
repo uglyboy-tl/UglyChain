@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Union
+from typing import Any
 
 from loguru import logger
 
@@ -13,8 +15,8 @@ from .llm import LLM, FunctionCall, GenericResponseType
 @dataclass
 class ReduceChain(LLM[GenericResponseType]):
     prompt_template: str = "{history}\n{input}"
-    reduce_keys: List[str] = field(default_factory=lambda: ["input"])
-    format: Callable[[Union[str, GenericResponseType]], str] = field(default_factory=lambda: lambda x: str(x))
+    reduce_keys: list[str] = field(default_factory=lambda: ["input"])
+    format: Callable[[str | GenericResponseType], str] = field(default_factory=lambda: lambda x: str(x))
 
     def __post_init__(self):
         super().__post_init__()
@@ -28,7 +30,7 @@ class ReduceChain(LLM[GenericResponseType]):
 
             self.format = format_for_tools  # type: ignore
 
-    def _validate_inputs(self, inputs: Dict[str, Any]) -> None:
+    def _validate_inputs(self, inputs: dict[str, Any]) -> None:
         self.num = len(inputs[self.reduce_keys[0]])
         for reduce_key in self.reduce_keys:
             self._validate_reduce_key(reduce_key, inputs)
@@ -37,14 +39,14 @@ class ReduceChain(LLM[GenericResponseType]):
             inputs["history"] = ""
         super()._validate_inputs(inputs)
 
-    def _validate_reduce_key(self, reduce_key: str, inputs: Dict[str, Any]) -> None:
+    def _validate_reduce_key(self, reduce_key: str, inputs: dict[str, Any]) -> None:
         assert reduce_key in self.input_keys, f"ReduceChain expects {reduce_key} to be in input_keys"
-        assert isinstance(inputs[reduce_key], List), f"ReduceChain expects {reduce_key} to be a list of strings"
+        assert isinstance(inputs[reduce_key], list), f"ReduceChain expects {reduce_key} to be a list of strings"
         assert (
             len(inputs[reduce_key]) == self.num
         ), f"ReduceChain expects {reduce_key} to be a list of strings with the same length"
 
-    def _call(self, inputs: Dict[str, str]) -> Union[str, GenericResponseType]:
+    def _call(self, inputs: dict[str, str]) -> str | GenericResponseType:
         response = ""
         history = inputs["history"]
         for i in range(self.num):
@@ -54,7 +56,7 @@ class ReduceChain(LLM[GenericResponseType]):
             logger.debug(f"ReduceChain: {response}")
         return response
 
-    def _process(self, index: int, inputs: Dict[str, str], history: str) -> Union[str, GenericResponseType]:
+    def _process(self, index: int, inputs: dict[str, str], history: str) -> str | GenericResponseType:
         new_input = inputs.copy()
         if index > 0:
             new_input.pop("history")

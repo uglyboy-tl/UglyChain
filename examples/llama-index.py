@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from loguru import logger
 
 from uglychain.retrievers import Retriever
@@ -5,14 +7,15 @@ from uglychain.retrievers.llama_index import LlamaIndexStorageRetriever
 
 LlamaIndexStorageRetriever()
 
+
 def load_index():
-    retriever = Retriever.LlamaIndex.getStorage(persist_dir="./data/storage")
+    retriever = Retriever.LlamaIndex.get_storage(persist_dir="./data/storage")
     out = retriever.get("组织共情是什么？")
     logger.info(out)
 
 
 def llama_index():
-    llama_index = Retriever.LlamaIndex.getStorage(True)
+    llama_index = Retriever.LlamaIndex.get_storage(True)
     query = "天安门"
     logger.info(llama_index.search(query, 2))
     llama_index.init()

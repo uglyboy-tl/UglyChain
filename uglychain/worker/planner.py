@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import inspect
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable, List, Optional, Union, cast
+from typing import cast
 
 from docstring_parser import parse
 from pydantic import BaseModel, Field
@@ -52,7 +55,7 @@ def get_function_description(func: Callable) -> str:
 class Task(BaseModel):
     id: int = Field(..., description="The task id.")
     task: str = Field(..., description="The task description.")
-    dependent_task_ids: List[int] = Field(
+    dependent_task_ids: list[int] = Field(
         default_factory=list,
         description="The task ids that this task is dependent on. It should always be an empty array, or an array of int representing the task ID it should pull results from.",
     )
@@ -73,7 +76,7 @@ class Task(BaseModel):
 
 
 class Tasks(BaseModel):
-    tasks: List[Task] = Field(
+    tasks: list[Task] = Field(
         ...,
         description="The list of tasks.",
     )
@@ -84,7 +87,7 @@ class Tasks(BaseModel):
         except StopIteration as err:
             raise ValueError(f"Task with id {task_id} not found.") from err
 
-    def execute_task(self, task: Union[Task, int], execute: Callable[[str, str, str], str], objective: str):
+    def execute_task(self, task: Task | int, execute: Callable[[str, str, str], str], objective: str):
         if isinstance(task, int):
             task = self.get_task_by_id(task)
         assert not task.completed, f"Task {task.id} is already completed."
@@ -119,9 +122,9 @@ class Tasks(BaseModel):
 
 @dataclass
 class Planner(BaseWorker):
-    role: Optional[str] = ROLE
+    role: str | None = ROLE
     prompt: str = field(init=False)
-    tools: List[Callable] = field(default_factory=list)
+    tools: list[Callable] = field(default_factory=list)
     objective: str = ""
     llm: LLM = field(init=False)
 
@@ -136,7 +139,7 @@ class Planner(BaseWorker):
     def run(
         self,
         objective: str = "",
-        tasks: Optional[Union[Tasks, List[str]]] = None,
+        tasks: Tasks | list[str] | None = None,
         task_output: str = "",
     ):
         if tasks is None or isinstance(tasks, list):

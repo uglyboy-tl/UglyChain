@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 from uglychain import LLM, Model
 from uglychain.retrievers import BaseRetriever
@@ -25,12 +26,12 @@ class BaseWorker(ABC):
         llm: The LLMChain object used for the action.
     """
 
-    role: Optional[str] = None
+    role: str | None = None
     prompt: str = "{prompt}"
     model: Model = Model.DEFAULT
-    retriever: Optional[BaseRetriever] = None
-    storage: Optional[Storage] = None
-    llm: Optional[LLM] = field(default=None, init=False)
+    retriever: BaseRetriever | None = None
+    storage: Storage | None = None
+    llm: LLM | None = field(default=None, init=False)
 
     def __post_init__(self):
         if self.retriever:

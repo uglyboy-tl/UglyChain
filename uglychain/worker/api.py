@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 
 import frontmatter
 
-from uglychain import LLM
+from uglychain import LLM, Model
 
 from .base import BaseWorker
 
@@ -21,7 +23,7 @@ class APIWorker(BaseWorker):
         从 Markdown 文件中读取配置并初始化 APIWorker 对象
         """
         # 读取 Markdown 文件
-        with open(markdown_file, "r", encoding="utf-8") as f:
+        with open(markdown_file, encoding="utf-8") as f:
             content = frontmatter.load(f)
 
         # 提取 frontmatter 信息
@@ -32,7 +34,7 @@ class APIWorker(BaseWorker):
         if len(body) > 2:
             raise ValueError("Markdown file must contain exactly two sections separated by '***'.")
         elif len(body) == 2:
-            init_info = body[0]
+            # init_info = body[0]
             prompt = body[1]
             output_format = body[2]
         elif len(body) == 1:
@@ -48,6 +50,19 @@ class APIWorker(BaseWorker):
         if metadata.get("provider"):
             provider = metadata.get("provider")
             model_name = metadata.get("model")
+            if provider.lower() == "openai":
+                if model_name.lower() == "gpt-4":
+                    model = Model.GPT4
+                elif model_name.lower() == "gpt-3.5-turbo":
+                    model = Model.GPT3_TURBO
+                elif model_name.lower() == "gpt-4-turbo":
+                    model = Model.GPT4_TURBO
+                elif model_name.lower() == "gpt-4o":
+                    model = Model.GPT4O
+                elif model_name.lower() == "gpt-4o-mini":
+                    model = Model.GPT4O_MINI
+                else:
+                    raise ValueError("Invalid model name.")
         else:
             model = LLM.DEFAULT
         # 初始化 LLM

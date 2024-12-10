@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any
 
 from uglychain.utils import config
 
@@ -14,7 +16,7 @@ class Baichuan(ChatGPTAPI):
     use_max_tokens: bool = False
 
     @property
-    def default_params(self) -> Dict[str, Any]:
+    def default_params(self) -> dict[str, Any]:
         kwargs = super().default_params
         kwargs.pop("frequency_penalty")
         return kwargs

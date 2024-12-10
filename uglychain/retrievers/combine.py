@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List
 
 from loguru import logger
 from pydantic import BaseModel
@@ -20,15 +20,15 @@ PROMPT = """A question is provided below. Given the question, extract up to {max
 
 
 class Keywords(BaseModel):
-    keywords: List[str]
+    keywords: list[str]
 
 
 @dataclass
 class CombineRetriever(BaseRetriever):
-    retrievers: List[Retriever]
+    retrievers: list[Retriever]
     model: Model = Model.DEFAULT
 
-    def search(self, query: str, n: int = BaseRetriever.default_n) -> List[str]:
+    def search(self, query: str, n: int = BaseRetriever.default_n) -> list[str]:
         results = []
         if Retriever.Arxiv in self.retrievers or Retriever.Bing in self.retrievers:
             keywords = self.get_kewords(query)
@@ -42,7 +42,7 @@ class CombineRetriever(BaseRetriever):
                 results.extend(instance.search(query, n))
         return results
 
-    def get_kewords(self, query: str, n: int = 5) -> List[str]:
+    def get_kewords(self, query: str, n: int = 5) -> list[str]:
         llm = LLM(PROMPT, self.model, response_model=Keywords)
         response = llm(query=query, max_keywords=n)
         return response.keywords[:5]

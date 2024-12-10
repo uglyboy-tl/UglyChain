@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import json
 import re
 from functools import wraps
-from typing import Type
 
 from loguru import logger
 from pydantic import BaseModel, ValidationError, create_model
@@ -25,7 +26,7 @@ Answer:
 
 class Instructor(BaseModel):
     @classmethod
-    def from_response(cls, response: str) -> "Instructor":
+    def from_response(cls, response: str) -> Instructor:
         try:
             match = re.search(r"```yaml\s*\n(.*?)(```|$)", response.strip(), re.IGNORECASE | re.DOTALL)
             yaml_str = response.strip()
@@ -57,7 +58,7 @@ class Instructor(BaseModel):
         return PYDANTIC_FORMAT_INSTRUCTIONS.format(schema=schema_str)
 
     @classmethod
-    def from_BaseModel(cls, cls1) -> Type["Instructor"]:
+    def from_BaseModel(cls, cls1) -> type[Instructor]:  # noqa: N802
         if not issubclass(cls1, BaseModel):
             raise TypeError("Class must be a subclass of pydantic.BaseModel")
 

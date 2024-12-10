@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Any, cast
 
 from pydantic.v1 import Field, root_validator
@@ -23,6 +25,7 @@ class LlamaIndexLLM(CustomLLM):
     llm: BaseLanguageModel = Field(init=False, default=None)
 
     @root_validator(pre=False, skip_on_failure=True)
+    @classmethod
     def create_llm(cls, values):
         model_name = cast(Model, values.get("model"))
         values["llm"] = model_name()

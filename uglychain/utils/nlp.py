@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 
 import logging
 import string
 from pathlib import Path
-from typing import List
 
 from .config import config
 from .stop_words import stop_words
@@ -54,7 +54,7 @@ def segment(text: str) -> str:
     return " ".join(words)
 
 
-def cut_sentences(text: str) -> List[str]:
+def cut_sentences(text: str) -> list[str]:
     """
     Split the text into sentences.
     """

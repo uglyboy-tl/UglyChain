@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from enum import Enum
 
 from uglychain.llm import BaseLanguageModel
@@ -24,7 +26,7 @@ class Model(Enum):
     GPT4O_MINI = (ChatGPT, {"model": "gpt-4o-mini", "MAX_TOKENS": 128000})
     COPILOT3_TURBO = (Copilot, {"model": "gpt-3.5-turbo"})
     COPILOT4 = (Copilot, {"model": "gpt-4"})
-    YI  = (Yi, {"model": "yi-large", "MAX_TOKENS": 16384})
+    YI = (Yi, {"model": "yi-large", "MAX_TOKENS": 16384})
     YI_MOE = (Yi, {"model": "moyi-22a-dpo-0928-public", "MAX_TOKENS": 16384})
     BAICHUAN_TURBO = (
         Baichuan,

@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Type, Union
 
 from pydantic import BaseModel
 
@@ -19,10 +20,10 @@ PROMPT = """请对下面的文本进行分类：
 
 @dataclass
 class Classify(BaseWorker):
-    role: Optional[str] = ROLE
+    role: str | None = ROLE
     prompt: str = field(init=False, default=PROMPT)
-    label: Optional[Type[BaseModel]] = None
-    samples: Optional[Dict[str, str]] = None
+    label: type[BaseModel] | None = None
+    samples: dict[str, str] | None = None
     samples_prompt: str = field(init=False, default="")
 
     def __post_init__(self):
@@ -32,7 +33,7 @@ class Classify(BaseWorker):
             for label, sample in self.samples.items():
                 self.samples_prompt += f"`{sample}` will be classified as: {label}\n"
 
-    def run(self, input: Union[str, List[str]]):
+    def run(self, input: str | list[str]):
         if isinstance(input, str) and (not self.llm or isinstance(self.llm, MapChain)):
             self.llm = LLM(self.prompt, self.model, self.role, self.label)
         elif isinstance(input, list) and (not self.llm or isinstance(self.llm, LLM)):

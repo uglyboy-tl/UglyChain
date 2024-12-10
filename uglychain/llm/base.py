@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 
 import random
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union, cast
+from typing import Any, TypeVar, cast
 
 from loguru import logger
 from pydantic import BaseModel
@@ -60,7 +62,7 @@ class BaseLanguageModel(ABC):
     top_p: float = field(init=False, default=TOP_P)
     frequency_penalty: float = field(init=False, default=FREQUENCY_PENALTY)
     presence_penalty: float = field(init=False, default=PRESENCE_PENALTY)
-    system_prompt: Optional[str] = field(init=False, default=None)
+    system_prompt: str | None = field(init=False, default=None)
     use_max_tokens: bool = field(init=False, default=False)
     seed: int = field(init=False, default=random.getrandbits(16))
     is_continuous: bool = field(init=False, default=False)
@@ -72,7 +74,7 @@ class BaseLanguageModel(ABC):
         if not self.is_init_delay:
             self.client = self._create_client()
 
-    def set_system_prompt(self, msg: Optional[str] = None) -> None:
+    def set_system_prompt(self, msg: str | None = None) -> None:
         """Set the system message.
 
         Args:
@@ -89,9 +91,9 @@ class BaseLanguageModel(ABC):
     def generate(
         self,
         prompt: str = "",
-        response_model: Optional[Type[T]] = None,
-        tools: Optional[List[Callable]] = None,
-        stop: Union[Optional[str], List[str]] = None,
+        response_model: type[T] | None = None,
+        tools: list[Callable] | None = None,
+        stop: str | None | list[str] = None,
     ) -> Any:
         """Ask a question and return the user's response.
 
@@ -111,10 +113,10 @@ class BaseLanguageModel(ABC):
     def get_kwargs(
         self,
         prompt: str,
-        response_model: Optional[Type[T]],
-        tools: Optional[List[Callable]],
-        stop: Union[Optional[str], List[str]],
-    ) -> Dict[str, Any]:
+        response_model: type[T] | None,
+        tools: list[Callable] | None,
+        stop: str | None | list[str],
+    ) -> dict[str, Any]:
         self._generate_validation()
         if stop and isinstance(stop, str):
             stop = [stop]
@@ -125,10 +127,10 @@ class BaseLanguageModel(ABC):
                 params["tools"] = openai_tools_schema(tools)
                 if len(tools) == 1:
                     params["tool_choice"] = {"type": "function", "function": {"name": tools[0].__name__}}
-                kwargs = {"messages": self.messages, "stop":stop, **params}
+                kwargs = {"messages": self.messages, "stop": stop, **params}
                 return kwargs
             if not response_model:
-                response_model = cast(Type[T], FunctionCall)
+                response_model = cast(type[T], FunctionCall)
             try:
                 index = tools.index(finish)
                 tools[:] = [tools[index]] + tools[:index] + tools[index + 1 :]
@@ -154,15 +156,15 @@ class BaseLanguageModel(ABC):
                     "type": "function",
                     "function": {"name": schema["title"]},
                 }
-                kwargs = {"messages": self.messages, "stop":stop, **params}
+                kwargs = {"messages": self.messages, "stop": stop, **params}
                 return kwargs
             instructor = self.Instructor.from_BaseModel(response_model)
             prompt += "\n" + instructor.get_format_instructions()
         self._generate_messages(prompt)
-        kwargs = {"messages": self.messages, "stop":stop, **self.default_params}
+        kwargs = {"messages": self.messages, "stop": stop, **self.default_params}
         return kwargs
 
-    def parse_response(self, response: str, response_model: Type[T]) -> T:
+    def parse_response(self, response: str, response_model: type[T]) -> T:
         """Parse the response from the LLM provider.
 
         Args:
@@ -181,7 +183,7 @@ class BaseLanguageModel(ABC):
         pass
 
     @property
-    def default_params(self) -> Dict[str, Any]:
+    def default_params(self) -> dict[str, Any]:
         """Get the default parameters for generating responses.
 
         Returns:
@@ -215,7 +217,7 @@ class BaseLanguageModel(ABC):
         if self.is_init_delay:
             self.client = self._create_client()
 
-    def _generate_messages(self, prompt: str) -> List[Dict[str, str]]:
+    def _generate_messages(self, prompt: str) -> list[dict[str, str]]:
         """Generate the list of messages for the conversation.
 
         Args:
@@ -258,7 +260,7 @@ class BaseLanguageModel(ABC):
         pass
 
     @property
-    def Instructor(self) -> Union[Type[Instructor_json], Type[Instructor_yaml]]:
+    def Instructor(self) -> type[Instructor_json] | type[Instructor_yaml]:  # noqa: N802
         if hasattr(self, "_Instrutor"):
             return self._Instructor
         if self.output_format == "json":

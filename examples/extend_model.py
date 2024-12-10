@@ -1,8 +1,8 @@
-from typing import Optional
-
-from loguru import logger
+from __future__ import annotations
 
 from examples.schema import UserDetail
+from loguru import logger
+
 from uglychain import LLM, MapChain, Model
 from uglychain.llm.provider.yi import Yi
 
@@ -26,7 +26,7 @@ def instructor():
     logger.info(llm("Extract Jason is a boy"))
 
 
-def map_instructor(model: Optional[Model] = None):
+def map_instructor(model: Model | None = None):
     if model:
         llm = MapChain(model=model, response_model=UserDetail)
     else:
@@ -38,7 +38,7 @@ def map_instructor(model: Optional[Model] = None):
 
 
 if __name__ == "__main__":
-    #llm()
-    #prompt()
-    #instructor()
+    # llm()
+    # prompt()
+    # instructor()
     map_instructor(CustomModel.YI_NEW)

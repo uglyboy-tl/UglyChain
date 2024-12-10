@@ -1,12 +1,15 @@
+from __future__ import annotations
+
 import base64
 import hashlib
 import hmac
 import json
 import textwrap
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from email.utils import formatdate
-from typing import Any, Callable, Dict, List, Optional, Type, Union
+from typing import Any
 from urllib.parse import urlencode, urlparse
 
 from loguru import logger
@@ -24,9 +27,9 @@ class SparkAPI(BaseLanguageModel):
     def generate(
         self,
         prompt: str = "",
-        response_model: Optional[Type[BaseModel]] = None,
-        tools: Optional[List[Callable]] = None,
-        stop: Union[Optional[str], List[str]] = None,
+        response_model: type[BaseModel] | None = None,
+        tools: list[Callable] | None = None,
+        stop: str | None | list[str] = None,
     ) -> str:
         kwargs = self.get_kwargs(prompt, response_model, tools, stop)
         response = self.completion_with_backoff(**kwargs)
@@ -36,10 +39,10 @@ class SparkAPI(BaseLanguageModel):
     def get_kwargs(
         self,
         prompt: str,
-        response_model: Optional[Type[BaseModel]],
-        tools: Optional[List[Callable]],
-        stop: Union[Optional[str], List[str]],
-    ) -> Dict[str, Any]:
+        response_model: type[BaseModel] | None,
+        tools: list[Callable] | None,
+        stop: str | None | list[str],
+    ) -> dict[str, Any]:
         kwargs = super().get_kwargs(prompt, response_model, tools, stop)
         kwargs.pop("stop")
         messages = kwargs.pop("messages")
@@ -47,7 +50,7 @@ class SparkAPI(BaseLanguageModel):
         return kwargs
 
     @property
-    def default_params(self) -> Dict[str, Any]:
+    def default_params(self) -> dict[str, Any]:
         options = {"temperature": self.temperature, "domain": f"general{self.model}"}
         kwargs = {
             "header": {
