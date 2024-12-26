@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 from pydantic import BaseModel
 
-from uglychain.llm import _get_messages, empty_client, llm
+from uglychain.llm import Client, _get_messages, llm
 
 
 class SampleModel(BaseModel):
@@ -11,7 +11,7 @@ class SampleModel(BaseModel):
 
 
 def test_llm_decorator(monkeypatch):
-    @llm(model="test-model")
+    @llm(model="test:model")
     def sample_prompt() -> str:
         return "Hello, world!"
 
@@ -34,7 +34,7 @@ def test_llm_decorator(monkeypatch):
                         },
                     )
 
-    empty_client()
+    Client.reset()
     monkeypatch.setattr("aisuite.Client", MockClient)
 
     result = sample_prompt()
@@ -42,7 +42,7 @@ def test_llm_decorator(monkeypatch):
 
 
 def test_llm_decorator_with_basemodel(monkeypatch):
-    @llm(model="test-model")
+    @llm(model="test:model")
     def sample_prompt() -> SampleModel:
         return "Hello, world!"  # type: ignore
 
@@ -69,7 +69,7 @@ def test_llm_decorator_with_basemodel(monkeypatch):
                         },
                     )
 
-    empty_client()
+    Client.reset()
     monkeypatch.setattr("aisuite.Client", MockClient)
 
     result = sample_prompt()
@@ -77,7 +77,7 @@ def test_llm_decorator_with_basemodel(monkeypatch):
 
 
 def test_llm_decorator_with_list_str(monkeypatch):
-    @llm(model="test-model", n=2)
+    @llm(model="test:model", n=2)
     def sample_prompt() -> str:
         return "Hello, world!"
 
@@ -105,7 +105,7 @@ def test_llm_decorator_with_list_str(monkeypatch):
                         },
                     )
 
-    empty_client()
+    Client.reset()
     monkeypatch.setattr("aisuite.Client", MockClient)
 
     result = sample_prompt()
@@ -113,7 +113,7 @@ def test_llm_decorator_with_list_str(monkeypatch):
 
 
 def test_llm_decorator_with_list_basemodel(monkeypatch):
-    @llm(model="test-model", n=2)  # type: ignore
+    @llm(model="test:model", n=2)  # type: ignore
     def sample_prompt() -> SampleModel:
         return "Hello, world!"  # type: ignore
 
@@ -149,7 +149,7 @@ def test_llm_decorator_with_list_basemodel(monkeypatch):
                         },
                     )
 
-    empty_client()
+    Client.reset()
     monkeypatch.setattr("aisuite.Client", MockClient)
 
     result = sample_prompt()
@@ -157,7 +157,7 @@ def test_llm_decorator_with_list_basemodel(monkeypatch):
 
 
 def test_llm_decorator_without_return_annotation(monkeypatch):
-    @llm(model="test-model")
+    @llm(model="test:model")
     def sample_prompt():
         return "Hello, world!"
 
@@ -180,7 +180,7 @@ def test_llm_decorator_without_return_annotation(monkeypatch):
                         },
                     )
 
-    empty_client()
+    Client.reset()
     monkeypatch.setattr("aisuite.Client", MockClient)
 
     result = sample_prompt()
@@ -188,7 +188,7 @@ def test_llm_decorator_without_return_annotation(monkeypatch):
 
 
 def test_llm_decorator_with_invalid_return_type(monkeypatch):
-    @llm(model="test-model")  # type: ignore
+    @llm(model="test:model")  # type: ignore
     def sample_prompt() -> int:
         return 123  # type: ignore
 
@@ -211,7 +211,7 @@ def test_llm_decorator_with_invalid_return_type(monkeypatch):
                         },
                     )
 
-    empty_client()
+    Client.reset()
     monkeypatch.setattr("aisuite.Client", MockClient)
 
     with pytest.raises(TypeError):
@@ -219,7 +219,7 @@ def test_llm_decorator_with_invalid_return_type(monkeypatch):
 
 
 def test_llm_decorator_with_empty_api_params(monkeypatch):
-    @llm(model="test-model")
+    @llm(model="test:model")
     def sample_prompt():
         return "Hello, world!"
 
@@ -242,7 +242,7 @@ def test_llm_decorator_with_empty_api_params(monkeypatch):
                         },
                     )
 
-    empty_client()
+    Client.reset()
     monkeypatch.setattr("aisuite.Client", MockClient)
 
     result = sample_prompt(api_params={})

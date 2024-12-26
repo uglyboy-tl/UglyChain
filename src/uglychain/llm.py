@@ -2,51 +2,61 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from functools import wraps
-from typing import Any, TypeVar, cast, get_type_hints
+from typing import Any, cast
 
 import aisuite
 from pydantic import BaseModel
 
-from .response_format import ResponseFormatter
-
-# 创建一个泛型变量，用于约束BaseModel的子类
-T = TypeVar("T", str, BaseModel)
-
-# 单例模式缓存 Client 实例
-_client_instance = None
+from .response_format import ResponseFormatter, T
 
 
-def get_client() -> aisuite.Client:
-    """
-    返回一个aisuite的Client实例。
+class Client:
+    # 单例模式缓存 Client 实例
+    _client_instance = None
 
-    该函数使用了单例模式的设计原则，确保在整个应用程序中只有一个Client实例被创建和使用。
-    这样做可以节省资源，并确保与Client的所有交互都是通过同一个实例进行的。
+    @classmethod
+    def get(cls) -> aisuite.Client:
+        """
+        返回一个aisuite的Client实例。
 
-    Returns:
-        aisuite.Client: aisuite的Client实例。
-    """
-    # 使用全局变量_client_instance来存储Client的唯一实例
-    global _client_instance
+        该函数使用了单例模式的设计原则，确保在整个应用程序中只有一个Client实例被创建和使用。
+        这样做可以节省资源，并确保与Client的所有交互都是通过同一个实例进行的。
 
-    # 检查_client_instance是否已经初始化
-    if _client_instance is None:
-        # 如果尚未初始化，则创建一个新的Client实例并赋值给_client_instance
-        _client_instance = aisuite.Client()
+        Returns:
+            aisuite.Client: aisuite的Client实例。
+        """
 
-    # 返回Client实例
-    return _client_instance
+        # 检查_client_instance是否已经初始化
+        if cls._client_instance is None:
+            # 如果尚未初始化，则创建一个新的Client实例并赋值给_client_instance
+            cls._client_instance = aisuite.Client()
 
+        # 返回Client实例
+        return cls._client_instance
 
-def empty_client() -> None:
-    """
-    将客户端实例重置为 None。
+    @classmethod
+    def reset(cls) -> None:
+        """
+        将客户端实例重置为 None。
 
-    该函数用于清除全局客户端实例变量，
-    确保客户端状态在后续配置或使用前被重置。
-    """
-    global _client_instance  # 声明要修改的全局变量
-    _client_instance = None  # 将客户端实例重置为 None
+        该函数用于清除全局客户端实例变量，
+        确保客户端状态在后续配置或使用前被重置。
+        """
+        cls._client_instance = None  # 将客户端实例重置为 None
+
+    @classmethod
+    def generate(
+        cls,
+        model: str,
+        messages: list[dict[str, str]],
+        **api_params: Any,
+    ) -> list[Any]:
+        response = cls.get().chat.completions.create(
+            model=model,
+            messages=messages,
+            **api_params,
+        )
+        return response.choices
 
 
 def _get_messages(prompt_ret: str | list[dict[str, str]], prompt: Callable) -> list[dict[str, str]]:
@@ -69,7 +79,9 @@ def _get_messages(prompt_ret: str | list[dict[str, str]], prompt: Callable) -> l
         raise TypeError("Expected prompt_ret to be a str or list of Messages")
 
 
-def llm(model: str, **api_params: Any) -> Callable[[Callable[..., T]], Callable[..., T | list[T]]]:
+def llm(
+    model: str, **api_params: Any
+) -> Callable[[Callable[..., str | T]], Callable[..., str | list[str] | T | list[T]]]:
     """
     LLM 装饰器，用于指定语言模型和其参数。
 
@@ -81,7 +93,7 @@ def llm(model: str, **api_params: Any) -> Callable[[Callable[..., T]], Callable[
     default_model_from_decorator = model
     default_api_params_from_decorator = api_params.copy()
 
-    def parameterized_lm_decorator(prompt: Callable[..., T]) -> Callable[..., T | list[T]]:
+    def parameterized_lm_decorator(prompt: Callable[..., str | T]) -> Callable[..., str | list[str] | T | list[T]]:
         """
         参数化的 LLM 装饰器，实际装饰提示函数。
 
@@ -91,10 +103,10 @@ def llm(model: str, **api_params: Any) -> Callable[[Callable[..., T]], Callable[
 
         @wraps(prompt)
         def model_call(
-            *prompt_args: str,
+            *prompt_args: str | list[str],
             api_params: dict[str, Any] | None = None,
-            **prompt_kwargs: str,
-        ) -> T | list[T]:
+            **prompt_kwargs: str | list[str],
+        ) -> str | list[str] | T | list[T]:
             """
             模型调用函数，实际执行模型推理。
 
@@ -105,14 +117,7 @@ def llm(model: str, **api_params: Any) -> Callable[[Callable[..., T]], Callable[
             """
 
             # 获取被修饰函数的返回类型
-            return_type: type[str] | type[T] = get_type_hints(prompt).get("return", str)
-            if return_type is not str and not issubclass(return_type, BaseModel):
-                raise TypeError(f"Unsupported return type: {return_type}")
-
-            # 获取提示函数的返回值
-            res = cast(str | list, prompt(*prompt_args, **prompt_kwargs))
-            # 获取提示函数的返回值对应的消息列表
-            messages = _get_messages(res, prompt)
+            response_type = ResponseFormatter[T].validate_response(prompt)
 
             # 合并装饰器级别的API参数和函数级别的API参数
             merged_api_params = default_api_params_from_decorator.copy()
@@ -121,28 +126,33 @@ def llm(model: str, **api_params: Any) -> Callable[[Callable[..., T]], Callable[
 
             # 获取同时运行的次数
             n = merged_api_params.get("n", 1)
+            # 获取模型名称
+            model = merged_api_params.pop("model", default_model_from_decorator)
+
+            # 获取提示函数的返回值
+            res = cast(str | list, prompt(*prompt_args, **prompt_kwargs))
+            # 获取提示函数的返回值对应的消息列表
+            messages = _get_messages(res, prompt)
 
             # 处理结构化输出
-            if not issubclass(return_type, str):
-                ResponseFormatter.process_parameters(
-                    messages, merged_api_params, return_type, default_model_from_decorator
-                )
+            if not issubclass(response_type, str):
+                ResponseFormatter.process_parameters(messages, merged_api_params, response_type, model)
 
             # 调用模型
-            response = get_client().chat.completions.create(
-                model=merged_api_params.pop("model", default_model_from_decorator),
-                messages=messages,
+            response = Client.generate(
+                model,
+                messages,
                 **merged_api_params,
             )
 
             # 处理返回值
             result = []
-            if return_type is str:
-                for choice in response.choices:
+            if response_type is str:
+                for choice in response:
                     result.append(choice.message.content)
-            elif issubclass(return_type, BaseModel):
-                for choice in response.choices:
-                    result.append(ResponseFormatter.parse_model_from_response(return_type, choice.message.content))
+            elif issubclass(response_type, BaseModel):
+                for choice in response:
+                    result.append(ResponseFormatter.parse_model_from_response(response_type, choice, model))
 
             if len(result) <= 0:
                 raise ValueError("No choices returned from the model")
