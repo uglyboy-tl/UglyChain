@@ -1,0 +1,35 @@
+ci:
+  autoupdate_schedule: monthly
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.1
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix, --show-fixes]
+      - id: ruff-format
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.3.0
+    hooks:
+      - id: codespell
+        additional_dependencies:
+          - tomli
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0
+    hooks:
+      - id: mypy
+        args: [src]
+        pass_filenames: false
+        additional_dependencies:
+          - types-requests
+          - types-certifi
+          - pytest
+  - repo: https://github.com/pdm-project/pdm
+    rev: 2.22.0
+    hooks:
+      - id: pdm-lock-check

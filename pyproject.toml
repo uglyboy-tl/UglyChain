@@ -1,0 +1,94 @@
+[project]
+name = "UglyChain"
+version = "0.2.0"
+description = "Default template for PDM package"
+authors = [
+    {name = "Uglyboy", email = "uglyboy@uglyboy.cn"},
+]
+dependencies = ["aisuite>=0.1.6", "mcp>=1.1.2"]
+requires-python = ">=3.10"
+readme = "README.md"
+license = {text = "MIT"}
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+
+[tool.pdm]
+distribution = true
+
+[tool.pdm.scripts]
+lint = "pre-commit run --all-files"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.8.4",
+    "pytest>=8.3.4",
+    "pytest-cov>=6.0.0",
+]
+
+
+[tool.codespell]
+skip = 'src/data/*'
+
+[tool.mypy]
+disallow_incomplete_defs = true
+disallow_untyped_decorators = true
+disallow_untyped_defs = true
+explicit_package_bases = true
+follow_imports = "silent"
+ignore_missing_imports = true
+mypy_path = "src"
+namespace_packages = true
+
+[tool.ruff]
+fix = true
+line-length = 120  # YOLO
+src = ["src", "tests"]
+target-version = "py310"
+
+[tool.ruff.format]
+indent-style = "space"  # Like Black, indent with spaces, rather than tabs.
+line-ending = "auto"  # Like Black, automatically detect the appropriate line ending.
+quote-style = "double"  # Like Black, use double quotes for strings.
+skip-magic-trailing-comma = false  # Like Black, respect magic trailing commas.
+
+[tool.ruff.lint]
+ignore = [
+    "B905",  # `zip()` without an explicit `strict=` parameter
+    "E402",  # module level import not at top of file
+    "E501",  # conflicts with black
+]
+select = [
+    "B",  # flake8-bugbear
+    "E",  # pycodestyle errors
+    "F",  # pyflakes
+    "I",  # isort
+    "N",  # pep8-naming
+    "PTH",  # flake8-pathlib
+    "UP",  # pyupgrade
+    "W",  # pycodestyle warnings
+]
+unfixable = [
+    "B018",  # automatic fix might obscure issue
+    "F601",  # automatic fix might obscure issue
+    "F602",  # automatic fix might obscure issue
+    "UP036",  # sometimes it's better to just noqa this
+]
+
+[tool.ruff.lint.isort]
+forced-separate = ["tests"]
+known-first-party = ["uglychain"]
+required-imports = ["from __future__ import annotations"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.per-file-ignores]
+"**/__init__.py" = ["F401", "F403"]
+"/*.py" = ["F401", "F403"]
+"tests/*" = ["B"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
