@@ -2,12 +2,20 @@ from __future__ import annotations
 
 import json
 import re
-from typing import TypeVar
+from enum import Enum, unique
+from typing import Any, TypeVar
 
 from pydantic import BaseModel, ValidationError
 
 # 创建一个泛型变量，用于约束BaseModel的子类
 T = TypeVar("T", bound=BaseModel)
+
+
+@unique
+class Mode(Enum):
+    TOOLS = "tool_call"
+    JSON = "json_mode"
+    JSON_SCHEMA = "json_schema_mode"
 
 
 class ResponseFormatter:
@@ -25,7 +33,7 @@ Here is the output schema:
 Ensure the response can be parsed by Python json.loads"""
 
     @staticmethod
-    def get_response_format_prompt(model: type[T]) -> str:
+    def _get_response_format_prompt(model: type[T]) -> str:
         """
         生成模型的响应格式提示。
 
@@ -90,3 +98,37 @@ Ensure the response can be parsed by Python json.loads"""
             name = model.__name__
             msg = f"Failed to validate {name} from completion {response}. Got: {e}"
             raise ValueError(msg) from e
+
+    @staticmethod
+    def _update_system_prompt(messages: list[dict[str, str]], return_type: type[BaseModel]) -> None:
+        """
+        更新系统提示，添加响应格式提示。
+        """
+        system_message = messages[0]
+        if system_message["role"] == "system":
+            system_message["content"] += "\n-----\n" + ResponseFormatter._get_response_format_prompt(return_type)
+        else:
+            system_message = {
+                "role": "system",
+                "content": ResponseFormatter._get_response_format_prompt(return_type),
+            }
+            messages.insert(0, system_message)
+
+    @staticmethod
+    def process_parameters(
+        messages: list[dict[str, str]], merged_api_params: dict[str, Any], return_type: type[BaseModel], model: str
+    ):
+        # TODO: 可以选择用怎样的方式实现结构化输出，当前只实现了基于 Prompt 的方式
+        provider, model_name = model.split(":")
+        mode: Mode = Mode.JSON
+        if provider in ["openai"]:
+            if model_name in []:  # "gpt-4o", "gpt-4o-mini"支持, 但解析函数需要更换
+                mode = Mode.JSON_SCHEMA
+                merged_api_params["response_format"] = ResponseFormatter._get_response_format_prompt(return_type)
+            else:
+                merged_api_params["response_format"] = {"type": "json_object"}
+        elif provider in ["ollama"]:
+            mode = Mode.JSON_SCHEMA
+            merged_api_params["format"] = ResponseFormatter._get_response_format_prompt(return_type)
+        if mode == Mode.JSON:
+            ResponseFormatter._update_system_prompt(messages, return_type)

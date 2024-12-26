@@ -69,23 +69,6 @@ def _get_messages(prompt_ret: str | list[dict[str, str]], prompt: Callable) -> l
         raise TypeError("Expected prompt_ret to be a str or list of Messages")
 
 
-def _process_structured_with_parameters(
-    messages: list[dict[str, str]], merged_api_params: dict[str, Any], return_type: type[BaseModel]
-):
-    # TODO: 可以选择用怎样的方式实现结构化输出，当前只实现了基于 Prompt 的方式
-    system_message = messages[0]
-    if system_message["role"] == "system":
-        system_message["content"] += "\n-----\n" + ResponseFormatter.get_response_format_prompt(return_type)
-    else:
-        system_message = {
-            "role": "system",
-            "content": ResponseFormatter.get_response_format_prompt(return_type),
-        }
-        messages.insert(0, system_message)
-
-    merged_api_params["response_format"] = {"type": "json_object"}
-
-
 def llm(model: str, **api_params: Any) -> Callable[[Callable[..., T]], Callable[..., T | list[T]]]:
     """
     LLM 装饰器，用于指定语言模型和其参数。
@@ -141,7 +124,9 @@ def llm(model: str, **api_params: Any) -> Callable[[Callable[..., T]], Callable[
 
             # 处理结构化输出
             if not issubclass(return_type, str):
-                _process_structured_with_parameters(messages, merged_api_params, return_type)
+                ResponseFormatter.process_parameters(
+                    messages, merged_api_params, return_type, default_model_from_decorator
+                )
 
             # 调用模型
             response = get_client().chat.completions.create(
