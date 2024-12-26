@@ -7,6 +7,8 @@ from typing import Any, TypeVar, cast, get_type_hints
 import aisuite
 from pydantic import BaseModel
 
+from .response_format import from_response, get_response_format_prompt
+
 # 创建一个泛型变量，用于约束BaseModel的子类
 T = TypeVar("T", str, BaseModel)
 
@@ -75,6 +77,15 @@ def llm(model: str, **api_params: Any) -> Callable[[Callable[..., T]], Callable[
             if api_params:
                 merged_api_params.update(api_params)
 
+            if not issubclass(return_type, str):
+                # TODO: 可以选择用怎样的方式实现结构化输出，当前只实现了基于 Prompt 的方式
+                system_message = messages[0]
+                if system_message["role"] == "system":
+                    system_message["content"] += "\n-----\n" + get_response_format_prompt(return_type)
+                else:
+                    system_message = {"role": "system", "content": get_response_format_prompt(return_type)}
+                    messages.insert(0, system_message)
+
             n = merged_api_params.get("n", 1)
             response = get_client().chat.completions.create(
                 model=merged_api_params.pop("model", default_model_from_decorator),
@@ -87,7 +98,7 @@ def llm(model: str, **api_params: Any) -> Callable[[Callable[..., T]], Callable[
                 if return_type is str:
                     result.append(choice.message.content)
                 elif issubclass(return_type, BaseModel):
-                    result.append(return_type.model_validate_json(choice.message.content))  # type: ignore
+                    result.append(from_response(return_type, choice.message.content))
 
             if len(result) <= 0:
                 raise ValueError("No choices returned from the model")

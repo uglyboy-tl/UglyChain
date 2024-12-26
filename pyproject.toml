@@ -5,11 +5,15 @@ description = "Default template for PDM package"
 authors = [
     {name = "Uglyboy", email = "uglyboy@uglyboy.cn"},
 ]
-dependencies = ["aisuite>=0.1.6", "mcp>=1.1.2"]
+dependencies = ["aisuite>=0.1.6", "pydantic>=2.10.4"]
 requires-python = ">=3.10"
 readme = "README.md"
 license = {text = "MIT"}
 
+[project.optional-dependencies]
+openai = [
+    "openai>=1.58.1",
+]
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
