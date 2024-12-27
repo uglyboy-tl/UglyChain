@@ -24,6 +24,7 @@ distribution = true
 
 [tool.pdm.scripts]
 lint = "pre-commit run --all-files"
+coverage = "pytest --cov=src --cov-report=term-missing"
 
 [dependency-groups]
 dev = [
