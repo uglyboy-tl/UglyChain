@@ -7,6 +7,7 @@ from typing import Any, cast
 
 import aisuite
 
+from .config import config
 from .response_format import ResponseFormatter, T
 
 
@@ -119,7 +120,9 @@ def llm(
             response_format = ResponseFormatter[T](prompt)
 
             # 合并装饰器级别的API参数和函数级别的API参数
-            merged_api_params = default_api_params_from_decorator.copy()
+            merged_api_params = config.default_api_params.copy()
+            if default_api_params_from_decorator:
+                merged_api_params.update(default_api_params_from_decorator)
             if api_params:
                 merged_api_params.update(api_params)
 
@@ -128,35 +131,38 @@ def llm(
             # 获取模型名称
             model = merged_api_params.pop("model", default_model_from_decorator)
 
-            # 获取提示函数的返回值
-            res = cast(str | list, prompt(*prompt_args, **prompt_kwargs))
-            # 获取提示函数的返回值对应的消息列表
-            messages = _get_messages(res, prompt)
+            # 验证 prompt_args 和 prompt_kwargs 中的列表长度是否一致
+            list_lengths = [len(arg) for arg in prompt_args if isinstance(arg, list)]
+            list_lengths += [len(value) for value in prompt_kwargs.values() if isinstance(value, list)]
+            if len(set(list_lengths)) > 1:
+                raise ValueError("prompt_args 和 prompt_kwargs 中的所有列表必须具有相同的长度")
 
-            # 为结构化输出调整参数
-            response_format.process_parameters(messages, merged_api_params, model)
+            if list_lengths and list_lengths[0] > 1 and n > 1:
+                raise ValueError("n > 1 和列表长度 > 1 不能同时成立")
 
-            try:
-                # 调用模型
-                response = Client.generate(
-                    model,
-                    messages,
-                    **merged_api_params,
-                )
-            except Exception as e:
-                raise RuntimeError(f"Failed to generate response: {e}") from e
-
-            # 处理返回值
-            result = [response_format.parse_from_response(choice) for choice in response]
-
-            if len(result) <= 0:
-                raise ValueError("No choices returned from the model")
-            if len(result) == 1:
+            results = []
+            for i in range(list_lengths[0] if list_lengths else 1):
+                args = [arg[i] if isinstance(arg, list) else arg for arg in prompt_args]
+                kwargs = {key: value[i] if isinstance(value, list) else value for key, value in prompt_kwargs.items()}
+                res = cast(str | list, prompt(*args, **kwargs))
+                messages = _get_messages(res, prompt)
+                response_format.process_parameters(messages, merged_api_params, model)
+                try:
+                    response = Client.generate(
+                        model,
+                        messages,
+                        **merged_api_params,
+                    )
+                except Exception as e:
+                    raise RuntimeError(f"生成响应失败: {e}") from e
+                results.extend([response_format.parse_from_response(choice) for choice in response])
+            if len(results) <= 0:
+                raise ValueError("模型未返回任何选择")
+            if len(results) == 1:
                 if n != 1:
-                    raise ValueError("Expected one choice but got multiple")
-                return result[0]
-            else:
-                return result  # type: ignore
+                    raise ValueError("预期一个选择，但得到多个")
+                return results[0]
+            return results
 
         model_call.__api_params__ = default_api_params_from_decorator  # type: ignore
         model_call.__func__ = prompt  # type: ignore

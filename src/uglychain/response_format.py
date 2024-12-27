@@ -34,9 +34,6 @@ Here is the output schema:
 Ensure the response can be parsed by Python json.loads"""
 
     def __init__(self, func: Callable) -> None:
-        """
-        验证响应字符串是否为有效的模型实例。
-        """
         # 获取被修饰函数的返回类型
         self.response_type: type[str] | type[T] = get_type_hints(func).get("return", str)
         self.mode: Mode = Mode.JSON
@@ -47,15 +44,6 @@ Ensure the response can be parsed by Python json.loads"""
             raise TypeError(f"Unsupported return type: {self.response_type}")
 
     def _get_response_format_prompt(self) -> str:
-        """
-        生成模型的响应格式提示。
-
-        Args:
-            model (type[T]): 需要生成提示的模型类。
-
-        Returns:
-            str: 返回响应格式提示字符串。
-        """
         # 获取模型的JSON schema
         assert issubclass(self.response_type, BaseModel)
         schema = self.response_type.model_json_schema()
@@ -70,20 +58,12 @@ Ensure the response can be parsed by Python json.loads"""
         # 格式化并返回提示字符串
         return ResponseFormatter.PROMPT_TEMPLATE.format(model_json_output_prompt=prompt)
 
-    def parse_from_response(self, choice: Any) -> str | T:
-        """
-        从响应字符串中解析并验证模型实例。
-
-        Args:
-            model (type[T]): 模型类，用于解析和验证响应。
-            response (str): 响应字符串，可能包含JSON格式的数据。
-
-        Returns:
-            T: 解析并验证后的模型实例。
-
-        Raises:
-            ValueError: 如果解析或验证失败，抛出此异常。
-        """
+    def parse_from_response(self, choice: Any, use_tools: bool = False) -> str | T:
+        if use_tools:
+            self.response_type = str
+        if use_tools and choice.message.tool_calls:
+            tool_calls_response = choice.message.tool_calls[0].function
+            return json.dumps({"name": tool_calls_response.name, "args": json.loads(tool_calls_response.arguments)})
         if self.response_type is str:
             return choice.message.content.strip()
         assert issubclass(self.response_type, BaseModel)
@@ -123,9 +103,6 @@ Ensure the response can be parsed by Python json.loads"""
             raise ValueError(msg) from e
 
     def _update_system_prompt_to_json(self, messages: list[dict[str, str]]) -> None:
-        """
-        更新系统提示，添加响应格式提示。
-        """
         if not messages:
             raise ValueError("Messages is empty")
 
