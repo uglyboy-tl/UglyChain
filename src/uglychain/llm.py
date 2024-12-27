@@ -50,11 +50,14 @@ class Client:
         messages: list[dict[str, str]],
         **api_params: Any,
     ) -> list[Any]:
-        response = cls.get().chat.completions.create(
-            model=model,
-            messages=messages,
-            **api_params,
-        )
+        try:
+            response = cls.get().chat.completions.create(
+                model=model,
+                messages=messages,
+                **api_params,
+            )
+        except Exception as e:
+            raise RuntimeError(f"生成响应失败: {e}") from e
         if not hasattr(response, "choices") or not response.choices:
             raise ValueError("No choices returned from the model")
         return response.choices
@@ -141,27 +144,34 @@ def llm(
                 raise ValueError("n > 1 和列表长度 > 1 不能同时成立")
 
             results = []
+            # 根据列表长度迭代执行prompt，生成响应
             for i in range(list_lengths[0] if list_lengths else 1):
+                # 构造位置参数列表，如果arg是列表则取第i个元素，否则原样使用
                 args = [arg[i] if isinstance(arg, list) else arg for arg in prompt_args]
+                # 构造关键字参数字典，如果value是列表则取第i个元素，否则原样使用
                 kwargs = {key: value[i] if isinstance(value, list) else value for key, value in prompt_kwargs.items()}
+                # 执行prompt并获取响应
                 res = cast(str | list, prompt(*args, **kwargs))
+                # 从响应中提取消息
                 messages = _get_messages(res, prompt)
+                # 处理和更新合并的API参数
                 response_format.process_parameters(messages, merged_api_params, model)
-                try:
-                    response = Client.generate(
-                        model,
-                        messages,
-                        **merged_api_params,
-                    )
-                except Exception as e:
-                    raise RuntimeError(f"生成响应失败: {e}") from e
+
+                # 使用生成的模型和消息进行响应
+                response = Client.generate(model, messages, **merged_api_params)
+
+                # 从响应中解析结果
                 results.extend([response_format.parse_from_response(choice) for choice in response])
-            if len(results) <= 0:
+
+            # 如果没有结果，抛出异常
+            if len(results) == 0:
                 raise ValueError("模型未返回任何选择")
-            if len(results) == 1:
-                if n != 1:
+            # 如果只有一个结果，确保n参数为1，否则抛出异常
+            elif len(results) == 1:
+                if n > 1 or list_lengths and list_lengths[0] > 1:
                     raise ValueError("预期一个选择，但得到多个")
                 return results[0]
+            # 返回所有结果
             return results
 
         model_call.__api_params__ = default_api_params_from_decorator  # type: ignore
