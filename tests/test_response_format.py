@@ -94,5 +94,5 @@ def test_response_formatter_process_parameters():
     formatter = ResponseFormatter(mock_func)
     messages = [{"role": "system", "content": "Initial content"}]
     merged_api_params = {}
-    formatter.process_parameters(messages, merged_api_params, "openai:gpt-4o")
+    formatter.process_parameters("openai:gpt-4o", messages, merged_api_params)
     assert "tools" in merged_api_params or "response_format" in merged_api_params

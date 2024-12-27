@@ -1,14 +1,18 @@
 from __future__ import annotations
 
-import concurrent.futures
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import wraps
 from typing import Any, cast
+
+from rich.progress import Progress, track
 
 from .client import Client
 from .config import config
 from .logger import Logger
 from .response_format import ResponseFormatter, T
+
+SHOW_PROGRESS = False
 
 
 def llm(
@@ -25,27 +29,12 @@ def llm(
     default_api_params_from_decorator = api_params.copy()
 
     def parameterized_lm_decorator(prompt: Callable[..., str | T]) -> Callable[..., str | list[str] | T | list[T]]:
-        """
-        参数化的 LLM 装饰器，实际装饰提示函数。
-
-        :param prompt: 提示函数，返回值可以是字符串或BaseModel的子类实例
-        :return: 返回一个模型调用函数
-        """
-
         @wraps(prompt)
         def model_call(
             *prompt_args: str | list[str],
             api_params: dict[str, Any] | None = None,
             **prompt_kwargs: str | list[str],
         ) -> str | list[str] | T | list[T]:
-            """
-            模型调用函数，实际执行模型推理。
-
-            :param prompt_args: 提示函数的位置参数
-            :param api_params: API 参数，覆盖装饰器级别的参数
-            :param prompt_kwargs: 提示函数的关键字参数
-            :return: 返回模型生成的文本或BaseModel的子类实例，可以是单个或列表
-            """
             logger = Logger()
             # 获取被修饰函数的返回类型
             response_format = ResponseFormatter[T](prompt)
@@ -90,13 +79,20 @@ def llm(
                 return result
 
             results = []
+            logger_prefix = "模型进度"
             if config.use_parallel_processing:
-                with concurrent.futures.ThreadPoolExecutor() as executor:
+                with (
+                    ThreadPoolExecutor() as executor,
+                    Progress(disable=not config.verbose or not SHOW_PROGRESS) as progress,
+                ):
+                    task = progress.add_task(logger_prefix, total=m)
                     futures = [executor.submit(process_single_prompt, i) for i in range(m)]
-                    for future in concurrent.futures.as_completed(futures):
+
+                    for future in as_completed(futures):
                         results.extend(future.result())
+                        progress.update(task, advance=1)  # type: ignore
             else:
-                for i in range(m):
+                for i in track(range(m), logger_prefix, disable=not config.verbose or not SHOW_PROGRESS):
                     results.extend(process_single_prompt(i))
 
             logger.model_usage_logger_post_end()
