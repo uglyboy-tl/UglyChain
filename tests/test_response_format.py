@@ -28,7 +28,7 @@ def test_response_formatter_validate_response_type():
     formatter = ResponseFormatter(mock_func)
     with pytest.raises(TypeError):
         formatter.response_type = int
-        formatter._validate_response_type()
+        formatter.validate_response_type()
 
 
 def test_response_formatter_get_response_format_prompt():
@@ -36,7 +36,7 @@ def test_response_formatter_get_response_format_prompt():
         return MockModel(foo="test")
 
     formatter = ResponseFormatter(mock_func)
-    prompt = formatter._get_response_format_prompt()
+    prompt = formatter.get_response_schema()
     assert "properties" in prompt
     assert "foo" in prompt
 
@@ -46,6 +46,7 @@ def test_response_formatter_parse_from_response():
         return MockModel(foo="test")
 
     formatter = ResponseFormatter(mock_func)
+
     class Choice:
         class Message:
             def __init__(self, content: str):
@@ -60,7 +61,7 @@ def test_response_formatter_parse_from_response():
     assert result.foo == "bar"  # type: ignore
 
     invalid_response = Choice()
-    invalid_response.message.content= '{"bar": "foo"}'
+    invalid_response.message.content = '{"bar": "foo"}'
     with pytest.raises(ValueError):
         formatter.parse_from_response(invalid_response)
 
@@ -71,7 +72,7 @@ def test_response_formatter_update_system_prompt_to_json():
 
     formatter = ResponseFormatter(mock_func)
     messages = [{"role": "system", "content": "Initial content"}]
-    formatter._update_system_prompt_to_json(messages)
+    formatter.update_system_prompt_to_json(messages)
     assert "properties" in messages[0]["content"]
 
 
@@ -81,7 +82,7 @@ def test_response_formatter_update_params_to_tools():
 
     formatter = ResponseFormatter(mock_func)
     api_params = {}
-    formatter._update_params_to_tools(api_params)
+    formatter.update_params_to_tools(api_params)
     assert "tools" in api_params
     assert "tool_choice" in api_params
 

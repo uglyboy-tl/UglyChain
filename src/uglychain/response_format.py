@@ -28,7 +28,7 @@ the object {{"foo": ["bar", "baz"]}} is a well-formatted instance of the schema.
 
 Here is the output schema:
 ```
-{model_json_output_prompt}
+{output_schema}
 ```
 
 Ensure the response can be parsed by Python json.loads"""
@@ -37,26 +37,36 @@ Ensure the response can be parsed by Python json.loads"""
         # 获取被修饰函数的返回类型
         self.response_type: type[str] | type[T] = get_type_hints(func).get("return", str)
         self.mode: Mode = Mode.JSON
-        self._validate_response_type()
+        self.validate_response_type()
 
-    def _validate_response_type(self) -> None:
+    def validate_response_type(self) -> None:
         if self.response_type is not str and not issubclass(self.response_type, BaseModel):
             raise TypeError(f"Unsupported return type: {self.response_type}")
 
-    def _get_response_format_prompt(self) -> str:
-        # 获取模型的JSON schema
-        assert issubclass(self.response_type, BaseModel)
-        schema = self.response_type.model_json_schema()
-        # 移除不必要的字段，减少提示的冗余信息
-        reduced_schema = schema.copy()
-        if "title" in reduced_schema:
-            del reduced_schema["title"]
-        if "type" in reduced_schema:
-            del reduced_schema["type"]
-        # 将简化后的schema转换为JSON字符串
-        prompt = json.dumps(reduced_schema, ensure_ascii=False)
-        # 格式化并返回提示字符串
-        return ResponseFormatter.PROMPT_TEMPLATE.format(model_json_output_prompt=prompt)
+    def process_parameters(
+        self,
+        messages: list[dict[str, str]],
+        merged_api_params: dict[str, Any],
+        model: str,
+    ):
+        if self.response_type is str:
+            return
+        provider, model_name = model.split(":")
+        if provider in ["openai"]:
+            if model_name in []:  # "gpt-4o", "gpt-4o-mini"支持这个能力, 但解析函数需要更换，现在 AiSuite 不支持
+                self.mode = Mode.JSON_SCHEMA
+                merged_api_params["response_format"] = self.get_response_schema()
+            elif model_name in ["gpt-4o", "gpt-4o-mini"]:
+                self.mode = Mode.TOOLS
+            else:
+                merged_api_params["response_format"] = {"type": "json_object"}
+        elif provider in ["ollama"]:
+            self.mode = Mode.JSON_SCHEMA
+            merged_api_params["format"] = self.get_response_schema()
+        if self.mode == Mode.JSON:
+            self.update_system_prompt_to_json(messages)
+        elif self.mode == Mode.TOOLS:
+            self.update_params_to_tools(merged_api_params)
 
     def parse_from_response(self, choice: Any, use_tools: bool = False) -> str | T:
         if use_tools:
@@ -102,23 +112,39 @@ Ensure the response can be parsed by Python json.loads"""
             msg = f"Failed to validate {name} from completion {response}. Got: {e}"
             raise ValueError(msg) from e
 
-    def _update_system_prompt_to_json(self, messages: list[dict[str, str]]) -> None:
+    def get_response_schema(self) -> str:
+        # 获取模型的JSON schema
+        assert issubclass(self.response_type, BaseModel)
+        schema = self.response_type.model_json_schema()
+        # 移除不必要的字段，减少提示的冗余信息
+        reduced_schema = schema.copy()
+        if "title" in reduced_schema:
+            del reduced_schema["title"]
+        if "type" in reduced_schema:
+            del reduced_schema["type"]
+        # 将简化后的schema转换为JSON字符串
+        prompt = json.dumps(reduced_schema, ensure_ascii=False)
+        # 格式化并返回提示字符串
+        return prompt
+
+    def update_system_prompt_to_json(self, messages: list[dict[str, str]]) -> None:
         if not messages:
             raise ValueError("Messages is empty")
 
+        system_prompt = self.PROMPT_TEMPLATE.format(output_schema=self.get_response_schema())
         system_message = messages[0]
         if system_message["role"] == "system":
-            system_message["content"] += "\n-----\n" + self._get_response_format_prompt()
+            system_message["content"] += "\n-----\n" + system_prompt
         else:
             messages.insert(
                 0,
                 {
                     "role": "system",
-                    "content": self._get_response_format_prompt(),
+                    "content": system_prompt,
                 },
             )
 
-    def _update_params_to_tools(self, api_params: dict[str, Any]) -> None:
+    def update_params_to_tools(self, api_params: dict[str, Any]) -> None:
         assert issubclass(self.response_type, BaseModel)
         schema = self.response_type.model_json_schema()
         api_params["tools"] = [
@@ -135,28 +161,3 @@ Ensure the response can be parsed by Python json.loads"""
             "type": "function",
             "function": {"name": schema["title"]},
         }
-
-    def process_parameters(
-        self,
-        messages: list[dict[str, str]],
-        merged_api_params: dict[str, Any],
-        model: str,
-    ):
-        if self.response_type is str:
-            return
-        provider, model_name = model.split(":")
-        if provider in ["openai"]:
-            if model_name in []:  # "gpt-4o", "gpt-4o-mini"支持, 但解析函数需要更换
-                self.mode = Mode.JSON_SCHEMA
-                merged_api_params["response_format"] = self._get_response_format_prompt()
-            elif model_name in ["gpt-4o", "gpt-4o-mini"]:
-                self.mode = Mode.TOOLS
-            else:
-                merged_api_params["response_format"] = {"type": "json_object"}
-        elif provider in ["ollama"]:
-            self.mode = Mode.JSON_SCHEMA
-            merged_api_params["format"] = self._get_response_format_prompt()
-        if self.mode == Mode.JSON:
-            self._update_system_prompt_to_json(messages)
-        elif self.mode == Mode.TOOLS:
-            self._update_params_to_tools(merged_api_params)
