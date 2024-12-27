@@ -7,6 +7,7 @@ from typing import Any, cast
 
 from .client import Client
 from .config import config
+from .logger import Logger
 from .response_format import ResponseFormatter, T
 
 
@@ -45,7 +46,7 @@ def llm(
             :param prompt_kwargs: 提示函数的关键字参数
             :return: 返回模型生成的文本或BaseModel的子类实例，可以是单个或列表
             """
-
+            logger = Logger()
             # 获取被修饰函数的返回类型
             response_format = ResponseFormatter[T](prompt)
 
@@ -61,38 +62,44 @@ def llm(
             # 获取模型名称
             model = merged_api_params.pop("model", default_model_from_decorator)
 
+            logger.model_usage_logger_pre(model, prompt, prompt_args, prompt_kwargs)
             # 验证 prompt_args 和 prompt_kwargs 中的列表长度是否一致
             list_lengths = [len(arg) for arg in prompt_args if isinstance(arg, list)]
             list_lengths += [len(value) for value in prompt_kwargs.values() if isinstance(value, list)]
             if len(set(list_lengths)) > 1:
                 raise ValueError("prompt_args 和 prompt_kwargs 中的所有列表必须具有相同的长度")
 
-            if list_lengths and list_lengths[0] > 1 and n > 1:
+            m = list_lengths[0] if list_lengths else 1
+            if m > 1 and n > 1:
                 raise ValueError("n > 1 和列表长度 > 1 不能同时成立")
+            logger.model_usage_logger_post_start(m if m > 1 else n)
 
             def process_single_prompt(i: int) -> list[Any]:
                 args = [arg[i] if isinstance(arg, list) else arg for arg in prompt_args]
                 kwargs = {key: value[i] if isinstance(value, list) else value for key, value in prompt_kwargs.items()}
                 res = cast(str | list, prompt(*args, **kwargs))
                 messages = _get_messages(res, prompt)
-                response_format.process_parameters(messages, merged_api_params, model)
+                response_format.process_parameters(model, messages, merged_api_params)
+                logger.model_usage_logger_post_info(messages, merged_api_params)
 
                 response = Client.generate(model, messages, **merged_api_params)
 
                 # 从响应中解析结果
-                return [response_format.parse_from_response(choice) for choice in response]
+                result = [response_format.parse_from_response(choice) for choice in response]
+                logger.model_usage_logger_post_intermediate(result)
+                return result
 
             results = []
             if config.use_parallel_processing:
                 with concurrent.futures.ThreadPoolExecutor() as executor:
-                    futures = [
-                        executor.submit(process_single_prompt, i) for i in range(list_lengths[0] if list_lengths else 1)
-                    ]
+                    futures = [executor.submit(process_single_prompt, i) for i in range(m)]
                     for future in concurrent.futures.as_completed(futures):
                         results.extend(future.result())
             else:
-                for i in range(list_lengths[0] if list_lengths else 1):
+                for i in range(m):
                     results.extend(process_single_prompt(i))
+
+            logger.model_usage_logger_post_end()
 
             if len(results) == 0:
                 raise ValueError("模型未返回任何选择")
@@ -107,7 +114,7 @@ def llm(
 
         return model_call
 
-    return parameterized_lm_decorator
+    return parameterized_lm_decorator  # type: ignore[return-value]
 
 
 def _get_messages(prompt_ret: str | list[dict[str, str]], prompt: Callable) -> list[dict[str, str]]:

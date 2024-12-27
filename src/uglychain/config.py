@@ -13,7 +13,7 @@ class Config(BaseModel):
         default=False, description="Whether to use parallel processing for language models."
     )
 
-    def __init__(self, **data):
+    def __init__(self, **data: Any) -> None:
         super().__init__(**data)
 
 

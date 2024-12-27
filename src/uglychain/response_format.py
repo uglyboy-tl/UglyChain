@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import json
 import re
 from collections.abc import Callable
@@ -45,10 +46,10 @@ Ensure the response can be parsed by Python json.loads"""
 
     def process_parameters(
         self,
+        model: str,
         messages: list[dict[str, str]],
         merged_api_params: dict[str, Any],
-        model: str,
-    ):
+    ) -> None:
         if self.response_type is str:
             return
         provider, model_name = model.split(":")
@@ -76,7 +77,7 @@ Ensure the response can be parsed by Python json.loads"""
             return json.dumps({"name": tool_calls_response.name, "args": json.loads(tool_calls_response.arguments)})
         if self.response_type is str:
             return choice.message.content.strip()
-        assert issubclass(self.response_type, BaseModel)
+        assert issubclass(self.response_type, BaseModel) and not inspect.isabstract(self.response_type)
         if self.mode == Mode.JSON or self.mode == Mode.JSON_SCHEMA:
             response = choice.message.content.strip()
         elif self.mode == Mode.TOOLS:
@@ -87,7 +88,7 @@ Ensure the response can be parsed by Python json.loads"""
         try:
             # 尝试直接解析整个响应字符串
             json_obj = json.loads(response.strip())
-            return self.response_type.model_validate_json(json.dumps(json_obj))
+            return self.response_type.model_validate_json(json.dumps(json_obj))  # type: ignore[union-attr]
 
         except json.JSONDecodeError:
             # 如果直接解析失败，尝试使用正则表达式提取 JSON 字符串
@@ -95,7 +96,7 @@ Ensure the response can be parsed by Python json.loads"""
             if match:
                 json_str = match.group()
                 try:
-                    return self.response_type.model_validate_json(json_str)
+                    return self.response_type.model_validate_json(json_str)  # type: ignore[union-attr]
                 except (json.JSONDecodeError, ValidationError) as e:
                     # 如果解析或验证失败，记录错误信息并抛出异常
                     name = self.response_type.__name__
@@ -115,7 +116,7 @@ Ensure the response can be parsed by Python json.loads"""
     def get_response_schema(self) -> str:
         # 获取模型的JSON schema
         assert issubclass(self.response_type, BaseModel)
-        schema = self.response_type.model_json_schema()
+        schema = self.response_type.model_json_schema()  # type: ignore[union-attr]
         # 移除不必要的字段，减少提示的冗余信息
         reduced_schema = schema.copy()
         if "title" in reduced_schema:
@@ -146,7 +147,7 @@ Ensure the response can be parsed by Python json.loads"""
 
     def update_params_to_tools(self, api_params: dict[str, Any]) -> None:
         assert issubclass(self.response_type, BaseModel)
-        schema = self.response_type.model_json_schema()
+        schema = self.response_type.model_json_schema()  # type: ignore[union-attr]
         api_params["tools"] = [
             {
                 "type": "function",
