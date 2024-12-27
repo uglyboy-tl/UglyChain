@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import concurrent.futures
 import threading
 from collections.abc import Callable
 from functools import wraps
@@ -143,35 +144,36 @@ def llm(
             if list_lengths and list_lengths[0] > 1 and n > 1:
                 raise ValueError("n > 1 和列表长度 > 1 不能同时成立")
 
-            results = []
-            # 根据列表长度迭代执行prompt，生成响应
-            for i in range(list_lengths[0] if list_lengths else 1):
-                # 构造位置参数列表，如果arg是列表则取第i个元素，否则原样使用
+            def process_single_prompt(i: int) -> list[Any]:
                 args = [arg[i] if isinstance(arg, list) else arg for arg in prompt_args]
-                # 构造关键字参数字典，如果value是列表则取第i个元素，否则原样使用
                 kwargs = {key: value[i] if isinstance(value, list) else value for key, value in prompt_kwargs.items()}
-                # 执行prompt并获取响应
                 res = cast(str | list, prompt(*args, **kwargs))
-                # 从响应中提取消息
                 messages = _get_messages(res, prompt)
-                # 处理和更新合并的API参数
                 response_format.process_parameters(messages, merged_api_params, model)
 
-                # 使用生成的模型和消息进行响应
                 response = Client.generate(model, messages, **merged_api_params)
 
                 # 从响应中解析结果
-                results.extend([response_format.parse_from_response(choice) for choice in response])
+                return [response_format.parse_from_response(choice) for choice in response]
 
-            # 如果没有结果，抛出异常
+            results = []
+            if config.use_parallel_processing:
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    futures = [
+                        executor.submit(process_single_prompt, i) for i in range(list_lengths[0] if list_lengths else 1)
+                    ]
+                    for future in concurrent.futures.as_completed(futures):
+                        results.extend(future.result())
+            else:
+                for i in range(list_lengths[0] if list_lengths else 1):
+                    results.extend(process_single_prompt(i))
+
             if len(results) == 0:
                 raise ValueError("模型未返回任何选择")
-            # 如果只有一个结果，确保n参数为1，否则抛出异常
             elif len(results) == 1:
                 if n > 1 or list_lengths and list_lengths[0] > 1:
                     raise ValueError("预期一个选择，但得到多个")
                 return results[0]
-            # 返回所有结果
             return results
 
         model_call.__api_params__ = default_api_params_from_decorator  # type: ignore
