@@ -20,7 +20,7 @@ class Mode(Enum):
     JSON_SCHEMA = "json_schema_mode"
 
 
-class ResponseFormatter(Generic[T]):
+class ResponseModel(Generic[T]):
     # 定义输出格式的提示模板，包含对JSON schema的描述和示例
     PROMPT_TEMPLATE = """The output should be formatted as a JSON instance that conforms to the JSON schema below.
 
@@ -34,9 +34,14 @@ Here is the output schema:
 
 Ensure the response can be parsed by Python json.loads"""
 
-    def __init__(self, func: Callable) -> None:
+    def __init__(self, func: Callable, response_model: type[T] | None = None) -> None:
         # 获取被修饰函数的返回类型
-        self.response_type: type[str] | type[T] = get_type_hints(func).get("return", str)
+        self.response_type: type[str] | type[list[dict[str, str]]] | type[T] = get_type_hints(func).get(
+            "return", str if response_model is None else response_model
+        )
+        if self.response_type is list[dict[str, str]]:
+            self.response_type = str
+        assert self.response_type is response_model or self.response_type is str
         self.mode: Mode = Mode.JSON
         self.validate_response_type()
 
@@ -70,11 +75,11 @@ Ensure the response can be parsed by Python json.loads"""
             self.update_params_to_tools(merged_api_params)
 
     def parse_from_response(self, choice: Any, use_tools: bool = False) -> str | T:
-        if use_tools:
-            self.response_type = str
-        if use_tools and choice.message.tool_calls:
+        # USE TOOLS
+        if use_tools and hasattr(choice.message, "tool_calls") and choice.message.tool_calls:
             tool_calls_response = choice.message.tool_calls[0].function
             return json.dumps({"name": tool_calls_response.name, "args": json.loads(tool_calls_response.arguments)})
+        # Other modes
         if self.response_type is str:
             return choice.message.content.strip()
         assert issubclass(self.response_type, BaseModel) and not inspect.isabstract(self.response_type)
@@ -123,6 +128,7 @@ Ensure the response can be parsed by Python json.loads"""
             del reduced_schema["title"]
         if "type" in reduced_schema:
             del reduced_schema["type"]
+        reduced_schema["required"] = sorted(k for k, v in reduced_schema["properties"].items() if "default" not in v)
         # 将简化后的schema转换为JSON字符串
         prompt = json.dumps(reduced_schema, ensure_ascii=False)
         # 格式化并返回提示字符串
@@ -155,6 +161,7 @@ Ensure the response can be parsed by Python json.loads"""
                     "name": schema["title"],
                     "description": f"Correctly extracted `{schema['title']}` with all the required parameters with correct types",
                     "parameters": {k: v for k, v in schema.items() if k not in ("title", "description")},
+                    "strict": True,
                 },
             }
         ]

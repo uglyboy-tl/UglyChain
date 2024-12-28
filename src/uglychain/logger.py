@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from collections.abc import Callable
 from typing import Any
 
@@ -34,7 +35,7 @@ class Logger:
         table.add_row(
             "参数信息", ",".join([repr(arg) for arg in args] + [k + ":" + repr(v) for k, v in kwargs.items()])
         )
-        self.console.print(table)
+        # self.console.print(table)
 
     def model_usage_progress_start(self, n: int) -> None:
         self._task_id = self.progress.add_task("模型进度", total=n)
@@ -60,9 +61,9 @@ class Logger:
             if message["role"] == "system":
                 style = "bold green"
             elif message["role"] == "user":
-                style = "italic blue"
+                style = "italic yellow"
             else:
-                style = ""
+                style = "italic blue"
             table.add_row(message["role"], message["content"], style=style)
         self.console.print(table)
 

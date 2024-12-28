@@ -4,7 +4,7 @@ import json
 
 import pytest
 from pydantic import BaseModel, ValidationError
-from src.uglychain.response_format import Mode, ResponseFormatter
+from src.uglychain.response_format import Mode, ResponseModel
 
 
 class MockModel(BaseModel):
@@ -15,7 +15,7 @@ def test_response_formatter_init():
     def mock_func() -> MockModel:
         return MockModel(foo="test")
 
-    formatter = ResponseFormatter(mock_func)
+    formatter = ResponseModel(mock_func)
 
     assert formatter.response_type == MockModel
     assert formatter.mode == Mode.JSON
@@ -25,7 +25,7 @@ def test_response_formatter_validate_response_type():
     def mock_func() -> MockModel:
         return MockModel(foo="test")
 
-    formatter = ResponseFormatter(mock_func)
+    formatter = ResponseModel(mock_func)
     with pytest.raises(TypeError):
         formatter.response_type = int
         formatter.validate_response_type()
@@ -35,7 +35,7 @@ def test_response_formatter_get_response_format_prompt():
     def mock_func() -> MockModel:
         return MockModel(foo="test")
 
-    formatter = ResponseFormatter(mock_func)
+    formatter = ResponseModel(mock_func)
     prompt = formatter.get_response_schema()
     assert "properties" in prompt
     assert "foo" in prompt
@@ -45,7 +45,7 @@ def test_response_formatter_parse_from_response():
     def mock_func() -> MockModel:
         return MockModel(foo="test")
 
-    formatter = ResponseFormatter(mock_func)
+    formatter = ResponseModel(mock_func)
 
     class Choice:
         class Message:
@@ -70,7 +70,7 @@ def test_response_formatter_update_system_prompt_to_json():
     def mock_func() -> MockModel:
         return MockModel(foo="test")
 
-    formatter = ResponseFormatter(mock_func)
+    formatter = ResponseModel(mock_func)
     messages = [{"role": "system", "content": "Initial content"}]
     formatter.update_system_prompt_to_json(messages)
     assert "properties" in messages[0]["content"]
@@ -80,7 +80,7 @@ def test_response_formatter_update_params_to_tools():
     def mock_func() -> MockModel:
         return MockModel(foo="test")
 
-    formatter = ResponseFormatter(mock_func)
+    formatter = ResponseModel(mock_func)
     api_params = {}
     formatter.update_params_to_tools(api_params)
     assert "tools" in api_params
@@ -91,7 +91,7 @@ def test_response_formatter_process_parameters():
     def mock_func() -> MockModel:
         return MockModel(foo="test")
 
-    formatter = ResponseFormatter(mock_func)
+    formatter = ResponseModel(mock_func)
     messages = [{"role": "system", "content": "Initial content"}]
     merged_api_params = {}
     formatter.process_parameters("openai:gpt-4o", messages, merged_api_params)
