@@ -4,11 +4,11 @@ import inspect
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import wraps
-from typing import Any, cast
+from typing import Any
 
 from .client import Client
 from .config import config
-from .logger import Logger
+from .console import Console
 from .response_format import ResponseModel, T
 from .tools import add_tools_to_parameters
 
@@ -39,7 +39,7 @@ def llm(
             api_params: dict[str, Any] | None = None,
             **prompt_kwargs: Any,
         ) -> str | list[str] | T | list[T]:
-            logger = Logger()
+            console = Console()
             # 获取被修饰函数的返回类型
             response_model = ResponseModel(prompt, response_format)
             # 使用工具时会忽略结构化输出模式
@@ -58,7 +58,7 @@ def llm(
             # 获取模型名称
             model = merged_api_params.pop("model", default_model_from_decorator)
 
-            logger.model_usage_logger_pre(model, prompt, prompt_args, prompt_kwargs)
+            console.log_model_usage_pre(model, prompt, prompt_args, prompt_kwargs)
 
             m, map_args_index_set, map_kwargs_keys_set = _get_map_keys(prompt, prompt_args, prompt_kwargs, map_keys)
             if m > 1 and n > 1:
@@ -77,17 +77,17 @@ def llm(
                 response_model.process_parameters(model, messages, merged_api_params)
                 add_tools_to_parameters(merged_api_params, tools)
 
-                logger.model_usage_logger_post_info(messages, merged_api_params)
+                console.log_model_usage_post_info(messages, merged_api_params)
 
                 response = Client.generate(model, messages, **merged_api_params)
 
                 # 从响应中解析结果
                 result = [response_model.parse_from_response(choice, tools is not None) for choice in response]
-                logger.model_usage_logger_post_intermediate(result)
+                console.log_model_usage_post_intermediate(result)
                 return result
 
             results = []
-            logger.model_usage_progress_start(m if m > 1 else n)
+            console.log_progress_start(m if m > 1 else n)
 
             if config.use_parallel_processing:
                 with ThreadPoolExecutor() as executor:
@@ -99,7 +99,7 @@ def llm(
                 for i in range(m):
                     results.extend(process_single_prompt(i))
 
-            logger.model_usage_progress_end()
+            console.log_progress_end()
 
             if len(results) == 0:
                 raise ValueError("模型未返回任何选择")

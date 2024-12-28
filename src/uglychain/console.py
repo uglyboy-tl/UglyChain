@@ -1,24 +1,23 @@
 from __future__ import annotations
 
-import logging
 from collections.abc import Callable
 from typing import Any
 
+import rich
 from rich.columns import Columns
-from rich.console import Console
 from rich.progress import Progress
 from rich.table import Table, box
 
 from .config import config
 
 
-class Logger:
+class Console:
     def __init__(self) -> None:
         self.if_log = config.verbose
-        self.console = Console()
+        self.console = rich.console.Console()
         self.progress = Progress(disable=self.if_log)
 
-    def model_usage_logger_pre(
+    def log_model_usage_pre(
         self,
         model: str,
         prompt: Callable,
@@ -37,17 +36,17 @@ class Logger:
         )
         # self.console.print(table)
 
-    def model_usage_progress_start(self, n: int) -> None:
+    def log_progress_start(self, n: int) -> None:
         self._task_id = self.progress.add_task("模型进度", total=n)
         self.progress.start()
 
-    def model_usage_progress_intermediate(self) -> None:
+    def log_progress_intermediate(self) -> None:
         self.progress.update(self._task_id, advance=1)
 
-    def model_usage_progress_end(self) -> None:
+    def log_progress_end(self) -> None:
         self.progress.stop()
 
-    def model_usage_logger_post_info(
+    def log_model_usage_post_info(
         self,
         messages: list[dict[str, str]],
         merged_api_params: dict[str, Any],
@@ -67,8 +66,8 @@ class Logger:
             table.add_row(message["role"], message["content"], style=style)
         self.console.print(table)
 
-    def model_usage_logger_post_intermediate(self, result: list) -> None:
-        self.model_usage_progress_intermediate()
+    def log_model_usage_post_intermediate(self, result: list) -> None:
+        self.log_progress_intermediate()
         if not self.if_log:
             return
         self.console.print(Columns([i.model_dump_json(indent=2) if not isinstance(i, str) else i for i in result]))
