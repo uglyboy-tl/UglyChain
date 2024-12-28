@@ -36,12 +36,8 @@ Ensure the response can be parsed by Python json.loads"""
 
     def __init__(self, func: Callable, response_model: type[T] | None = None) -> None:
         # 获取被修饰函数的返回类型
-        self.response_type: type[str] | type[list[dict[str, str]]] | type[T] = get_type_hints(func).get(
-            "return", str if response_model is None else response_model
-        )
-        if self.response_type is list[dict[str, str]]:
-            self.response_type = str
-        assert self.response_type is response_model or self.response_type is str
+        response_type = get_type_hints(func).get("return", str if response_model is None else response_model)
+        self.response_type: type[str] | type[T] = str if response_type is list[dict[str, str]] else response_type
         self.mode: Mode = Mode.JSON
         self.validate_response_type()
 

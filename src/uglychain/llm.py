@@ -15,8 +15,8 @@ from .tools import add_tools_to_parameters
 
 def llm(
     model: str,
-    response_format: type[T] | None = None,
     tools: list[Callable] | None = None,
+    response_format: type[T] | None = None,
     map_keys: list[str] | None = None,
     **api_params: Any,
 ) -> Callable[[Callable[..., str | list[dict[str, str]] | T]], Callable[..., str | list[str] | T | list[T]]]:
@@ -65,7 +65,7 @@ def llm(
                 raise ValueError("n > 1 和列表长度 > 1 不能同时成立")
 
             def process_single_prompt(i: int) -> list[Any]:
-                args = [arg[i] if i in map_args_index_set else arg for i, arg in enumerate(prompt_args)]
+                args = [arg[i] if j in map_args_index_set else arg for j, arg in enumerate(prompt_args)]
                 kwargs = {
                     key: value[i] if key in map_kwargs_keys_set else value for key, value in prompt_kwargs.items()
                 }
@@ -127,7 +127,8 @@ def _get_map_keys(
     list_lengths = []
     for i, (param_name, arg_value) in enumerate(param_mapping.items()):
         if param_name in map_key_set:
-            assert isinstance(arg_value, list), ValueError("map_key 必须是列表")
+            if not isinstance(arg_value, list):
+                raise ValueError("map_key 必须是列表")
             if i < len(prompt_args):
                 map_num_set.add(i)
                 map_key_set.remove(param_name)
