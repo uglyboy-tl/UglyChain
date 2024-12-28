@@ -5,14 +5,10 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import wraps
 from typing import Any, cast
 
-from rich.progress import Progress, track
-
 from .client import Client
 from .config import config
 from .logger import Logger
 from .response_format import ResponseFormatter, T
-
-SHOW_PROGRESS = False
 
 
 def llm(
@@ -61,7 +57,6 @@ def llm(
             m = list_lengths[0] if list_lengths else 1
             if m > 1 and n > 1:
                 raise ValueError("n > 1 和列表长度 > 1 不能同时成立")
-            logger.model_usage_logger_post_start(m if m > 1 else n)
 
             def process_single_prompt(i: int) -> list[Any]:
                 args = [arg[i] if isinstance(arg, list) else arg for arg in prompt_args]
@@ -79,23 +74,19 @@ def llm(
                 return result
 
             results = []
-            logger_prefix = "模型进度"
+            logger.model_usage_progress_start(m if m > 1 else n)
+
             if config.use_parallel_processing:
-                with (
-                    ThreadPoolExecutor() as executor,
-                    Progress(disable=not config.verbose or not SHOW_PROGRESS) as progress,
-                ):
-                    task = progress.add_task(logger_prefix, total=m)
+                with ThreadPoolExecutor() as executor:
                     futures = [executor.submit(process_single_prompt, i) for i in range(m)]
 
                     for future in as_completed(futures):
                         results.extend(future.result())
-                        progress.update(task, advance=1)  # type: ignore
             else:
-                for i in track(range(m), logger_prefix, disable=not config.verbose or not SHOW_PROGRESS):
+                for i in range(m):
                     results.extend(process_single_prompt(i))
 
-            logger.model_usage_logger_post_end()
+            logger.model_usage_progress_end()
 
             if len(results) == 0:
                 raise ValueError("模型未返回任何选择")

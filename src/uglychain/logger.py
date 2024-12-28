@@ -5,6 +5,7 @@ from typing import Any
 
 from rich.columns import Columns
 from rich.console import Console
+from rich.progress import Progress
 from rich.table import Table, box
 
 from .config import config
@@ -14,6 +15,7 @@ class Logger:
     def __init__(self) -> None:
         self.if_log = config.verbose
         self.console = Console()
+        self.progress = Progress(disable=self.if_log)
 
     def model_usage_logger_pre(
         self,
@@ -34,18 +36,21 @@ class Logger:
         )
         self.console.print(table)
 
-    def model_usage_logger_post_start(self, n: int) -> None:
-        """Add response to the logger."""
-        if not self.if_log:
-            return
-        # print(f"将返回 {n} 条结果")
+    def model_usage_progress_start(self, n: int) -> None:
+        self._task_id = self.progress.add_task("模型进度", total=n)
+        self.progress.start()
+
+    def model_usage_progress_intermediate(self) -> None:
+        self.progress.update(self._task_id, advance=1)
+
+    def model_usage_progress_end(self) -> None:
+        self.progress.stop()
 
     def model_usage_logger_post_info(
         self,
         messages: list[dict[str, str]],
         merged_api_params: dict[str, Any],
     ) -> None:
-        """Add response to the logger."""
         if not self.if_log:
             return
         table = Table(title="Prompt", box=box.SIMPLE, show_header=False)
@@ -62,12 +67,7 @@ class Logger:
         self.console.print(table)
 
     def model_usage_logger_post_intermediate(self, result: list) -> None:
-        """Add response to the logger."""
+        self.model_usage_progress_intermediate()
         if not self.if_log:
             return
         self.console.print(Columns([i.model_dump_json(indent=2) if not isinstance(i, str) else i for i in result]))
-
-    def model_usage_logger_post_end(self) -> None:
-        """Add response to the logger."""
-        if not self.if_log:
-            return

@@ -57,7 +57,7 @@ Ensure the response can be parsed by Python json.loads"""
             if model_name in []:  # "gpt-4o", "gpt-4o-mini"支持这个能力, 但解析函数需要更换，现在 AiSuite 不支持
                 self.mode = Mode.JSON_SCHEMA
                 merged_api_params["response_format"] = self.get_response_schema()
-            elif model_name in ["gpt-4o", "gpt-4o-mini"]:
+            elif model_name in ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo"]:
                 self.mode = Mode.TOOLS
             else:
                 merged_api_params["response_format"] = {"type": "json_object"}

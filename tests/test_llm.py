@@ -287,3 +287,53 @@ def test_get_messages_with_invalid_type():
 
     with pytest.raises(TypeError):
         _get_messages(12345, sample_prompt)  # type: ignore
+
+
+def test_llm_decorator_with_inconsistent_list_lengths(monkeypatch):
+    @llm(model="test:model")
+    def sample_prompt(arg1: list[str], arg2: list[str]) -> str:
+        return "Hello, world!"
+
+    with pytest.raises(ValueError, match="prompt_args 和 prompt_kwargs 中的所有列表必须具有相同的长度"):
+        sample_prompt(["a", "b"], ["c"])
+
+
+def test_llm_decorator_with_n_and_list_length_conflict(monkeypatch):
+    @llm(model="test:model", n=2)
+    def sample_prompt(arg1: list[str]) -> str:
+        return "Hello, world!"
+
+    with pytest.raises(ValueError, match="n > 1 和列表长度 > 1 不能同时成立"):
+        sample_prompt(["a", "b"])
+
+
+def test_llm_decorator_with_parallel_processing(monkeypatch):
+    @llm(model="test:model")
+    def sample_prompt(arg1: list[str]) -> str:
+        "System prompt"
+        return arg1  # type: ignore
+
+    class MockClient:
+        class chat:  # noqa: N801
+            class completions:  # noqa: N801
+                @staticmethod
+                def create(model, messages, **kwargs):
+                    return type(
+                        "Response",
+                        (object,),
+                        {
+                            "choices": [
+                                type(
+                                    "Choice",
+                                    (object,),
+                                    {"message": type("Message", (object,), {"content": messages[1]["content"]})},
+                                )
+                            ]
+                        },
+                    )
+
+    Client.reset()
+    monkeypatch.setattr("aisuite.Client", MockClient)
+
+    results = sample_prompt(["a", "b", "c"])
+    assert results == ["a", "b", "c"]
