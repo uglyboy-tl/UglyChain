@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 from pydantic import BaseModel
 
-from uglychain.client import Client
+from uglychain.client_aisuite import Client
 from uglychain.llm import _get_messages, llm
 
 
@@ -16,27 +16,16 @@ def test_llm_decorator(monkeypatch):
     def sample_prompt() -> str:
         return "Hello, world!"
 
-    class MockClient:
-        class chat:  # noqa: N801
-            class completions:  # noqa: N801
-                @staticmethod
-                def create(model, messages, **kwargs):
-                    return type(
-                        "Response",
-                        (object,),
-                        {
-                            "choices": [
-                                type(
-                                    "Choice",
-                                    (object,),
-                                    {"message": type("Message", (object,), {"content": "Test response"})},
-                                )
-                            ]
-                        },
-                    )
+    def mock_generate(model, messages, **kwargs):
+        return [
+            type(
+                "Choice",
+                (object,),
+                {"message": type("Message", (object,), {"content": "Test response"})},
+            )
+        ]
 
-    Client.reset()
-    monkeypatch.setattr("aisuite.Client", MockClient)
+    monkeypatch.setattr("uglychain.client.Client.generate", mock_generate)
 
     result = sample_prompt()
     assert result == "Test response"
@@ -47,31 +36,16 @@ def test_llm_decorator_with_basemodel(monkeypatch):
     def sample_prompt() -> SampleModel:
         return "Hello, world!"  # type: ignore
 
-    class MockClient:
-        class chat:  # noqa: N801
-            class completions:  # noqa: N801
-                @staticmethod
-                def create(model, messages, **kwargs):
-                    return type(
-                        "Response",
-                        (object,),
-                        {
-                            "choices": [
-                                type(
-                                    "Choice",
-                                    (object,),
-                                    {
-                                        "message": type(
-                                            "Message", (object,), {"content": '{"content": "Test response"}'}
-                                        )
-                                    },
-                                )
-                            ]
-                        },
-                    )
+    def mock_generate(model, messages, **kwargs):
+        return [
+            type(
+                "Choice",
+                (object,),
+                {"message": type("Message", (object,), {"content": '{"content": "Test response"}'})},
+            )
+        ]
 
-    Client.reset()
-    monkeypatch.setattr("aisuite.Client", MockClient)
+    monkeypatch.setattr("uglychain.client.Client.generate", mock_generate)
 
     result = sample_prompt()
     assert result == SampleModel(content="Test response")
@@ -82,32 +56,21 @@ def test_llm_decorator_with_list_str(monkeypatch):
     def sample_prompt() -> str:
         return "Hello, world!"
 
-    class MockClient:
-        class chat:  # noqa: N801
-            class completions:  # noqa: N801
-                @staticmethod
-                def create(model, messages, **kwargs):
-                    return type(
-                        "Response",
-                        (object,),
-                        {
-                            "choices": [
-                                type(
-                                    "Choice",
-                                    (object,),
-                                    {"message": type("Message", (object,), {"content": "Test response 1"})},
-                                ),
-                                type(
-                                    "Choice",
-                                    (object,),
-                                    {"message": type("Message", (object,), {"content": "Test response 2"})},
-                                ),
-                            ]
-                        },
-                    )
+    def mock_generate(model, messages, **kwargs):
+        return [
+            type(
+                "Choice",
+                (object,),
+                {"message": type("Message", (object,), {"content": "Test response 1"})},
+            ),
+            type(
+                "Choice",
+                (object,),
+                {"message": type("Message", (object,), {"content": "Test response 2"})},
+            ),
+        ]
 
-    Client.reset()
-    monkeypatch.setattr("aisuite.Client", MockClient)
+    monkeypatch.setattr("uglychain.client.Client.generate", mock_generate)
 
     result = sample_prompt()
     assert result == ["Test response 1", "Test response 2"]
@@ -118,40 +81,21 @@ def test_llm_decorator_with_list_basemodel(monkeypatch):
     def sample_prompt() -> SampleModel:
         return "Hello, world!"  # type: ignore
 
-    class MockClient:
-        class chat:  # noqa: N801
-            class completions:  # noqa: N801
-                @staticmethod
-                def create(model, messages, **kwargs):
-                    return type(
-                        "Response",
-                        (object,),
-                        {
-                            "choices": [
-                                type(
-                                    "Choice",
-                                    (object,),
-                                    {
-                                        "message": type(
-                                            "Message", (object,), {"content": '{"content": "Test response 1"}'}
-                                        )
-                                    },
-                                ),
-                                type(
-                                    "Choice",
-                                    (object,),
-                                    {
-                                        "message": type(
-                                            "Message", (object,), {"content": '{"content": "Test response 2"}'}
-                                        )
-                                    },
-                                ),
-                            ]
-                        },
-                    )
+    def mock_generate(model, messages, **kwargs):
+        return [
+            type(
+                "Choice",
+                (object,),
+                {"message": type("Message", (object,), {"content": '{"content": "Test response 1"}'})},
+            ),
+            type(
+                "Choice",
+                (object,),
+                {"message": type("Message", (object,), {"content": '{"content": "Test response 2"}'})},
+            ),
+        ]
 
-    Client.reset()
-    monkeypatch.setattr("aisuite.Client", MockClient)
+    monkeypatch.setattr("uglychain.client.Client.generate", mock_generate)
 
     result = sample_prompt()
     assert result == [SampleModel(content="Test response 1"), SampleModel(content="Test response 2")]
@@ -162,27 +106,16 @@ def test_llm_decorator_without_return_annotation(monkeypatch):
     def sample_prompt():
         return "Hello, world!"
 
-    class MockClient:
-        class chat:  # noqa: N801
-            class completions:  # noqa: N801
-                @staticmethod
-                def create(model, messages, **kwargs):
-                    return type(
-                        "Response",
-                        (object,),
-                        {
-                            "choices": [
-                                type(
-                                    "Choice",
-                                    (object,),
-                                    {"message": type("Message", (object,), {"content": "Test response"})},
-                                )
-                            ]
-                        },
-                    )
+    def mock_generate(model, messages, **kwargs):
+        return [
+            type(
+                "Choice",
+                (object,),
+                {"message": type("Message", (object,), {"content": "Test response"})},
+            )
+        ]
 
-    Client.reset()
-    monkeypatch.setattr("aisuite.Client", MockClient)
+    monkeypatch.setattr("uglychain.client.Client.generate", mock_generate)
 
     result = sample_prompt()
     assert result == "Test response"
@@ -193,27 +126,16 @@ def test_llm_decorator_with_invalid_return_type(monkeypatch):
     def sample_prompt() -> int:
         return 123  # type: ignore
 
-    class MockClient:
-        class chat:  # noqa: N801
-            class completions:  # noqa: N801
-                @staticmethod
-                def create(model, messages, **kwargs):
-                    return type(
-                        "Response",
-                        (object,),
-                        {
-                            "choices": [
-                                type(
-                                    "Choice",
-                                    (object,),
-                                    {"message": type("Message", (object,), {"content": "Test response"})},
-                                )
-                            ]
-                        },
-                    )
+    def mock_generate(model, messages, **kwargs):
+        return [
+            type(
+                "Choice",
+                (object,),
+                {"message": type("Message", (object,), {"content": "Test response"})},
+            )
+        ]
 
-    Client.reset()
-    monkeypatch.setattr("aisuite.Client", MockClient)
+    monkeypatch.setattr("uglychain.client.Client.generate", mock_generate)
 
     with pytest.raises(TypeError):
         sample_prompt()
@@ -224,27 +146,16 @@ def test_llm_decorator_with_empty_api_params(monkeypatch):
     def sample_prompt():
         return "Hello, world!"
 
-    class MockClient:
-        class chat:  # noqa: N801
-            class completions:  # noqa: N801
-                @staticmethod
-                def create(model, messages, **kwargs):
-                    return type(
-                        "Response",
-                        (object,),
-                        {
-                            "choices": [
-                                type(
-                                    "Choice",
-                                    (object,),
-                                    {"message": type("Message", (object,), {"content": "Test response"})},
-                                )
-                            ]
-                        },
-                    )
+    def mock_generate(model, messages, **kwargs):
+        return [
+            type(
+                "Choice",
+                (object,),
+                {"message": type("Message", (object,), {"content": "Test response"})},
+            )
+        ]
 
-    Client.reset()
-    monkeypatch.setattr("aisuite.Client", MockClient)
+    monkeypatch.setattr("uglychain.client.Client.generate", mock_generate)
 
     result = sample_prompt(api_params={})
     assert result == "Test response"
@@ -313,27 +224,16 @@ def test_llm_decorator_with_parallel_processing(monkeypatch):
         "System prompt"
         return arg1  # type: ignore
 
-    class MockClient:
-        class chat:  # noqa: N801
-            class completions:  # noqa: N801
-                @staticmethod
-                def create(model, messages, **kwargs):
-                    return type(
-                        "Response",
-                        (object,),
-                        {
-                            "choices": [
-                                type(
-                                    "Choice",
-                                    (object,),
-                                    {"message": type("Message", (object,), {"content": messages[1]["content"]})},
-                                )
-                            ]
-                        },
-                    )
+    def mock_generate(model, messages, **kwargs):
+        return [
+            type(
+                "Choice",
+                (object,),
+                {"message": type("Message", (object,), {"content": messages[1]["content"]})},
+            )
+        ]
 
-    Client.reset()
-    monkeypatch.setattr("aisuite.Client", MockClient)
+    monkeypatch.setattr("uglychain.client.Client.generate", mock_generate)
 
     results = sample_prompt(["a", "b", "c"])
     assert results == ["a", "b", "c"]

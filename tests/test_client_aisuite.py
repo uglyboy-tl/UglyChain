@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from uglychain.client import Client
+from uglychain.client_aisuite import Client
 
 
 def test_client_get(monkeypatch):
