@@ -18,7 +18,7 @@ def test_response_formatter_init():
     formatter = ResponseModel(mock_func)
 
     assert formatter.response_type == MockModel
-    assert formatter.mode == Mode.JSON
+    assert formatter.mode == Mode.MD_JSON
 
 
 def test_response_formatter_validate_response_type():
@@ -36,9 +36,9 @@ def test_response_formatter_get_response_format_prompt():
         return MockModel(foo="test")
 
     formatter = ResponseModel(mock_func)
-    prompt = formatter.get_response_schema()
-    assert "properties" in prompt
-    assert "foo" in prompt
+    prompt = formatter.parameters
+    assert "properties" in prompt.keys()
+    assert "foo" in str(prompt.values())
 
 
 def test_response_formatter_parse_from_response():

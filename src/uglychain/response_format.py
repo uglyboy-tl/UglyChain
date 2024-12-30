@@ -5,7 +5,7 @@ import json
 import re
 from collections.abc import Callable
 from enum import Enum, unique
-from typing import Any, Generic, TypeVar, cast, get_type_hints
+from typing import Any, Generic, TypeVar, get_type_hints
 
 from pydantic import BaseModel, ValidationError
 
@@ -16,7 +16,7 @@ T = TypeVar("T", bound=BaseModel)
 @unique
 class Mode(Enum):
     TOOLS = "tool_call"
-    JSON = "json_mode"
+    MD_JSON = "markdown_json_mode"
     JSON_SCHEMA = "json_schema_mode"
 
 
@@ -32,13 +32,13 @@ Here is the output schema:
 {output_schema}
 ```
 
-Ensure the response can be parsed by Python json.loads"""
+Make sure to return an instance of the JSON which can be parsed by Python json.loads, not the schema itself."""
 
     def __init__(self, func: Callable, response_model: type[T] | None = None) -> None:
         # 获取被修饰函数的返回类型
         response_type = get_type_hints(func).get("return", str if response_model is None else response_model)
         self.response_type: type[str] | type[T] = str if response_type is list[dict[str, str]] else response_type
-        self.mode: Mode = Mode.JSON
+        self.mode: Mode = Mode.MD_JSON
         self.validate_response_type()
 
     def validate_response_type(self) -> None:
@@ -53,22 +53,31 @@ Ensure the response can be parsed by Python json.loads"""
     ) -> None:
         if self.response_type is str:
             return
-        provider, model_name = model.split(":")
-        if provider in ["openai"]:
-            if model_name in []:  # "gpt-4o", "gpt-4o-mini"支持这个能力, 但解析函数需要更换，现在 AiSuite 不支持
+        provider, model_name = model.split(":", 1)
+        match (provider, model_name):
+            case ("openai", ""):
                 self.mode = Mode.JSON_SCHEMA
-                merged_api_params["response_format"] = self.get_response_schema()
-            elif model_name in ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo"]:
+            case ("openai", "gpt-4o" | "gpt-4o-mini" | "gpt-4-turbo"):
                 self.mode = Mode.TOOLS
-            else:
+            case ("openai", _):
                 merged_api_params["response_format"] = {"type": "json_object"}
-        elif provider in ["ollama"]:
-            self.mode = Mode.JSON_SCHEMA
-            merged_api_params["format"] = self.get_response_schema()
-        if self.mode == Mode.JSON:
-            self.update_system_prompt_to_json(messages)
-        elif self.mode == Mode.TOOLS:
-            self.update_params_to_tools(merged_api_params)
+                self.mode = Mode.MD_JSON
+            case ("openrouter", "openai/gpt-4o" | "openai/gpt-4o-mini"):
+                self.mode = Mode.JSON_SCHEMA
+            case ("openrouter", "anthropic/claude-3.5-sonnet"):
+                self.mode = Mode.TOOLS
+            case ("ollama" | "gemini", _):
+                self.mode = Mode.JSON_SCHEMA
+            case _:
+                self.mode = Mode.MD_JSON
+
+        match self.mode:
+            case Mode.JSON_SCHEMA:
+                merged_api_params["response_format"] = self.response_type
+            case Mode.TOOLS:
+                self.update_params_to_tools(merged_api_params)
+            case Mode.MD_JSON:
+                self.update_system_prompt_to_json(messages)
 
     def parse_from_response(self, choice: Any, use_tools: bool = False) -> str | T:
         # USE TOOLS
@@ -79,7 +88,7 @@ Ensure the response can be parsed by Python json.loads"""
         if self.response_type is str:
             return choice.message.content.strip()
         assert issubclass(self.response_type, BaseModel) and not inspect.isabstract(self.response_type)
-        if self.mode == Mode.JSON or self.mode == Mode.JSON_SCHEMA:
+        if self.mode == Mode.MD_JSON or self.mode == Mode.JSON_SCHEMA:
             response = choice.message.content.strip()
         elif self.mode == Mode.TOOLS:
             response = choice.message.tool_calls[0].function.arguments
@@ -114,27 +123,11 @@ Ensure the response can be parsed by Python json.loads"""
             msg = f"Failed to validate {name} from completion {response}. Got: {e}"
             raise ValueError(msg) from e
 
-    def get_response_schema(self) -> str:
-        # 获取模型的JSON schema
-        assert issubclass(self.response_type, BaseModel)
-        schema = self.response_type.model_json_schema()  # type: ignore[union-attr]
-        # 移除不必要的字段，减少提示的冗余信息
-        reduced_schema = schema.copy()
-        if "title" in reduced_schema:
-            del reduced_schema["title"]
-        if "type" in reduced_schema:
-            del reduced_schema["type"]
-        reduced_schema["required"] = sorted(k for k, v in reduced_schema["properties"].items() if "default" not in v)
-        # 将简化后的schema转换为JSON字符串
-        prompt = json.dumps(reduced_schema, ensure_ascii=False)
-        # 格式化并返回提示字符串
-        return prompt
-
     def update_system_prompt_to_json(self, messages: list[dict[str, str]]) -> None:
         if not messages:
             raise ValueError("Messages is empty")
 
-        system_prompt = self.PROMPT_TEMPLATE.format(output_schema=self.get_response_schema())
+        system_prompt = self.PROMPT_TEMPLATE.format(output_schema=json.dumps(self.parameters, ensure_ascii=False))
         system_message = messages[0]
         if system_message["role"] == "system":
             system_message["content"] += "\n-----\n" + system_prompt
@@ -148,20 +141,52 @@ Ensure the response can be parsed by Python json.loads"""
             )
 
     def update_params_to_tools(self, api_params: dict[str, Any]) -> None:
-        assert issubclass(self.response_type, BaseModel)
-        schema = self.response_type.model_json_schema()  # type: ignore[union-attr]
+        openai_schema_copy = self.openai_schema.copy()
+        openai_schema_copy["strict"] = True
         api_params["tools"] = [
             {
                 "type": "function",
-                "function": {
-                    "name": schema["title"],
-                    "description": f"Correctly extracted `{schema['title']}` with all the required parameters with correct types",
-                    "parameters": {k: v for k, v in schema.items() if k not in ("title", "description")},
-                    "strict": True,
-                },
+                "function": openai_schema_copy,
             }
         ]
         api_params["tool_choice"] = {
             "type": "function",
-            "function": {"name": schema["title"]},
+            "function": {"name": self.openai_schema["name"]},
         }
+
+    @property
+    def schema(self) -> dict[str, Any]:
+        if hasattr(self, "_schema"):
+            return self._schema
+        assert issubclass(self.response_type, BaseModel)
+        self._schema: dict[str, Any] = self.response_type.model_json_schema()  # type: ignore[union-attr]
+        return self._schema
+
+    @property
+    def parameters(self) -> dict[str, Any]:
+        if hasattr(self, "_parameters"):
+            return self._parameters
+        # 移除不必要的字段，减少提示的冗余信息
+        self._parameters: dict[str, Any] = {k: v for k, v in self.schema.items() if k not in ("title", "description")}
+        self._parameters["required"] = sorted(
+            k for k, v in self._parameters["properties"].items() if "default" not in v
+        )
+        # 将简化后的schema转换为JSON字符串
+        return self._parameters
+
+    @property
+    def openai_schema(self) -> dict[str, Any]:
+        if hasattr(self, "_openai_schema"):
+            return self._openai_schema
+        self._openai_schema: dict[str, Any] = {
+            "name": self.schema["title"],
+            "parameters": self.parameters,
+        }
+        if self.response_type.__doc__ is not None and self.response_type.__doc__.strip():
+            self._openai_schema["description"] = self.response_type.__doc__
+        else:
+            self._openai_schema["description"] = (
+                f"Correctly extracted `{self.schema['title']}` with all the required parameters with correct types"
+            )
+
+        return self._openai_schema

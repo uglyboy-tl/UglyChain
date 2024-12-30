@@ -3,7 +3,10 @@ from __future__ import annotations
 import threading
 from typing import Any
 
+import litellm
 from litellm import CustomStreamWrapper, completion
+
+litellm.enable_json_schema_validation = True
 
 
 class Client:
@@ -38,7 +41,7 @@ class Client:
     ) -> list[Any]:
         try:
             response = completion(
-                model=model.replace(":", "/"),
+                model=model.replace(":", "/", 1),
                 messages=messages,
                 **api_params,
             )

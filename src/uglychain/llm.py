@@ -4,13 +4,15 @@ import inspect
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import wraps
-from typing import Any
+from typing import Any, ParamSpec
 
 from .client import Client
 from .config import config
 from .console import Console
 from .response_format import ResponseModel, T
 from .tools import add_tools_to_parameters
+
+P = ParamSpec("P")
 
 
 def llm(
@@ -19,7 +21,7 @@ def llm(
     response_format: type[T] | None = None,
     map_keys: list[str] | None = None,
     **api_params: Any,
-) -> Callable[[Callable[..., str | list[dict[str, str]] | T]], Callable[..., str | list[str] | T | list[T]]]:
+) -> Callable[[Callable[P, str | list[dict[str, str]] | T]], Callable[P, str | list[str] | T | list[T]]]:
     """
     LLM 装饰器，用于指定语言模型和其参数。
 
@@ -31,17 +33,17 @@ def llm(
     default_api_params_from_decorator = api_params.copy()
 
     def parameterized_lm_decorator(
-        prompt: Callable[..., str | list[dict[str, str]] | T],
-    ) -> Callable[..., str | list[str] | T | list[T]]:
+        prompt: Callable[P, str | list[dict[str, str]] | T],
+    ) -> Callable[P, str | list[str] | T | list[T]]:
         @wraps(prompt)
         def model_call(
-            *prompt_args: Any,
-            api_params: dict[str, Any] | None = None,
-            **prompt_kwargs: Any,
+            *prompt_args: P.args,
+            api_params: dict[str, Any] | None = None,  # type: ignore
+            **prompt_kwargs: P.kwargs,
         ) -> str | list[str] | T | list[T]:
             console = Console()
             # 获取被修饰函数的返回类型
-            response_model = ResponseModel(prompt, response_format)
+            response_model = ResponseModel[T](prompt, response_format)
             # 使用工具时会忽略结构化输出模式
             if tools is not None:
                 response_model.response_type = str
@@ -65,11 +67,12 @@ def llm(
                 raise ValueError("n > 1 和列表长度 > 1 不能同时成立")
 
             def process_single_prompt(i: int) -> list[Any]:
-                args = [arg[i] if j in map_args_index_set else arg for j, arg in enumerate(prompt_args)]
+                args = [arg[i] if j in map_args_index_set else arg for j, arg in enumerate(prompt_args)]  # type: ignore
                 kwargs = {
-                    key: value[i] if key in map_kwargs_keys_set else value for key, value in prompt_kwargs.items()
+                    key: value[i] if key in map_kwargs_keys_set else value  # type: ignore
+                    for key, value in prompt_kwargs.items()
                 }
-                res = prompt(*args, **kwargs)
+                res = prompt(*args, **kwargs)  # type: ignore
                 assert (
                     isinstance(res, str) or isinstance(res, list) and all(isinstance(item, dict) for item in res)
                 ), ValueError("被修饰的函数返回值必须是 str 或 `messages`(list[dict[str, str]]) 类型")
@@ -110,7 +113,7 @@ def llm(
         model_call.__api_params__ = default_api_params_from_decorator  # type: ignore
         model_call.__func__ = prompt  # type: ignore
 
-        return model_call
+        return model_call  # type: ignore
 
     return parameterized_lm_decorator  # type: ignore[return-value]
 

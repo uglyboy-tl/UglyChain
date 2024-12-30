@@ -21,7 +21,7 @@ class Console:
         self,
         model: str,
         prompt: Callable,
-        args: tuple[str | list[str], ...],
+        args: tuple[object, ...],
         kwargs: dict[str, Any],
     ) -> None:
         """Add prompt to the logger."""
