@@ -15,7 +15,7 @@ class Console:
     def __init__(self) -> None:
         self.if_log = config.verbose
         self.console = rich.console.Console()
-        self.progress = Progress(disable=self.if_log)
+        self.progress = Progress(disable=self.if_log or not config.show_progress)
 
     def log_model_usage_pre(
         self,

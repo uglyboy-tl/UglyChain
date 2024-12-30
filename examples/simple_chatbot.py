@@ -10,7 +10,8 @@ def chat_bot(message_history: list):
 
 
 message_history = []
-config.verbose = True
+config.show_progress = False
+# config.verbose = True
 while True:
     user_input = input("You: ")
     message_history.append({"role": "user", "content": user_input})
