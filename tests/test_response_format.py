@@ -66,23 +66,23 @@ def test_response_formatter_parse_from_response():
         formatter.parse_from_response(invalid_response)
 
 
-def test_response_formatter_update_system_prompt_to_json():
+def test_response_formatter_update_markdown_json_schema_from_system_prompt():
     def mock_func() -> MockModel:
         return MockModel(foo="test")
 
     formatter = ResponseModel(mock_func)
     messages = [{"role": "system", "content": "Initial content"}]
-    formatter.update_system_prompt_to_json(messages)
+    formatter._update_markdown_json_schema_from_system_prompt(messages)
     assert "properties" in messages[0]["content"]
 
 
-def test_response_formatter_update_params_to_tools():
+def test_response_formatter_set_tools_from_params():
     def mock_func() -> MockModel:
         return MockModel(foo="test")
 
     formatter = ResponseModel(mock_func)
     api_params = {}
-    formatter.update_params_to_tools(api_params)
+    formatter._set_tools_from_params(api_params)
     assert "tools" in api_params
     assert "tool_choice" in api_params
 

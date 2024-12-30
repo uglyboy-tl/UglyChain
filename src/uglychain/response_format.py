@@ -7,6 +7,7 @@ from collections.abc import Callable
 from enum import Enum, unique
 from typing import Any, Generic, TypeVar, get_type_hints
 
+from openai.lib import _pydantic
 from pydantic import BaseModel, ValidationError
 
 # 创建一个泛型变量，用于约束BaseModel的子类
@@ -73,11 +74,11 @@ Make sure to return an instance of the JSON which can be parsed by Python json.l
 
         match self.mode:
             case Mode.JSON_SCHEMA:
-                merged_api_params["response_format"] = self.response_type
+                self._set_response_format_from_params(merged_api_params)
             case Mode.TOOLS:
-                self.update_params_to_tools(merged_api_params)
+                self._set_tools_from_params(merged_api_params)
             case Mode.MD_JSON:
-                self.update_system_prompt_to_json(messages)
+                self._update_markdown_json_schema_from_system_prompt(messages)
 
     def parse_from_response(self, choice: Any, use_tools: bool = False) -> str | T:
         # USE TOOLS
@@ -123,7 +124,7 @@ Make sure to return an instance of the JSON which can be parsed by Python json.l
             msg = f"Failed to validate {name} from completion {response}. Got: {e}"
             raise ValueError(msg) from e
 
-    def update_system_prompt_to_json(self, messages: list[dict[str, str]]) -> None:
+    def _update_markdown_json_schema_from_system_prompt(self, messages: list[dict[str, str]]) -> None:
         if not messages:
             raise ValueError("Messages is empty")
 
@@ -140,13 +141,21 @@ Make sure to return an instance of the JSON which can be parsed by Python json.l
                 },
             )
 
-    def update_params_to_tools(self, api_params: dict[str, Any]) -> None:
-        openai_schema_copy = self.openai_schema.copy()
-        openai_schema_copy["strict"] = True
+    def _set_response_format_from_params(self, api_params: dict[str, Any]) -> None:
+        api_params["response_format"] = {
+            "type": "json_schema",
+            "json_schema": {
+                "name": self.response_type.__name__,
+                "schema": self.parameters,
+                "strict": True,
+            },
+        }
+
+    def _set_tools_from_params(self, api_params: dict[str, Any]) -> None:
         api_params["tools"] = [
             {
                 "type": "function",
-                "function": openai_schema_copy,
+                "function": self.openai_schema,
             }
         ]
         api_params["tool_choice"] = {
@@ -158,20 +167,16 @@ Make sure to return an instance of the JSON which can be parsed by Python json.l
     def schema(self) -> dict[str, Any]:
         if hasattr(self, "_schema"):
             return self._schema
-        assert issubclass(self.response_type, BaseModel)
-        self._schema: dict[str, Any] = self.response_type.model_json_schema()  # type: ignore[union-attr]
+        assert inspect.isclass(self.response_type) and issubclass(self.response_type, BaseModel)
+        self._schema: dict[str, Any] = self.response_type.model_json_schema()
         return self._schema
 
     @property
     def parameters(self) -> dict[str, Any]:
         if hasattr(self, "_parameters"):
             return self._parameters
-        # 移除不必要的字段，减少提示的冗余信息
-        self._parameters: dict[str, Any] = {k: v for k, v in self.schema.items() if k not in ("title", "description")}
-        self._parameters["required"] = sorted(
-            k for k, v in self._parameters["properties"].items() if "default" not in v
-        )
-        # 将简化后的schema转换为JSON字符串
+        assert inspect.isclass(self.response_type) and issubclass(self.response_type, BaseModel)
+        self._parameters: dict[str, Any] = _pydantic.to_strict_json_schema(self.response_type)
         return self._parameters
 
     @property
@@ -181,6 +186,7 @@ Make sure to return an instance of the JSON which can be parsed by Python json.l
         self._openai_schema: dict[str, Any] = {
             "name": self.schema["title"],
             "parameters": self.parameters,
+            "strict": True,
         }
         if self.response_type.__doc__ is not None and self.response_type.__doc__.strip():
             self._openai_schema["description"] = self.response_type.__doc__
