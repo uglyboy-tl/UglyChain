@@ -1,11 +1,8 @@
 from __future__ import annotations
 
-from enum import Enum, unique
-
 from examples.schema import AUTHOR, UserDetail
-from pydantic import BaseModel
 
-from uglychain import config, llm, response_format
+from uglychain import config, llm
 
 
 def map():

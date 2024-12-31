@@ -27,3 +27,8 @@ class Label(Enum):
     MOVIE = "电影"
     TV = "电视剧"
     PERSON = "人物"
+
+
+class ClassifyResponse(BaseModel):
+    reason: str = Field(..., description="The reason to explain the classification.")
+    label: Label = Field(..., description="The label of the classification.")
