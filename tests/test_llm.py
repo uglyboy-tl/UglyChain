@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 from pydantic import BaseModel
 
-from uglychain.client_aisuite import Client
+from uglychain.client import Client
 from uglychain.llm import _get_messages, llm
 
 
@@ -157,7 +157,7 @@ def test_llm_decorator_with_empty_api_params(monkeypatch):
 
     monkeypatch.setattr("uglychain.client.Client.generate", mock_generate)
 
-    result = sample_prompt(api_params={})
+    result = sample_prompt(api_params={})  # type: ignore
     assert result == "Test response"
 
 
@@ -202,7 +202,7 @@ def test_get_messages_with_invalid_type():
 
 def test_llm_decorator_with_inconsistent_list_lengths(monkeypatch):
     @llm(model="test:model", map_keys=["arg1", "arg2"])
-    def sample_prompt(arg1: str, arg2: str) -> str:
+    def sample_prompt(arg1: list[str], arg2: list[str]) -> str:
         return "Hello, world!"
 
     with pytest.raises(ValueError, match="prompt_args 和 prompt_kwargs 中的 map_key 列表必须具有相同的长度"):
@@ -211,7 +211,7 @@ def test_llm_decorator_with_inconsistent_list_lengths(monkeypatch):
 
 def test_llm_decorator_with_n_and_list_length_conflict(monkeypatch):
     @llm(model="test:model", map_keys=["arg1"], n=2)
-    def sample_prompt(arg1: str) -> str:
+    def sample_prompt(arg1: list[str]) -> str:
         return "Hello, world!"
 
     with pytest.raises(ValueError, match="n > 1 和列表长度 > 1 不能同时成立"):
@@ -220,7 +220,7 @@ def test_llm_decorator_with_n_and_list_length_conflict(monkeypatch):
 
 def test_llm_decorator_with_parallel_processing(monkeypatch):
     @llm(model="test:model", map_keys=["arg1"])
-    def sample_prompt(arg1: str) -> str:
+    def sample_prompt(arg1: list[str]) -> str:
         "System prompt"
         return arg1  # type: ignore
 
