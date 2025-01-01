@@ -64,14 +64,14 @@ Make sure to return an instance of the JSON which can be parsed by Python json.l
         match (provider, model_name):
             case ("openai", ""):
                 self.mode = Mode.JSON_SCHEMA
-            case ("openai", "gpt-4o" | "gpt-4o-mini" | "gpt-4-turbo"):
-                self.mode = Mode.TOOLS
-            case ("openai", _):
+            case ("openai", "yi-large"):
                 merged_api_params["response_format"] = {"type": "json_object"}
                 self.mode = Mode.MD_JSON
+            case ("openai", _):
+                self.mode = Mode.TOOLS
             case ("openrouter", "openai/gpt-4o" | "openai/gpt-4o-mini"):
                 self.mode = Mode.JSON_SCHEMA
-            case ("openrouter", "anthropic/claude-3.5-sonnet"):
+            case ("openrouter", _):
                 self.mode = Mode.TOOLS
             case ("ollama" | "gemini", _):
                 self.mode = Mode.JSON_SCHEMA

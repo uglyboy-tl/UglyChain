@@ -4,7 +4,7 @@ import pytest
 from pydantic import BaseModel
 
 from uglychain.client import Client
-from uglychain.llm import _get_messages, llm
+from uglychain.llm import _get_map_keys, _get_messages, llm
 
 
 class SampleModel(BaseModel):
@@ -237,3 +237,63 @@ def test_llm_decorator_with_parallel_processing(monkeypatch):
 
     results = sample_prompt(["a", "b", "c"])
     assert results == ["a", "b", "c"]
+
+
+def test_llm_decorator_with_tools(monkeypatch):
+    def mock_tool():
+        pass
+
+    @llm(model="test:model", tools=[mock_tool])
+    def sample_prompt() -> str:
+        return "Hello, world!"
+
+    def mock_generate(model, messages, **kwargs):
+        assert "tools" in kwargs
+        return [
+            type(
+                "Choice",
+                (object,),
+                {"message": type("Message", (object,), {"content": "Test response"})},
+            )
+        ]
+
+    monkeypatch.setattr("uglychain.client.Client.generate", mock_generate)
+
+    result = sample_prompt()
+    assert result == "Test response"
+
+
+def test_llm_decorator_with_response_format(monkeypatch):
+    @llm(model="test:model", response_format=SampleModel)
+    def sample_prompt() -> SampleModel:
+        return "Hello, world!"  # type: ignore
+
+    def mock_generate(model, messages, **kwargs):
+        return [
+            type(
+                "Choice",
+                (object,),
+                {"message": type("Message", (object,), {"content": '{"content": "Test response"}'})},
+            )
+        ]
+
+    monkeypatch.setattr("uglychain.client.Client.generate", mock_generate)
+
+    result = sample_prompt()
+    assert result == SampleModel(content="Test response")
+
+
+def test_get_map_keys_with_empty_map_keys():
+    def sample_prompt(arg1: str, arg2: str):
+        return "Hello, world!"
+
+    result = _get_map_keys(sample_prompt, ("a", "b"), {}, None)
+    assert result == (1, set(), set())
+
+
+def test_get_map_keys_with_invalid_map_key_type():
+    def sample_prompt(arg1: str):
+        return "Hello, world!"
+
+    with pytest.raises(ValueError, match="map_key 必须是列表"):
+        _get_map_keys(sample_prompt, ("a",), {}, ["arg1"])

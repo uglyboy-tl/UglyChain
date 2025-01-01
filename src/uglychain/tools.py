@@ -13,7 +13,7 @@ from pydantic.fields import FieldInfo
 
 def function_schema(func: Callable) -> dict[str, Any]:
     pydantic_func = create_schema_from_function(func.__name__, func)
-    return {"type": "function", "function": convert_pydantic_to_openai_function(pydantic_func)}
+    return convert_pydantic_to_openai_function(pydantic_func)
 
 
 def add_tools_to_parameters(params: dict[str, Any], tools: list[Callable] | None) -> None:
@@ -21,7 +21,8 @@ def add_tools_to_parameters(params: dict[str, Any], tools: list[Callable] | None
         return
     params["tools"] = []
     for tool in tools:
-        params["tools"].append(function_schema(tool))
+        params["tools"].append({"type": "function", "function": function_schema(tool)})
+    # TODO: 这里的逻辑后续需要重新确认
     if len(tools) == 1:
         params["tool_choice"] = {"type": "function", "function": {"name": tools[0].__name__}}
 
