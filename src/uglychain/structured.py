@@ -8,13 +8,9 @@ from enum import Enum, unique
 from typing import Any, Generic, TypeVar, get_type_hints
 
 from openai.lib import _pydantic
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, ValidationError
 
-
-class ToolResopnse(BaseModel):
-    name: str
-    args: dict
-
+from .tools import ToolResopnse, parse
 
 # 创建一个泛型变量，用于约束BaseModel的子类
 T = TypeVar("T", bound=BaseModel)
@@ -86,12 +82,10 @@ Make sure to return an instance of the JSON which can be parsed by Python json.l
             case Mode.MD_JSON:
                 self._update_markdown_json_schema_from_system_prompt(messages)
 
-    def parse_from_response(self, choice: Any, use_tools: bool = False) -> str | T | ToolResopnse:
+    def parse_from_response(self, choice: Any) -> str | T | ToolResopnse:
         # USE TOOLS
-        if use_tools and hasattr(choice.message, "tool_calls") and choice.message.tool_calls:
-            tool_calls_response = choice.message.tool_calls[0].function
-            tool_response = ToolResopnse(name=tool_calls_response.name, args=json.loads(tool_calls_response.arguments))
-            return tool_response
+        if hasattr(choice.message, "tool_calls") and choice.message.tool_calls and self.mode != Mode.TOOLS:
+            return parse(choice.message.tool_calls[0].function)
         # Other modes
         if self.response_type is str:
             return choice.message.content.strip()

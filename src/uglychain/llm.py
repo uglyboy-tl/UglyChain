@@ -9,19 +9,21 @@ from typing import Any, ParamSpec
 from .client import Client
 from .config import config
 from .console import Console
-from .response_format import ResponseModel, T
-from .tools import add_tools_to_parameters
+from .structured import ResponseModel, T
+from .tools import ToolResopnse
 
 P = ParamSpec("P")
 
 
 def llm(
     model: str,
-    tools: list[Callable] | None = None,
     response_format: type[T] | None = None,
     map_keys: list[str] | None = None,
     **api_params: Any,
-) -> Callable[[Callable[P, str | list[dict[str, str]] | T]], Callable[P, str | list[str] | T | list[T]]]:
+) -> Callable[
+    [Callable[P, str | list[dict[str, str]] | T]],
+    Callable[P, str | list[str] | T | list[T] | ToolResopnse | list[ToolResopnse]],
+]:
     """
     LLM 装饰器，用于指定语言模型和其参数。
 
@@ -34,19 +36,16 @@ def llm(
 
     def parameterized_lm_decorator(
         prompt: Callable[P, str | list[dict[str, str]] | T],
-    ) -> Callable[P, str | list[str] | T | list[T]]:
+    ) -> Callable[P, str | list[str] | T | list[T] | ToolResopnse | list[ToolResopnse]]:
         @wraps(prompt)
         def model_call(
             *prompt_args: P.args,
             api_params: dict[str, Any] | None = None,  # type: ignore
             **prompt_kwargs: P.kwargs,
-        ) -> str | list[str] | T | list[T]:
+        ) -> str | list[str] | T | list[T] | ToolResopnse | list[ToolResopnse]:
             console = Console()
             # 获取被修饰函数的返回类型
             response_model = ResponseModel[T](prompt, response_format)
-            # 使用工具时会忽略结构化输出模式
-            if tools is not None:
-                response_model.response_type = str
 
             # 合并装饰器级别的API参数和函数级别的API参数
             merged_api_params = config.default_api_params.copy()
@@ -78,14 +77,13 @@ def llm(
                 ), ValueError("被修饰的函数返回值必须是 str 或 `messages`(list[dict[str, str]]) 类型")
                 messages = _get_messages(res, prompt)
                 response_model.process_parameters(model, messages, merged_api_params)
-                add_tools_to_parameters(merged_api_params, tools)
 
                 console.log_model_usage_post_info(messages, merged_api_params)
 
                 response = Client.generate(model, messages, **merged_api_params)
 
                 # 从响应中解析结果
-                result = [response_model.parse_from_response(choice, tools is not None) for choice in response]
+                result = [response_model.parse_from_response(choice) for choice in response]
                 console.log_model_usage_post_intermediate(result)
                 return result
 

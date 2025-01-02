@@ -8,11 +8,11 @@ from uglychain import config
 from uglychain.react import react
 
 
-@react("openai:gpt-4o", [get_current_weather, search_baidu])
+@react("openai:yi-large", [get_current_weather, search_baidu])
 def test():
     return "What's the weather in San Francisco?"
 
 
 if __name__ == "__main__":
     config.verbose = True
-    test()
+    print(test())

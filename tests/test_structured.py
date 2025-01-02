@@ -4,7 +4,8 @@ import json
 
 import pytest
 from pydantic import BaseModel, ValidationError
-from src.uglychain.response_format import Mode, ResponseModel
+
+from uglychain.structured import Mode, ResponseModel
 
 
 class MockModel(BaseModel):
@@ -57,7 +58,7 @@ def test_response_formatter_parse_from_response():
 
     choice = Choice()
     choice.message.content = '{"foo": "bar"}'
-    result = formatter.parse_from_response(choice, use_tools=False)
+    result = formatter.parse_from_response(choice)
     assert result.foo == "bar"  # type: ignore
 
     invalid_response = Choice()
