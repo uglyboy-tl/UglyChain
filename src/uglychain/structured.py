@@ -57,30 +57,29 @@ Make sure to return an instance of the JSON which can be parsed by Python json.l
         if self.response_type is str:
             return
         provider, model_name = model.split(":", 1)
-        match (provider, model_name):
-            case ("openai", ""):
-                self.mode = Mode.JSON_SCHEMA
-            case ("openai", "yi-large"):
-                merged_api_params["response_format"] = {"type": "json_object"}
-                self.mode = Mode.MD_JSON
-            case ("openai", _):
-                self.mode = Mode.TOOLS
-            case ("openrouter", "openai/gpt-4o" | "openai/gpt-4o-mini"):
-                self.mode = Mode.JSON_SCHEMA
-            case ("openrouter", _):
-                self.mode = Mode.TOOLS
-            case ("ollama" | "gemini", _):
-                self.mode = Mode.JSON_SCHEMA
-            case _:
-                self.mode = Mode.MD_JSON
+        # 使用字典映射来替代 match-case 语句，提高可维护性
+        mode_mapping = {
+            ("openai", ""): Mode.JSON_SCHEMA,
+            ("openai", "yi-large"): Mode.MD_JSON,
+            ("openai", "*"): Mode.TOOLS,
+            ("openrouter", "openai/gpt-4o"): Mode.JSON_SCHEMA,
+            ("openrouter", "openai/gpt-4o-mini"): Mode.JSON_SCHEMA,
+            ("openrouter", "*"): Mode.TOOLS,
+            ("ollama", "*"): Mode.JSON_SCHEMA,
+            ("gemini", "*"): Mode.JSON_SCHEMA,
+        }
+        # 使用通配符匹配
+        self.mode = next(
+            (mode for (p, m), mode in mode_mapping.items() if p == provider and (m == model_name or m == "*")),
+            Mode.MD_JSON,
+        )
 
-        match self.mode:
-            case Mode.JSON_SCHEMA:
-                self._set_response_format_from_params(merged_api_params)
-            case Mode.TOOLS:
-                self._set_tools_from_params(merged_api_params)
-            case Mode.MD_JSON:
-                self._update_markdown_json_schema_from_system_prompt(messages)
+        if self.mode == Mode.JSON_SCHEMA:
+            self._set_response_format_from_params(merged_api_params)
+        elif self.mode == Mode.TOOLS:
+            self._set_tools_from_params(merged_api_params)
+        elif self.mode == Mode.MD_JSON:
+            self._update_markdown_json_schema_from_system_prompt(messages)
 
     def parse_from_response(self, choice: Any) -> str | T | ToolResopnse:
         # USE TOOLS
@@ -102,8 +101,8 @@ Make sure to return an instance of the JSON which can be parsed by Python json.l
             json_obj = json.loads(response.strip())
             return self.response_type.model_validate_json(json.dumps(json_obj))  # type: ignore[union-attr]
 
-        except json.JSONDecodeError:
-            # 如果直接解析失败，尝试使用正则表达式提取 JSON 字符串
+        except (json.JSONDecodeError, ValidationError):
+            # 如果解析或验证失败，尝试使用正则表达式提取 JSON 字符串
             match = re.search(r"(\{.*\})", response.strip(), re.MULTILINE | re.IGNORECASE | re.DOTALL)
             if match:
                 json_str = match.group()
@@ -118,12 +117,6 @@ Make sure to return an instance of the JSON which can be parsed by Python json.l
                 # 如果正则表达式匹配失败，抛出异常
                 name = self.response_type.__name__
                 raise ValueError(f"Failed to find JSON object in response for {name}: {response}") from None
-
-        except ValidationError as e:
-            # 如果验证失败，记录错误信息并抛出异常
-            name = self.response_type.__name__
-            msg = f"Failed to validate {name} from completion {response}. Got: {e}"
-            raise ValueError(msg) from e
 
     def _update_markdown_json_schema_from_system_prompt(self, messages: list[dict[str, str]]) -> None:
         if not messages:
@@ -166,18 +159,16 @@ Make sure to return an instance of the JSON which can be parsed by Python json.l
 
     @property
     def schema(self) -> dict[str, Any]:
-        if hasattr(self, "_schema"):
-            return self._schema
-        assert inspect.isclass(self.response_type) and issubclass(self.response_type, BaseModel)
-        self._schema: dict[str, Any] = self.response_type.model_json_schema()
+        if not hasattr(self, "_schema"):
+            assert inspect.isclass(self.response_type) and issubclass(self.response_type, BaseModel)
+            self._schema: dict[str, Any] = self.response_type.model_json_schema()
         return self._schema
 
     @property
     def parameters(self) -> dict[str, Any]:
-        if hasattr(self, "_parameters"):
-            return self._parameters
-        assert inspect.isclass(self.response_type) and issubclass(self.response_type, BaseModel)
-        self._parameters: dict[str, Any] = _pydantic.to_strict_json_schema(self.response_type)
+        if not hasattr(self, "_parameters"):
+            assert inspect.isclass(self.response_type) and issubclass(self.response_type, BaseModel)
+            self._parameters: dict[str, Any] = _pydantic.to_strict_json_schema(self.response_type)
         return self._parameters
 
     @property

@@ -97,3 +97,37 @@ def test_response_formatter_process_parameters():
     merged_api_params = {}
     formatter.process_parameters("openai:gpt-4o", messages, merged_api_params)
     assert "tools" in merged_api_params or "response_format" in merged_api_params
+
+
+def test_response_formatter_set_response_format_from_params():
+    def mock_func() -> MockModel:
+        return MockModel(foo="test")
+
+    formatter = ResponseModel(mock_func)
+    api_params = {}
+    formatter._set_response_format_from_params(api_params)
+    assert "response_format" in api_params
+    assert api_params["response_format"]["type"] == "json_schema"
+
+
+def test_response_formatter_schema():
+    def mock_func() -> MockModel:
+        return MockModel(foo="test")
+
+    formatter = ResponseModel(mock_func)
+    schema = formatter.schema
+    assert "properties" in schema
+    assert "foo" in schema["properties"]
+
+
+def test_response_formatter_openai_schema():
+    def mock_func() -> MockModel:
+        return MockModel(foo="test")
+
+    formatter = ResponseModel(mock_func)
+    openai_schema = formatter.openai_schema
+    assert "name" in openai_schema
+    assert openai_schema["name"] == "MockModel"
+    assert "parameters" in openai_schema
+    assert "properties" in openai_schema["parameters"]
+    assert "foo" in openai_schema["parameters"]["properties"]
