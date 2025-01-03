@@ -29,7 +29,7 @@ def test_response_formatter_validate_response_type():
     formatter = ResponseModel(mock_func)
     with pytest.raises(TypeError):
         formatter.response_type = int
-        formatter.validate_response_type()
+        formatter._validate_response_type()
 
 
 def test_response_formatter_get_response_format_prompt():

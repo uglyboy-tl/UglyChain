@@ -42,9 +42,9 @@ Make sure to return an instance of the JSON which can be parsed by Python json.l
         response_type = get_type_hints(func).get("return", str if response_model is None else response_model)
         self.response_type: type[str] | type[T] = str if response_type is list[dict[str, str]] else response_type
         self.mode: Mode = Mode.MD_JSON
-        self.validate_response_type()
+        self._validate_response_type()
 
-    def validate_response_type(self) -> None:
+    def _validate_response_type(self) -> None:
         if self.response_type is not str and not issubclass(self.response_type, BaseModel):
             raise TypeError(f"Unsupported return type: {self.response_type}")
 
