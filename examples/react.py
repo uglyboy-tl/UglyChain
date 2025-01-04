@@ -1,16 +1,17 @@
 from __future__ import annotations
 
-from collections.abc import Callable
-
 from examples.schema import get_current_weather, search_baidu
+from pydantic import BaseModel
 
-from uglychain import config
-from uglychain.react import react
+from uglychain import config, react
 
 
-@react("openai:gpt-4o-mini", [get_current_weather, search_baidu])
+class Date(BaseModel):
+    year: int
+
+
+@react("openai:gpt-4o-mini", [get_current_weather, search_baidu], response_format=Date)
 def test():
-    # return "What's the weather in San Francisco?"
     return "牛顿生于哪一年？"
 
 

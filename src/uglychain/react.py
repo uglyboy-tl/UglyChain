@@ -52,6 +52,20 @@ def react(
                 **default_api_params_from_decorator,
             )(react)
 
+            def final_call(*prompt_args: P.args, acts: list[Action], **prompt_kwargs: P.kwargs):  # type: ignore
+                output = prompt(*prompt_args, **prompt_kwargs)
+                history = "\n".join(str(a) for a in acts)
+                if isinstance(output, list):
+                    output[-1]["content"] += f"\n-----{history}\n-----\n Now you must give an final answer!"
+                elif isinstance(output, str):
+                    return output + f"\n-----{history}\n-----\n Now you must give an final answer!"
+
+            llm_final_call = llm(
+                default_model_from_decorator,
+                response_format=default_response_format,
+                **default_api_params_from_decorator,
+            )(final_call)  # type: ignore
+
             acts: list[Action] = []
             react_times = 0
             result = llm_tool_call(*prompt_args, acts=acts, **prompt_kwargs)
@@ -65,6 +79,9 @@ def react(
                 act = Action.from_response(result, tools)
                 react_times += 1
             response: str | T = act.obs
+            if not act.done and react_times >= max_reacts or default_response_format is not None:
+                response = llm_final_call(*prompt_args, acts=acts, **prompt_kwargs)  # type: ignore
+            assert not isinstance(response, list)
             return response
 
         model_call.__api_params__ = default_api_params_from_decorator  # type: ignore
