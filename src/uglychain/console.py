@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from collections.abc import Callable
 from typing import Any
 
@@ -65,6 +66,16 @@ class Console:
                 style = "italic blue"
             table.add_row(message["role"], message["content"], style=style)
         self.console.print(table)
+        if merged_api_params:
+            if "tools" in merged_api_params:
+                params_table = Table(title="Tools", box=box.SIMPLE)
+                params_table.add_column("Name", justify="right", no_wrap=True)
+                params_table.add_column("Parameters", justify="center")
+                for tool in merged_api_params["tools"]:
+                    params_table.add_row(
+                        tool["function"]["name"], json.dumps(tool["function"]["parameters"], ensure_ascii=False)
+                    )
+                self.console.print(params_table)
 
     def log_model_usage_post_intermediate(self, result: list) -> None:
         self.log_progress_intermediate()

@@ -34,7 +34,9 @@ def react(
         ) -> str | T:
             tools.insert(0, final_answer)
 
-            def react(*prompt_args: P.args, acts: list[Action], **prompt_kwargs: P.kwargs):  # type: ignore
+            def react(*prompt_args: P.args, acts: list[Action] = None, **prompt_kwargs: P.kwargs):  # type: ignore
+                if acts is None:
+                    acts = []
                 output = prompt(*prompt_args, **prompt_kwargs)
                 if isinstance(output, list):
                     output[-1]["content"] += "\n".join(str(a) for a in acts)
@@ -66,18 +68,16 @@ def react(
                 **default_api_params_from_decorator,
             )(final_call)  # type: ignore
 
-            acts: list[Action] = []
             react_times = 0
-            result = llm_tool_call(*prompt_args, acts=acts, **prompt_kwargs)
+            result = llm_tool_call(*prompt_args, **prompt_kwargs)
             assert isinstance(result, str)
             act = Action.from_response(result, tools)
+            acts = [act]
             while not act.done and (max_reacts == -1 or react_times < max_reacts):
-                if acts:
-                    acts[-1].current = False
-                acts.append(act)
                 result = cast(str, llm_tool_call(*prompt_args, acts=acts, **prompt_kwargs))
                 act = Action.from_response(result, tools)
                 react_times += 1
+                acts.append(act)
             response: str | T = act.obs
             if not act.done and react_times >= max_reacts or default_response_format is not None:
                 response = llm_final_call(*prompt_args, acts=acts, **prompt_kwargs)  # type: ignore
@@ -101,6 +101,7 @@ Then in the 'Action:' and 'Action Input:' sequence, you should tell system what 
 The action result will then appear in the 'Observation:' field, which will be available as input for the next step. And you do not need to generate this part, it will be automatically filled by the system.
 In the end you have to return a final answer using the `final_answer` tool.
 
+## Example
 An fake example:
 ```
 Task:
@@ -117,7 +118,8 @@ Thought: I now know the final answer
 Action: final_answer
 Action Input: {{"answer":"<answer>"}}
 ```
-Tools:
+
+## Tools
 {tool_descriptions}
 """
 
@@ -140,7 +142,6 @@ class Action:
     tool: str
     args: dict
     obs: str
-    current: bool = True
 
     @property
     def done(self) -> bool:
@@ -195,5 +196,8 @@ def _tool_descriptions(tools: list[Callable]) -> str:
     descriptions = []
 
     for tool in tools:
-        descriptions.append(function_schema(tool))
-    return "\n".join(json.dumps(schema, ensure_ascii=False) for schema in descriptions)
+        schema = function_schema(tool)
+        markdown = f"### {schema['name']}\n"
+        markdown += f"{json.dumps(schema, ensure_ascii=False)}\n"
+        descriptions.append(markdown)
+    return "\n".join(descriptions)

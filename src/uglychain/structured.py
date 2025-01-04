@@ -25,7 +25,8 @@ class Mode(Enum):
 
 class ResponseModel(Generic[T]):
     # 定义输出格式的提示模板，包含对JSON schema的描述和示例
-    PROMPT_TEMPLATE = """The output should be formatted as a JSON instance that conforms to the JSON schema below.
+    PROMPT_TEMPLATE = """## Output Format
+The output should be formatted as a JSON instance that conforms to the JSON schema below.
 
 As an example, for the schema {{"properties": {{"foo": {{"title": "Foo", "description": "a list of strings", "type": "array", "items": {{"type": "string"}}}}}}, "required": ["foo"]}}
 the object {{"foo": ["bar", "baz"]}} is a well-formatted instance of the schema. The object {{"properties": {{"foo": ["bar", "baz"]}}}} is not well-formatted.
@@ -125,7 +126,7 @@ Make sure to return an instance of the JSON which can be parsed by Python json.l
         system_prompt = self.PROMPT_TEMPLATE.format(output_schema=json.dumps(self.parameters, ensure_ascii=False))
         system_message = messages[0]
         if system_message["role"] == "system":
-            system_message["content"] += "\n-----\n" + system_prompt
+            system_message["content"] += "\n\n" + system_prompt
         else:
             messages.insert(
                 0,
