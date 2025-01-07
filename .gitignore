@@ -1,7 +1,8 @@
 # Project specific files
 data/
 /*.py
-
+tmp/
+mcp/
 # IDE - specific files
 .vs/
 .vscode/
