@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Callable
 from dataclasses import dataclass
 from functools import wraps
@@ -92,7 +93,7 @@ def react(
     return parameterized_lm_decorator  # type: ignore[return-value]
 
 
-SYSTEM_PROMPT = """You are an expert assistant who can solve any task using code blobs. You will be given a task to solve as best you can.
+SYSTEM_PROMPT = """You are an expert assistant who can solve any task using tools. You will be given a task to solve as best you can.
 To do so, you have been given access to a list of tools: [{tool_names}].
 To solve the task, you must plan forward to proceed in a series of steps, in a cycle of 'Thought:', 'Action:', 'Action Input:', and 'Observation:' sequences.
 
@@ -108,7 +109,7 @@ Task:
 the input question you must answer
 
 Thought: you should always think about what to do
-Action: the action to take, should be one of tools
+Action: the action to take, should be one of [{tool_names}]
 Action Input: the input to the action with JSON format representing the kwargs (e.g. {{"text": "hello world", "num_beams": 5}})
 Observation: the result of the action
 
@@ -174,8 +175,13 @@ class Action:
                 # because the output text may have discarded the stop word.
                 text = text.rstrip() + special_obs_token  # Add it back.
             k = text.rfind(special_obs_token)
-            func_name = text[i + len(special_func_token) : j].strip()
-            func_args = text[j + len(special_args_token) : k].strip()
+            func_name = text[i + len(special_func_token) : j].strip().split("#")[0]
+            func_args = text[j + len(special_args_token) : k].strip().split("#")[0]
+            match = re.search(r"(\{.*\})", func_args, re.MULTILINE | re.IGNORECASE | re.DOTALL)
+            if match:
+                func_args = match.group()
+            else:
+                raise ValueError("Can't parse the Action Input")
             text = text[:i].strip()  # Return the response before tool call, i.e., `Thought`
             if text.startswith("Thought:"):
                 text = text[len("Thought:") :]
