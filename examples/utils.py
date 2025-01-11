@@ -8,9 +8,6 @@ from pathlib import Path
 def execute_command(command: str) -> str:
     """
     Request to execute a CLI command on the system. Use this when you need to perform system operations or run specific commands to accomplish any step in the user's task. You must tailor your command to the user's system and provide a clear explanation of what the command does. Prefer to execute complex CLI commands over creating executable scripts, as they are more flexible and easier to run. Commands will be executed in the specified working directory.
-
-    Args:
-        command (str): The command to execute.
     """
 
     if not command:
@@ -18,11 +15,8 @@ def execute_command(command: str) -> str:
 
     working_directory = Path.cwd()
 
-    try:
-        result = subprocess.run(shlex.split(command), cwd=working_directory, capture_output=True, text=True, check=True)
-        return result.stdout
-    except subprocess.CalledProcessError as e:
-        raise subprocess.CalledProcessError(e.returncode, e.cmd, output=e.output, stderr=e.stderr) from e
+    result = subprocess.run(shlex.split(command), cwd=working_directory, capture_output=True, text=True)
+    return result.stdout + result.stderr
 
 
 def read_file(path: str) -> str:

@@ -189,7 +189,7 @@ class Action:
         if func_name is None or func_args is None:
             raise ValueError("Can't parse the response")
         tool = func_name
-        args = json.loads(func_args)
+        args = json.loads(func_args.replace("'", '"'))
         return cls(
             thought=text,
             tool=tool,

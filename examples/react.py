@@ -5,10 +5,10 @@ import platform
 from pathlib import Path
 
 from examples.schema import get_current_weather, search_baidu
+from examples.utils import execute_command
 from pydantic import BaseModel
 
 from uglychain import config, react
-from uglychain.utils import execute_command
 
 SYSTEM_INFORMATION = f"""====
 SYSTEM INFORMATION
@@ -36,5 +36,5 @@ def update():
 
 if __name__ == "__main__":
     config.verbose = True
-    print(test())
-    # update()
+    # print(test())
+    update()
