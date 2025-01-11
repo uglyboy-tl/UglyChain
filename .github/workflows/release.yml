@@ -35,11 +35,14 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
+      - name: Checkout main branch
+        run: git checkout main
+
       - name: Commit version updates
         run: |
           git add pyproject.toml src/uglychain/__init__.py
           git commit -m "Bump version to ${{ steps.get_version.outputs.version }}"
-          git push
+          git push origin main
 
       - name: Publish with PDM
         run: pdm publish
