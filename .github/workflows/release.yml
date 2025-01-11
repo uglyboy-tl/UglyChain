@@ -3,7 +3,6 @@ name: Release
 on:
   release:
     types: [published]
-  workflow_dispatch:  # 允许手动触发
 
 jobs:
   release:
@@ -31,13 +30,10 @@ jobs:
         run: |
           sed -i "s/^__version__ = .*/__version__ = \"${{ steps.get_version.outputs.version }}\"/" src/uglychain/__init__.py
 
-      - name: Configure git
+      - name: Commit version updates
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Commit version updates
-        run: |
           git add pyproject.toml src/uglychain/__init__.py
           git commit -m "Bump version to ${{ steps.get_version.outputs.version }}"
           git push origin HEAD:main
