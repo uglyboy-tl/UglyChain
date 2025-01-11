@@ -36,7 +36,7 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add pyproject.toml src/uglychain/__init__.py
           git commit -m "Bump version to ${{ steps.get_version.outputs.version }}"
-          git push origin HEAD:main
+          git push https://x-access-token:${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/${{ github.repository }} HEAD:main
 
       - name: Publish with PDM
         run: pdm publish
