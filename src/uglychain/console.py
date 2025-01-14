@@ -28,14 +28,6 @@ class Console:
         """Add prompt to the logger."""
         if not self.if_log:
             return
-        table = Table(title=prompt.__name__, box=box.SIMPLE)
-        table.add_column("名称", justify="center", no_wrap=True)
-        table.add_column("信息", justify="center")
-        table.add_row("模型", model)
-        table.add_row(
-            "参数信息", ",".join([repr(arg) for arg in args] + [k + ":" + repr(v) for k, v in kwargs.items()])
-        )
-        # self.console.print(table)
 
     def log_progress_start(self, n: int) -> None:
         self._task_id = self.progress.add_task("模型进度", total=n)
