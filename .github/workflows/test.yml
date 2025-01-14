@@ -4,8 +4,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  release:
+  pypi-publish:
+    name: upload release to PyPI
     runs-on: ubuntu-latest
+    permissions:
+      # 重要提示：这个权限对于可信发布是必需的。
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: pdm-project/setup-pdm@v4
