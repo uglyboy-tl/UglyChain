@@ -1,3 +1,4 @@
+[![Docs][docs-shield]][docs-url]
 [![Release Notes][release-shield]][release-url]
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
@@ -15,9 +16,9 @@
   <h3 align="center">UglyChain</h3>
 
   <p align="center">
-    ⚡ UglyChain：更好用的 LLM 应用构建工具 ⚡
+    ⚡ UglyChain: A Better LLM Application Development Framework ⚡
     <br />
-    <a href="https://uglychain.uglyboy.cn"><strong>Explore the docs »</strong></a>
+    <a href="README_zh.md"><strong>中文版本说明 »</strong></a>
     <br />
     <br />
     <a href="https://github.com/uglyboy-tl/UglyChain/issues">Report Bug</a>
@@ -27,36 +28,99 @@
 </div>
 
 ## 🤔 What is UglyChain?
-现在有很多利用大模型 LLM 进行应用构建的工具，最有名的就是 LangChain。早期的 LangChain 整个框架并不完善，很多并不直观的定义和调用方式，以及将内部功能封装得太彻底，使的难以定制化的更充分的利用大模型的能力来解决问题。所以我就开发的最初的 UglyGPT（UglyChain的原型），试图解决这个问题。
 
-到了今天，GPTs 也已经面世很长时间了，也有了越来越多的 LLM 应用构建工具。但是这些工具都有一个共同的问题：**不够直观**。
-从底层来说，现在的大模型是基于 Chat 进行接口交互的，这对于应用开发而言并不友好，因为应用开发更多的是模板化的结构化内容生成，而不是对话式的交互。所以我们需要一个对应用开发更加友好的接口，这就是 UglyChain 的初衷。
+UglyChain is a Python framework designed to simplify LLM application development. It provides a more intuitive and developer-friendly interface compared to traditional LLM frameworks.
 
-## Features
-感谢 [aisuite](https://github.com/andrewyng/aisuite) 项目，为 UglyChain 的开发提供了对原始 LLM 接口的初步封装。感谢 [ell](https://docs.ell.so/) 项目，UglyChain 的设计主要借鉴了 ell 的 “Prompts are programs, not strings” 思想，参考其修饰器的实现思路，进一步实现了 mapchain、结构化输出 和 ReActChain 等功能。
+### Key Problems Addressed:
+1. **Non-intuitive API Design**: Many existing frameworks have complex and non-intuitive interfaces
+2. **Over-encapsulation**: Excessive abstraction makes customization difficult
+3. **Chat-centric Design**: Most frameworks are designed around chat interfaces, which are not ideal for structured application development
 
-- 📦 对大模型接口进行封装，提供对工程化更加直观易懂的交互方式，而不是传统的对话式交互。
-  - 可以参数化 Prompt，更加方便地进行批量调用
-  - 可以对 Prompt 进行结构化返回，方便后续处理
-- 🔗 对大模型的高级调用进行封装，提供更加方便的交互方式
-  - 可以通过 @llm 的 map_key 对多个 Prompt 进行并行调用;
-  - 大模型最优质的能力之一就是拥有 ReAct 能力。我们提供了 @react 便捷的实现这种能力。
+### Why Choose UglyChain?
+- 🚀 **Developer-friendly API**: Intuitive decorator-based interface
+- 🧩 **Modular Design**: Easy to extend and customize
+- ⚡ **High Performance**: Built-in support for parallel processing
+- 📦 **Production-ready**: Well-documented and thoroughly tested
 
-## Getting Started
+## ✨ Features
 
-With pip:
+- **Decorator-based API**: Simplify LLM interactions with intuitive decorators
+  ```python
+  @llm(model="openai:gpt-4o")
+  def generate_text(prompt: str) -> str:
+      return prompt
+  ```
+
+- **Structured Output**: Easily parse LLM responses into structured data
+  ```python
+  class User(BaseModel):
+      name: str
+      age: int
+
+  @llm(model="openai:gpt-4o", response_format=User)
+  def parse_user(text: str) -> User:
+      return text
+  ```
+
+- **Parallel Processing**: Process multiple inputs concurrently
+  ```python
+  @llm(model="openai:gpt-4", map_keys=["input"])
+  def batch_process(inputs: list[str]) -> list[str]:
+      return inputs
+  ```
+
+- **ReAct Support**: Built-in support for reasoning and acting
+  ```python
+  @react(model="openai:gpt-4", tools=[web_search])
+  def research(topic: str) -> str:
+      return f"Research about {topic}"
+  ```
+
+- **Extensible Architecture**: Easily add custom models and tools
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Python 3.10+
+- pip 20.0+
+
+### Installation
 
 ```bash
+# Install from PyPI
 pip install uglychain
+
+# Install from source
+git clone https://github.com/uglyboy-tl/UglyChain.git
+cd UglyChain
+pip install -e .
+```
+
+### Project Structure
+
+```
+uglychain/
+├── src/                  # Source code
+│   ├── client.py         # Client supported by aisuite
+│   ├── config.py         # Configuration management
+│   ├── console.py        # Console interface
+│   ├── llm.py            # Core LLM functionality
+│   ├── react.py          # ReAct implementation
+│   ├── structured.py     # Structured output
+│   └── tools.py          # Built-in tools
+├── tests/                # Unit tests
+├── examples/             # Usage examples
+├── pyproject.toml        # Build configuration
+└── README.md             # Project documentation
 ```
 
 ## Usage
 
 ### llm
 
-> 这是一个基础的修饰器，可以方便的对 LLM 进行修饰，使得调用更加方便。
+> A basic decorator that makes it easy to decorate LLM calls for more convenient invocation.
 
-快速使用：
+Quick start:
 
 ```python
 from uglychain import llm
@@ -69,7 +133,7 @@ def hello(world : str):
 hello("sama")
 ```
 
-结构化返回结果：
+Structured output example:
 
 ```python
 class UserDetail(BaseModel):
@@ -85,9 +149,9 @@ test("Bob")
 
 ### MapChain
 
-> 通过 map_keys 可以对模型进行批量调用，并返回多个结果。如果在 config.use_parallel_processing 中设置为 True，则会使用多进程进行并行调用。
+> Allows batch processing of models through map_keys, returning multiple results. If config.use_parallel_processing is set to True, it will use multiprocessing for parallel execution.
 
-快速使用：
+Quick start:
 
 ```python
 @llm("openai:gpt-4o-mini", map_keys=["input"])
@@ -103,28 +167,28 @@ for item in map(input):
     print(item)
 ```
 
-类似于 LLM，也可以对 MapChain 进行更高阶的使用：
+Similar to LLM, MapChain can also be used for more advanced scenarios:
 
 ```python
 class AUTHOR(BaseModel):
-    name: str = Field(..., description="姓名")
-    introduction: str = Field(..., description="简介")
+    name: str = Field(..., description="Name")
+    introduction: str = Field(..., description="Introduction")
 
 @llm("openai:gpt-4o-mini", map_keys=["book"], response_format=AUTHOR)
 def map(book: list[str], position: str):
-    return f"{book}的{position}是谁？"
+    return f"Who is the {position} of {book}?"
 
 input = [
-    "《红楼梦》",
-    "《西游记》",
-    "《三国演义》",
-    "《水浒传》",
+    "Dream of the Red Chamber",
+    "Journey to the West",
+    "Romance of the Three Kingdoms",
+    "Water Margin",
 ]
-map(book=input, position="作者") # 返回的是AUTHOR对象的列表
+map(book=input, position="author") # Returns a list of AUTHOR objects
 ```
 
 ### ReActChain
-> ReActChain 是使用 ReAct 能力进行工具调用的一种方法，其效果原好于传统的 Function Call 的方式。
+> ReActChain is a method for tool invocation using ReAct capability, which performs better than traditional Function Call approaches.
 
 ```python
 from uglychain import react
@@ -132,23 +196,54 @@ from examples.utils import execute_command
 
 @react("openai:gpt-4o-mini", tools = [execute_command])
 def update():
-    return "更新我的电脑系统"
+    return "Update my computer system"
 
-update() # 自动运行 shell 命令，来更新系统
+update() # Automatically runs shell commands to update the system
 ```
 
-## Contributing
+## 🧪 Testing
 
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+Run the test suite:
 
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
-Don't forget to give the project a star! Thanks again!
+```bash
+pytest tests/
+```
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+We maintain 100% test coverage for all core functionality.
+
+## 🤝 Contributing
+
+We welcome contributions! Please follow these steps:
+
+1. Read our [Contribution Guidelines](CONTRIBUTING.md)
+2. Fork the repository
+3. Create a feature branch (`git checkout -b feature/YourFeature`)
+4. Commit your changes (`git commit -m 'Add some feature'`)
+5. Push to the branch (`git push origin feature/YourFeature`)
+6. Open a Pull Request
+
+### Development Setup
+
+1. Install development dependencies:
+   ```bash
+   pdm install -G dev
+   ```
+
+2. Set up pre-commit hooks:
+   ```bash
+   pre-commit install
+   ```
+
+3. Run tests before committing:
+   ```bash
+   pytest
+   ```
+
+Please ensure your code:
+- Follows PEP 8 style guidelines
+- Includes type hints
+- Has corresponding unit tests
+- Includes documentation
 
 ## License
 
@@ -156,6 +251,8 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+[docs-shield]: https://img.shields.io/badge/Docs-mkdocs-blue?style=for-the-badge
+[docs-url]: https://uglychain.uglyboy.cn/
 [release-shield]:https://img.shields.io/github/release/uglyboy-tl/UglyChain.svg?style=for-the-badge
 [release-url]: https://github.com/uglyboy-tl/UglyChain/releases
 [contributors-shield]: https://img.shields.io/github/contributors/uglyboy-tl/UglyChain.svg?style=for-the-badge
