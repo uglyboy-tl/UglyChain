@@ -100,7 +100,7 @@ pip install -e .
 
 ```
 uglychain/
-├── src/                  # Source code
+├── src/uglychain         # Source code
 │   ├── client.py         # Client supported by aisuite
 │   ├── config.py         # Configuration management
 │   ├── console.py        # Console interface

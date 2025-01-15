@@ -15,18 +15,15 @@ requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
 
-[tool.pdm]
-distribution = true
-
-[tool.pdm.scripts]
-lint = "pre-commit run --all-files"
-coverage = "pytest --cov=src --cov-report=term-missing"
-
 [dependency-groups]
 dev = [
     "ruff>=0.8.4",
     "pytest>=8.3.4",
     "pytest-cov>=6.0.0",
+    "mkdocs>=1.6.1",
+    "mkdocs-material>=9.5.49",
+    "mkdocstrings[python]>=0.27.0",
+    "mkdocs-static-i18n[material]>=1.2.3",
 ]
 
 
@@ -93,3 +90,13 @@ max-complexity = 10
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.pdm]
+distribution = true
+
+[tool.pdm.scripts]
+lint = "pre-commit run --all-files"
+coverage = "pytest --cov=src --cov-report=term-missing"
+docs = "mkdocs serve"
+docs-build = "mkdocs build"
+docs-deploy = "mkdocs gh-deploy"

@@ -1,0 +1,61 @@
+site_name: UglyChain
+site_url: https://uglychain.uglyboy.cn
+repo_url: https://github.com/uglyboy-tl/uglychain
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.indexes
+    - navigation.sections
+    - toc.integrate
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_root_heading: false
+            show_source: true
+  - i18n:
+      reconfigure_material: true
+      docs_structure: folder
+      languages:
+        - locale: en
+          default: true
+          name: English
+          build: true
+        - locale: zh
+          name: 中文
+          build: true
+          nav_translations:
+            Home: 首页
+            Guide: 指南
+            Quick Start: 快速开始
+            Configuration: 配置
+            Examples: 案例
+            Development: 开发
+nav:
+  - Home: index.md
+  - Guide:
+      - Quick Start: guide/quickstart.md
+      - Configuration: guide/configuration.md
+  - API Reference:
+      - Core:
+          - Overview: api/core.md
+          - LLM: api/llm.md
+          - ReAct: api/react.md
+      - Tools: api/tools.md
+  - Examples: examples.md
+  - Development: development.md
+
+watch:
+  - src/uglychain
+
+markdown_extensions:
+  - admonition
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - pymdownx.emoji
