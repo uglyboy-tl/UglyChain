@@ -1,67 +1,129 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
     <url>
-         <loc>https://uglychain.uglyboy.cn/api/llm/</loc>
-         <lastmod>2025-01-15</lastmod>
+        <loc>https://uglychain.uglyboy.cn/api/llm/</loc>
+        <lastmod>2025-01-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://uglychain.uglyboy.cn/api/llm/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://uglychain.uglyboy.cn/zh/api/llm/"/>
     </url>
     <url>
-         <loc>https://uglychain.uglyboy.cn/api/react/</loc>
-         <lastmod>2025-01-15</lastmod>
+        <loc>https://uglychain.uglyboy.cn/api/react/</loc>
+        <lastmod>2025-01-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://uglychain.uglyboy.cn/api/react/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://uglychain.uglyboy.cn/zh/api/react/"/>
     </url>
     <url>
-         <loc>https://uglychain.uglyboy.cn/cn/</loc>
-         <lastmod>2025-01-15</lastmod>
+        <loc>https://uglychain.uglyboy.cn/</loc>
+        <lastmod>2025-01-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://uglychain.uglyboy.cn/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://uglychain.uglyboy.cn/zh/"/>
     </url>
     <url>
-         <loc>https://uglychain.uglyboy.cn/cn/development/</loc>
-         <lastmod>2025-01-15</lastmod>
+        <loc>https://uglychain.uglyboy.cn/development/</loc>
+        <lastmod>2025-01-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://uglychain.uglyboy.cn/development/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://uglychain.uglyboy.cn/zh/development/"/>
     </url>
     <url>
-         <loc>https://uglychain.uglyboy.cn/cn/examples/</loc>
-         <lastmod>2025-01-15</lastmod>
+        <loc>https://uglychain.uglyboy.cn/examples/</loc>
+        <lastmod>2025-01-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://uglychain.uglyboy.cn/examples/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://uglychain.uglyboy.cn/zh/examples/"/>
     </url>
     <url>
-         <loc>https://uglychain.uglyboy.cn/cn/api/core/</loc>
-         <lastmod>2025-01-15</lastmod>
+        <loc>https://uglychain.uglyboy.cn/api/core/</loc>
+        <lastmod>2025-01-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://uglychain.uglyboy.cn/api/core/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://uglychain.uglyboy.cn/zh/api/core/"/>
     </url>
     <url>
-         <loc>https://uglychain.uglyboy.cn/cn/api/tools/</loc>
-         <lastmod>2025-01-15</lastmod>
+        <loc>https://uglychain.uglyboy.cn/api/tools/</loc>
+        <lastmod>2025-01-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://uglychain.uglyboy.cn/api/tools/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://uglychain.uglyboy.cn/zh/api/tools/"/>
     </url>
     <url>
-         <loc>https://uglychain.uglyboy.cn/cn/guide/configuration/</loc>
-         <lastmod>2025-01-15</lastmod>
+        <loc>https://uglychain.uglyboy.cn/guide/configuration/</loc>
+        <lastmod>2025-01-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://uglychain.uglyboy.cn/guide/configuration/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://uglychain.uglyboy.cn/zh/guide/configuration/"/>
     </url>
     <url>
-         <loc>https://uglychain.uglyboy.cn/cn/guide/quickstart/</loc>
-         <lastmod>2025-01-15</lastmod>
+        <loc>https://uglychain.uglyboy.cn/guide/quickstart/</loc>
+        <lastmod>2025-01-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://uglychain.uglyboy.cn/guide/quickstart/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://uglychain.uglyboy.cn/zh/guide/quickstart/"/>
     </url>
     <url>
-         <loc>https://uglychain.uglyboy.cn/en/</loc>
-         <lastmod>2025-01-15</lastmod>
+        <loc>https://uglychain.uglyboy.cn/zh/api/llm/</loc>
+        <lastmod>2025-01-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://uglychain.uglyboy.cn/zh/api/llm/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://uglychain.uglyboy.cn/api/llm/"/>
     </url>
     <url>
-         <loc>https://uglychain.uglyboy.cn/en/development/</loc>
-         <lastmod>2025-01-15</lastmod>
+        <loc>https://uglychain.uglyboy.cn/zh/api/react/</loc>
+        <lastmod>2025-01-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://uglychain.uglyboy.cn/zh/api/react/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://uglychain.uglyboy.cn/api/react/"/>
     </url>
     <url>
-         <loc>https://uglychain.uglyboy.cn/en/examples/</loc>
-         <lastmod>2025-01-15</lastmod>
+        <loc>https://uglychain.uglyboy.cn/zh/</loc>
+        <lastmod>2025-01-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://uglychain.uglyboy.cn/zh/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://uglychain.uglyboy.cn/"/>
     </url>
     <url>
-         <loc>https://uglychain.uglyboy.cn/en/api/core/</loc>
-         <lastmod>2025-01-15</lastmod>
+        <loc>https://uglychain.uglyboy.cn/zh/development/</loc>
+        <lastmod>2025-01-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://uglychain.uglyboy.cn/zh/development/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://uglychain.uglyboy.cn/development/"/>
     </url>
     <url>
-         <loc>https://uglychain.uglyboy.cn/en/api/tools/</loc>
-         <lastmod>2025-01-15</lastmod>
+        <loc>https://uglychain.uglyboy.cn/zh/examples/</loc>
+        <lastmod>2025-01-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://uglychain.uglyboy.cn/zh/examples/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://uglychain.uglyboy.cn/examples/"/>
     </url>
     <url>
-         <loc>https://uglychain.uglyboy.cn/en/guide/configuration/</loc>
-         <lastmod>2025-01-15</lastmod>
+        <loc>https://uglychain.uglyboy.cn/zh/api/core/</loc>
+        <lastmod>2025-01-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://uglychain.uglyboy.cn/zh/api/core/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://uglychain.uglyboy.cn/api/core/"/>
     </url>
     <url>
-         <loc>https://uglychain.uglyboy.cn/en/guide/quickstart/</loc>
-         <lastmod>2025-01-15</lastmod>
+        <loc>https://uglychain.uglyboy.cn/zh/api/tools/</loc>
+        <lastmod>2025-01-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://uglychain.uglyboy.cn/zh/api/tools/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://uglychain.uglyboy.cn/api/tools/"/>
+    </url>
+    <url>
+        <loc>https://uglychain.uglyboy.cn/zh/guide/configuration/</loc>
+        <lastmod>2025-01-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://uglychain.uglyboy.cn/zh/guide/configuration/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://uglychain.uglyboy.cn/guide/configuration/"/>
+    </url>
+    <url>
+        <loc>https://uglychain.uglyboy.cn/zh/guide/quickstart/</loc>
+        <lastmod>2025-01-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://uglychain.uglyboy.cn/zh/guide/quickstart/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://uglychain.uglyboy.cn/guide/quickstart/"/>
     </url>
 </urlset>

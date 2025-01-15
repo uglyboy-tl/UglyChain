@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://uglychain.uglyboy.cn/api/react/">
+        <link rel="canonical" href="https://uglychain.uglyboy.cn/api/core/">
       
       
-        <link rel="prev" href="../llm/">
+        <link rel="prev" href="../../guide/configuration/">
       
       
-        <link rel="next" href="../tools/">
+        <link rel="next" href="../llm/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -22,7 +22,7 @@
     
     
       
-        <title>ReAct - UglyChain</title>
+        <title>Overview - UglyChain</title>
       
     
     
@@ -66,7 +66,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#react-module" class="md-skip">
+        <a href="#core-api-overview" class="md-skip">
           Skip to content
         </a>
       
@@ -100,7 +100,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              ReAct
+              Overview
             
           </span>
         </div>
@@ -127,7 +127,7 @@
           </li>
         
           <li class="md-select__item">
-            <a href="../../zh/api/react/" hreflang="zh" class="md-select__link">
+            <a href="../../zh/api/core/" hreflang="zh" class="md-select__link">
               中文
             </a>
           </li>
@@ -256,7 +256,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../core/" class="md-tabs__link">
+        <a href="./" class="md-tabs__link">
           
   
     
@@ -576,10 +576,30 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../core/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Overview
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -588,6 +608,77 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#main-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      Main Modules
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Main Modules">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM Module
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#react-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      ReAct Module
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#structured-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      Structured Module
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key Features
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -618,30 +709,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    ReAct
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../react/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -650,50 +721,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#uglychain.react" class="md-nav__link">
-    <span class="md-ellipsis">
-      react
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="react">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#uglychain.react.final_answer" class="md-nav__link">
-    <span class="md-ellipsis">
-      final_answer
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -793,71 +820,34 @@
   
 
 
-<h1 id="react-module">ReAct Module</h1>
-
-
-<div class="doc doc-object doc-module">
-
-
-
-<h3 id="uglychain.react" class="doc doc-heading">
-            <code>uglychain.react</code>
-
-
-</h3>
-
-    <div class="doc doc-contents first">
-
-
-
-
-
-
-
-
-  <div class="doc doc-children">
-
-
-
-
-
-
-
-
-
-<div class="doc doc-object doc-function">
-
-
-<h4 id="uglychain.react.final_answer" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">final_answer</span><span class="p">(</span><span class="n">answer</span><span class="p">)</span></code>
-
-</h4>
-
-
-    <div class="doc doc-contents ">
-
-        <p>When get Final Answer, use this tool to return the answer and finishes the task.</p>
-
-            <details class="quote">
-              <summary>Source code in <code>src/uglychain/react.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">135</span>
-<span class="normal">136</span>
-<span class="normal">137</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">final_answer</span><span class="p">(</span><span class="n">answer</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;When get Final Answer, use this tool to return the answer and finishes the task.&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">answer</span>
-</code></pre></div></td></tr></table></div>
-            </details>
-    </div>
-
-</div>
-
-
-
-  </div>
-
-    </div>
-
-</div>
+<h1 id="core-api-overview">Core API Overview</h1>
+<h2 id="main-modules">Main Modules</h2>
+<h3 id="llm-module">LLM Module</h3>
+<ul>
+<li>Core functionality for interacting with language models</li>
+<li>Supports multiple model providers (OpenAI, Anthropic, etc.)</li>
+<li>Includes decorator-based interface for easy usage</li>
+</ul>
+<h3 id="react-module">ReAct Module</h3>
+<ul>
+<li>Implements reasoning and acting capabilities</li>
+<li>Supports tool usage and multi-step reasoning</li>
+<li>Built-in support for parallel processing</li>
+</ul>
+<h3 id="structured-module">Structured Module</h3>
+<ul>
+<li>Provides structured output capabilities</li>
+<li>Integrates with Pydantic models</li>
+<li>Supports automatic schema generation</li>
+</ul>
+<h2 id="key-features">Key Features</h2>
+<ul>
+<li><strong>Decorator-based API</strong>: Simplify LLM interactions with intuitive decorators</li>
+<li><strong>Structured Output</strong>: Easily parse LLM responses into structured data</li>
+<li><strong>Parallel Processing</strong>: Process multiple inputs concurrently</li>
+<li><strong>ReAct Support</strong>: Built-in support for reasoning and acting</li>
+<li><strong>Extensible Architecture</strong>: Easily add custom models and tools</li>
+</ul>
 
 
 

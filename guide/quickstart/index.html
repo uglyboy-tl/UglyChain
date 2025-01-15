@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://uglychain.uglyboy.cn/api/react/">
+        <link rel="canonical" href="https://uglychain.uglyboy.cn/guide/quickstart/">
       
       
-        <link rel="prev" href="../llm/">
+        <link rel="prev" href="../..">
       
       
-        <link rel="next" href="../tools/">
+        <link rel="next" href="../configuration/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -22,7 +22,7 @@
     
     
       
-        <title>ReAct - UglyChain</title>
+        <title>Quick Start - UglyChain</title>
       
     
     
@@ -66,7 +66,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#react-module" class="md-skip">
+        <a href="#quick-start" class="md-skip">
           Skip to content
         </a>
       
@@ -100,7 +100,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              ReAct
+              Quick Start
             
           </span>
         </div>
@@ -127,7 +127,7 @@
           </li>
         
           <li class="md-select__item">
-            <a href="../../zh/api/react/" hreflang="zh" class="md-select__link">
+            <a href="../../zh/guide/quickstart/" hreflang="zh" class="md-select__link">
               中文
             </a>
           </li>
@@ -222,11 +222,13 @@
         
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../guide/quickstart/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
           
   
     
@@ -242,21 +244,17 @@
         
   
   
-    
-  
   
     
     
       
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../core/" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../api/core/" class="md-tabs__link">
           
   
     
@@ -377,8 +375,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -389,19 +389,22 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
             
   
   <span class="md-ellipsis">
@@ -412,7 +415,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             Guide
@@ -423,10 +426,30 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../guide/quickstart/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Quick Start
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -435,6 +458,95 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Installation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#basic-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Usage
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Basic Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm-decorator" class="md-nav__link">
+    <span class="md-ellipsis">
+      llm Decorator
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#structured-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      Structured Output
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mapchain-batch-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      MapChain (Batch Processing)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reactchain-tool-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      ReActChain (Tool Usage)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -447,7 +559,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guide/configuration/" class="md-nav__link">
+      <a href="../configuration/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -472,10 +584,8 @@
       
   
   
-    
   
   
-  
     
     
       
@@ -486,22 +596,19 @@
     
     
       
-        
-        
-      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
             
   
   <span class="md-ellipsis">
@@ -512,7 +619,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             API Reference
@@ -523,10 +630,8 @@
                 
   
   
-    
   
   
-  
     
     
       
@@ -540,21 +645,18 @@
     
       
       
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" >
         
           
-          
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" checked>
-        
-          
-          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="">
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
             
   
   <span class="md-ellipsis">
@@ -565,7 +667,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3_1">
             <span class="md-nav__icon md-icon"></span>
             Core
@@ -579,7 +681,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../core/" class="md-nav__link">
+      <a href="../../api/core/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -600,7 +702,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../llm/" class="md-nav__link">
+      <a href="../../api/llm/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -618,30 +720,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    ReAct
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../api/react/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -650,50 +732,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#uglychain.react" class="md-nav__link">
-    <span class="md-ellipsis">
-      react
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="react">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#uglychain.react.final_answer" class="md-nav__link">
-    <span class="md-ellipsis">
-      final_answer
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -714,7 +752,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../tools/" class="md-nav__link">
+      <a href="../../api/tools/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -793,71 +831,67 @@
   
 
 
-<h1 id="react-module">ReAct Module</h1>
+<h1 id="quick-start">Quick Start</h1>
+<h2 id="installation">Installation</h2>
+<p>Install using pdm:</p>
+<div class="highlight"><pre><span></span><code>pdm<span class="w"> </span>add<span class="w"> </span>uglychain
+</code></pre></div>
+<h2 id="basic-usage">Basic Usage</h2>
+<h3 id="llm-decorator">llm Decorator</h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">uglychain</span> <span class="kn">import</span> <span class="n">llm</span>
 
+<span class="nd">@llm</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;openai:gpt-4o-mini&quot;</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">hello</span><span class="p">(</span><span class="n">world</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;You are a helpful assistant that writes in lower case.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Say hello to </span><span class="si">{</span><span class="n">world</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> with a poem.&quot;</span>
 
-<div class="doc doc-object doc-module">
+<span class="n">response</span> <span class="o">=</span> <span class="n">hello</span><span class="p">(</span><span class="s2">&quot;sama&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="structured-output">Structured Output</h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">pydantic</span> <span class="kn">import</span> <span class="n">BaseModel</span>
+<span class="kn">from</span> <span class="nn">uglychain</span> <span class="kn">import</span> <span class="n">llm</span>
 
+<span class="k">class</span> <span class="nc">UserDetail</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">age</span><span class="p">:</span> <span class="nb">int</span>
 
+<span class="nd">@llm</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;openai:gpt-4o-mini&quot;</span><span class="p">,</span> <span class="n">response_format</span><span class="o">=</span><span class="n">UserDetail</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">parse_user</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> is a boy&quot;</span>
 
-<h3 id="uglychain.react" class="doc doc-heading">
-            <code>uglychain.react</code>
+<span class="n">user</span> <span class="o">=</span> <span class="n">parse_user</span><span class="p">(</span><span class="s2">&quot;Bob&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="mapchain-batch-processing">MapChain (Batch Processing)</h3>
+<div class="highlight"><pre><span></span><code><span class="nd">@llm</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;openai:gpt-4o-mini&quot;</span><span class="p">,</span> <span class="n">map_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;input&quot;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">batch_process</span><span class="p">(</span><span class="nb">input</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+    <span class="k">return</span> <span class="nb">input</span>
 
+<span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;How old are you?&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;What is the meaning of life?&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;What is the hottest day of the year?&quot;</span><span class="p">,</span>
+<span class="p">]</span>
 
-</h3>
+<span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">batch_process</span><span class="p">(</span><span class="n">inputs</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="reactchain-tool-usage">ReActChain (Tool Usage)</h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">uglychain</span> <span class="kn">import</span> <span class="n">react</span>
+<span class="kn">from</span> <span class="nn">examples.utils</span> <span class="kn">import</span> <span class="n">execute_command</span>
 
-    <div class="doc doc-contents first">
+<span class="nd">@react</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;openai:gpt-4o-mini&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">execute_command</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">update_system</span><span class="p">():</span>
+    <span class="k">return</span> <span class="s2">&quot;Update my computer system&quot;</span>
 
-
-
-
-
-
-
-
-  <div class="doc doc-children">
-
-
-
-
-
-
-
-
-
-<div class="doc doc-object doc-function">
-
-
-<h4 id="uglychain.react.final_answer" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">final_answer</span><span class="p">(</span><span class="n">answer</span><span class="p">)</span></code>
-
-</h4>
-
-
-    <div class="doc doc-contents ">
-
-        <p>When get Final Answer, use this tool to return the answer and finishes the task.</p>
-
-            <details class="quote">
-              <summary>Source code in <code>src/uglychain/react.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">135</span>
-<span class="normal">136</span>
-<span class="normal">137</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">final_answer</span><span class="p">(</span><span class="n">answer</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;When get Final Answer, use this tool to return the answer and finishes the task.&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">answer</span>
-</code></pre></div></td></tr></table></div>
-            </details>
-    </div>
-
-</div>
-
-
-
-  </div>
-
-    </div>
-
-</div>
+<span class="n">update_system</span><span class="p">()</span>  <span class="c1"># Automatically runs system update commands</span>
+</code></pre></div>
+<h2 id="configuration">Configuration</h2>
+<p>The API Keys can be set as environment variables, or can be passed as config to the aisuite Client constructor. You can use tools like python-dotenv 或 direnv to set the environment variables manually.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">OPENAI_API_KEY</span><span class="o">=</span><span class="s2">&quot;your-openai-api-key&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">ANTHROPIC_API_KEY</span><span class="o">=</span><span class="s2">&quot;your-anthropic-api-key&quot;</span>
+</code></pre></div>
 
 
 

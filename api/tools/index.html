@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://uglychain.uglyboy.cn/api/react/">
+        <link rel="canonical" href="https://uglychain.uglyboy.cn/api/tools/">
       
       
-        <link rel="prev" href="../llm/">
+        <link rel="prev" href="../react/">
       
       
-        <link rel="next" href="../tools/">
+        <link rel="next" href="../../examples/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -22,7 +22,7 @@
     
     
       
-        <title>ReAct - UglyChain</title>
+        <title>Tools - UglyChain</title>
       
     
     
@@ -66,7 +66,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#react-module" class="md-skip">
+        <a href="#built-in-tools" class="md-skip">
           Skip to content
         </a>
       
@@ -100,7 +100,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              ReAct
+              Tools
             
           </span>
         </div>
@@ -127,7 +127,7 @@
           </li>
         
           <li class="md-select__item">
-            <a href="../../zh/api/react/" hreflang="zh" class="md-select__link">
+            <a href="../../zh/api/tools/" hreflang="zh" class="md-select__link">
               中文
             </a>
           </li>
@@ -523,8 +523,6 @@
                 
   
   
-    
-  
   
   
     
@@ -547,11 +545,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" >
         
           
           <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="">
@@ -565,7 +563,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3_1">
             <span class="md-nav__icon md-icon"></span>
             Core
@@ -618,6 +616,35 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../react/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ReAct
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -634,7 +661,7 @@
           
   
   <span class="md-ellipsis">
-    ReAct
+    Tools
   </span>
   
 
@@ -645,7 +672,7 @@
         
   
   <span class="md-ellipsis">
-    ReAct
+    Tools
   </span>
   
 
@@ -667,26 +694,38 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#uglychain.react" class="md-nav__link">
+  <a href="#execute_command" class="md-nav__link">
     <span class="md-ellipsis">
-      react
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="react">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#uglychain.react.final_answer" class="md-nav__link">
-    <span class="md-ellipsis">
-      final_answer
+      execute_command
     </span>
   </a>
   
 </li>
-        
-      </ul>
-    </nav>
+      
+        <li class="md-nav__item">
+  <a href="#web_search" class="md-nav__link">
+    <span class="md-ellipsis">
+      web_search
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#file_operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      file_operations
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#custom-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      Custom Tools
+    </span>
+  </a>
   
 </li>
       
@@ -694,35 +733,6 @@
   
 </nav>
       
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tools/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Tools
-  </span>
-  
-
-      </a>
     </li>
   
 
@@ -793,71 +803,53 @@
   
 
 
-<h1 id="react-module">ReAct Module</h1>
+<h1 id="built-in-tools">Built-in Tools</h1>
+<h2 id="execute_command">execute_command</h2>
+<ul>
+<li>Executes shell commands</li>
+<li>Returns command output</li>
+<li>Example:
+  <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">uglychain.tools</span> <span class="kn">import</span> <span class="n">execute_command</span>
 
+<span class="nd">@tool</span>
+<span class="k">def</span> <span class="nf">update_system</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">execute_command</span><span class="p">(</span><span class="s2">&quot;sudo apt update &amp;&amp; sudo apt upgrade -y&quot;</span><span class="p">)</span>
+</code></pre></div></li>
+</ul>
+<h2 id="web_search">web_search</h2>
+<ul>
+<li>Performs web searches</li>
+<li>Returns search results</li>
+<li>Example:
+  <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">uglychain.tools</span> <span class="kn">import</span> <span class="n">web_search</span>
 
-<div class="doc doc-object doc-module">
+<span class="nd">@tool</span>
+<span class="k">def</span> <span class="nf">search_weather</span><span class="p">(</span><span class="n">city</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">web_search</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Weather in </span><span class="si">{</span><span class="n">city</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div></li>
+</ul>
+<h2 id="file_operations">file_operations</h2>
+<ul>
+<li>Provides file system operations</li>
+<li>Includes read/write/delete functions</li>
+<li>Example:
+  <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">uglychain.tools</span> <span class="kn">import</span> <span class="n">file_operations</span>
 
-
-
-<h3 id="uglychain.react" class="doc doc-heading">
-            <code>uglychain.react</code>
-
-
-</h3>
-
-    <div class="doc doc-contents first">
-
-
-
-
-
-
-
-
-  <div class="doc doc-children">
-
-
-
-
-
-
-
-
-
-<div class="doc doc-object doc-function">
-
-
-<h4 id="uglychain.react.final_answer" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">final_answer</span><span class="p">(</span><span class="n">answer</span><span class="p">)</span></code>
-
-</h4>
-
-
-    <div class="doc doc-contents ">
-
-        <p>When get Final Answer, use this tool to return the answer and finishes the task.</p>
-
-            <details class="quote">
-              <summary>Source code in <code>src/uglychain/react.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">135</span>
-<span class="normal">136</span>
-<span class="normal">137</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">final_answer</span><span class="p">(</span><span class="n">answer</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;When get Final Answer, use this tool to return the answer and finishes the task.&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">answer</span>
-</code></pre></div></td></tr></table></div>
-            </details>
-    </div>
-
-</div>
-
-
-
-  </div>
-
-    </div>
-
-</div>
+<span class="nd">@tool</span>
+<span class="k">def</span> <span class="nf">create_file</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">file_operations</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">content</span><span class="p">)</span>
+</code></pre></div></li>
+</ul>
+<h2 id="custom-tools">Custom Tools</h2>
+<ul>
+<li>Create custom tools using @tool decorator</li>
+<li>Example:
+  ```python
+  from uglychain import tool</li>
+</ul>
+<p>@tool
+  def custom_tool(param: str):
+      return f"Processed {param}"</p>
 
 
 
