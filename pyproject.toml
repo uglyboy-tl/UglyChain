@@ -5,7 +5,7 @@ description = "Default template for PDM package"
 authors = [
     {name = "Uglyboy", email = "uglyboy@uglyboy.cn"},
 ]
-dependencies = ["pydantic>=2.0.0", "rich>=13.9.4", "aisuite[openai]>=0.1.7"]
+dependencies = ["pydantic>=2.0.0", "rich>=13.9.4", "aisuite[openai]>=0.1.7", "mcp>=1.2.0"]
 requires-python = ">=3.10"
 readme = "README.md"
 license = {text = "MIT"}
