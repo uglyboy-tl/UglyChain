@@ -34,7 +34,23 @@ def update():
     return "更新我的电脑系统"
 
 
+CONFIG = """{
+  "mcpServers": {
+    "fetch": {
+      "command": "uvx",
+      "args": ["mcp-server-fetch"]
+    }
+  }
+}"""
+
+
+@react("openai:gpt-4o-mini", [execute_command], CONFIG)
+def weather(city: str):
+    return f"使用 wttr.in 获取{city}的天气信息"
+
+
 if __name__ == "__main__":
     config.verbose = True
-    # print(test())
+    # test()
     update()
+    # weather("北京")

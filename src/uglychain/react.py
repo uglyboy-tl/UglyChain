@@ -9,13 +9,15 @@ from dataclasses import dataclass, field
 from functools import wraps
 from typing import Any, ParamSpec, cast
 
+from rich.live import Live
+
+from .console import Console
 from .llm import llm
 from .mcp import AppConfig, McpTool, load_tools
 from .structured import T
 from .tools import function_schema
 
 P = ParamSpec("P")
-loop = asyncio.get_event_loop()
 
 
 def react(
@@ -24,6 +26,7 @@ def react(
     mcp_config: str = "",
     response_format: type[T] | None = None,
     max_reacts: int = -1,
+    console: Console | None = None,
     **api_params: Any,
 ) -> Callable[[Callable[P, str | list[dict[str, str]] | T]], Callable[P, str | T]]:
     default_model_from_decorator = model
@@ -31,6 +34,7 @@ def react(
     default_mcp_config = AppConfig.load(mcp_config)
     default_response_format = response_format  # noqa: F841
     default_api_params_from_decorator = api_params.copy()
+    default_console = console or Console(show_message=False)
 
     def parameterized_lm_decorator(
         prompt: Callable[P, str | list[dict[str, str]] | T],
@@ -40,6 +44,8 @@ def react(
             *prompt_args: P.args,
             **prompt_kwargs: P.kwargs,
         ) -> str | T:
+            default_console.init()
+            default_console.show_result = False
             # Add final answer to the list of tools
             default_tools.insert(0, final_answer)
 
@@ -66,6 +72,7 @@ def react(
                 elif isinstance(output, str):
                     return output + "\n".join(str(a) for a in acts)
 
+            loop = asyncio.get_event_loop()
             with ThreadPoolExecutor() as executor:
                 future = executor.submit(loop.run_until_complete, load_tools(default_mcp_config))
                 mcp_clients, mcp_tools = future.result()
@@ -79,6 +86,7 @@ def react(
 
                 llm_tool_call: Callable = llm(
                     default_model_from_decorator,
+                    console=default_console,
                     stop=["Observation:"],
                     **default_api_params_from_decorator,
                 )(react_once)
@@ -96,16 +104,21 @@ def react(
                 react_times = 0
                 result = llm_tool_call(*prompt_args, **prompt_kwargs)
                 assert isinstance(result, str)
-                act = Action.from_response(result, _call_tool)
-                acts = [act]
-                while not act.done and (max_reacts == -1 or react_times < max_reacts):
-                    result = cast(str, llm_tool_call(*prompt_args, acts=acts, **prompt_kwargs))
+                default_console.off()
+                with Live(default_console.react_table, console=default_console.console) as live:
                     act = Action.from_response(result, _call_tool)
-                    react_times += 1
-                    acts.append(act)
+                    default_console.log_react(act.__dict__, live)
+                    acts = [act]
+                    while not act.done and (max_reacts == -1 or react_times < max_reacts):
+                        result = cast(str, llm_tool_call(*prompt_args, acts=acts, **prompt_kwargs))
+                        act = Action.from_response(result, _call_tool)
+                        default_console.log_react(act.__dict__, live)
+                        react_times += 1
+                        acts.append(act)
                 # Close all clients
                 for client in mcp_clients:
                     executor.submit(loop.run_until_complete, client.close())
+            loop.close()
             response: str | T = act.obs
             if not act.done and react_times >= max_reacts or default_response_format is not None:
                 response = llm_final_call(*prompt_args, acts=acts, **prompt_kwargs)  # type: ignore

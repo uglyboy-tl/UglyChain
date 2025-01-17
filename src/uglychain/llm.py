@@ -19,6 +19,7 @@ def llm(
     model: str,
     response_format: type[T] | None = None,
     map_keys: list[str] | None = None,
+    console: Console | None = None,
     **api_params: Any,
 ) -> Callable[
     [Callable[P, str | list[dict[str, str]] | T]],
@@ -32,6 +33,7 @@ def llm(
     :return: 返回一个装饰器，用于装饰提示函数
     """
     default_model_from_decorator = model
+    default_console = console or Console()
     default_api_params_from_decorator = api_params.copy()
 
     def parameterized_lm_decorator(
@@ -43,7 +45,7 @@ def llm(
             api_params: dict[str, Any] | None = None,  # type: ignore
             **prompt_kwargs: P.kwargs,
         ) -> str | list[str] | T | list[T] | ToolResopnse | list[ToolResopnse]:
-            console = Console()
+            default_console.init()
             # 获取被修饰函数的返回类型
             response_model = ResponseModel[T](prompt, response_format)
 
@@ -59,11 +61,13 @@ def llm(
             # 获取模型名称
             model = merged_api_params.pop("model", default_model_from_decorator)
 
-            console.log_model_usage_pre(model, prompt, prompt_args, prompt_kwargs)
+            default_console.log_model_usage_pre(model, prompt, prompt_args, prompt_kwargs)
 
             m, map_args_index_set, map_kwargs_keys_set = _get_map_keys(prompt, prompt_args, prompt_kwargs, map_keys)
             if m > 1 and n > 1:
                 raise ValueError("n > 1 和列表长度 > 1 不能同时成立")
+            if m > 1 or n > 1:
+                default_console.show_result = False
 
             def process_single_prompt(i: int) -> list[Any]:
                 args = [arg[i] if j in map_args_index_set else arg for j, arg in enumerate(prompt_args)]  # type: ignore
@@ -72,23 +76,25 @@ def llm(
                     for key, value in prompt_kwargs.items()
                 }
                 res = prompt(*args, **kwargs)  # type: ignore
-                assert (
-                    isinstance(res, str) or isinstance(res, list) and all(isinstance(item, dict) for item in res)
-                ), ValueError("被修饰的函数返回值必须是 str 或 `messages`(list[dict[str, str]]) 类型")
+                assert isinstance(res, str) or isinstance(res, list) and all(isinstance(item, dict) for item in res), (
+                    ValueError("被修饰的函数返回值必须是 str 或 `messages`(list[dict[str, str]]) 类型")
+                )
                 messages = _get_messages(res, prompt)
                 response_model.process_parameters(model, messages, merged_api_params)
 
-                console.log_model_usage_post_info(messages, merged_api_params)
+                default_console.log_messages(messages)
+                default_console.log_api_params(merged_api_params)
 
                 response = Client.generate(model, messages, **merged_api_params)
 
                 # 从响应中解析结果
                 result = [response_model.parse_from_response(choice) for choice in response]
-                console.log_model_usage_post_intermediate(result)
+                default_console.log_progress_intermediate()
+                default_console.log_results(result)
                 return result
 
             results = []
-            console.log_progress_start(m if m > 1 else n)
+            default_console.log_progress_start(m if m > 1 else n)
 
             if config.use_parallel_processing:
                 with ThreadPoolExecutor() as executor:
@@ -100,7 +106,7 @@ def llm(
                 for i in range(m):
                     results.extend(process_single_prompt(i))
 
-            console.log_progress_end()
+            default_console.log_progress_end()
 
             if len(results) == 0:
                 raise ValueError("模型未返回任何选择")

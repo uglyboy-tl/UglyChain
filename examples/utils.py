@@ -4,6 +4,8 @@ import shlex
 import subprocess
 from pathlib import Path
 
+from uglychain import llm
+
 
 def execute_command(command: str) -> str:
     """
@@ -17,6 +19,19 @@ def execute_command(command: str) -> str:
 
     result = subprocess.run(shlex.split(command), cwd=working_directory, capture_output=True, text=True)
     return result.stdout + result.stderr
+
+
+@llm("openai:gpt-4o-mini")
+def chat(question: str):
+    """
+    You are a helpful assistant. You are designed to answer questions for users.
+    """
+    return f"{question}"
+
+
+chat.__doc__ = """
+Get the answer to the question input from Large Language Models.
+"""
 
 
 def read_file(path: str) -> str:
