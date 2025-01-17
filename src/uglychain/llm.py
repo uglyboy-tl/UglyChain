@@ -68,6 +68,8 @@ def llm(
                 raise ValueError("n > 1 和列表长度 > 1 不能同时成立")
             if m > 1 or n > 1:
                 default_console.show_result = False
+            else:
+                default_console.progress.disable = True
 
             def process_single_prompt(i: int) -> list[Any]:
                 args = [arg[i] if j in map_args_index_set else arg for j, arg in enumerate(prompt_args)]  # type: ignore

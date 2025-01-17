@@ -52,5 +52,5 @@ def weather(city: str):
 if __name__ == "__main__":
     config.verbose = True
     # test()
-    update()
-    # weather("北京")
+    # update()
+    weather("北京")

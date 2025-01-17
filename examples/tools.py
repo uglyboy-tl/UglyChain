@@ -31,5 +31,6 @@ def tools():
 
 
 if __name__ == "__main__":
+    config.verbose = True
     functian_call()
     tools()

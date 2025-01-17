@@ -18,7 +18,6 @@ Override configuration at runtime:
 from uglychain import config
 config.verbose = True # Enable verbose logging
 config.use_parallel_processing = True # Enable parallel processing
-config.show_progress = False # Disable progress bar
 config.default_api_params = {
     "temperature": 0.1,
     "max_tokens": 1000
