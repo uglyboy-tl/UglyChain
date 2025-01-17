@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.0.5] - 2025-01-15
+### Features
+- feat(uglychain): 添加 MCP 支持并优化 react 函数 (Uglyboy)
+- feat(console): 优化日志输出并添加 react 流程支持 (Uglyboy)
+- docs(website): 构建项目文档网站 (Uglyboy)
+- docs: 添加中文版本 README 文件并更新相关内容 (Uglyboy)
+
+### Refactor
+- refactor(config): 优化 show_progress 配置 (Uglyboy)
+
+### Tests
+- test(client): 增加异常处理测试用例并添加 console 模块测试 (Uglyboy)
+
 ## [1.0.4] - 2025-01-14
 ### Features
 - ci(release): 增加版本更新检查 (Uglyboy)
