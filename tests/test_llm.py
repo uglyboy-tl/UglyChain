@@ -3,7 +3,6 @@ from __future__ import annotations
 import pytest
 from pydantic import BaseModel
 
-from uglychain.client import Client
 from uglychain.llm import _get_map_keys, _get_messages, llm
 
 

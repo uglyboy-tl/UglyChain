@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-import json
-
 import pytest
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel
 
 from uglychain.structured import Mode, ResponseModel
 
