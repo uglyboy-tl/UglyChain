@@ -17,8 +17,8 @@ P = ParamSpec("P")
 
 def llm(
     model: str,
-    response_format: type[T] | None = None,
     map_keys: list[str] | None = None,
+    response_format: type[T] | None = None,
     console: Console | None = None,
     **api_params: Any,
 ) -> Callable[

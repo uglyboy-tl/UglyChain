@@ -12,6 +12,7 @@ from typing import Any, ParamSpec, cast
 from rich.live import Live
 
 from .console import Console
+from .default_tools import final_answer
 from .llm import llm
 from .mcp import AppConfig, McpTool, load_tools
 from .structured import T
@@ -24,8 +25,8 @@ def react(
     model: str,
     tools: list[Callable] | None = None,
     mcp_config: str = "",
+    max_steps: int = -1,
     response_format: type[T] | None = None,
-    max_reacts: int = -1,
     console: Console | None = None,
     **api_params: Any,
 ) -> Callable[[Callable[P, str | list[dict[str, str]] | T]], Callable[P, str | T]]:
@@ -109,7 +110,7 @@ def react(
                     act = Action.from_response(result, _call_tool)
                     default_console.log_react(act.__dict__, live)
                     acts = [act]
-                    while not act.done and (max_reacts == -1 or react_times < max_reacts):
+                    while not act.done and (max_steps == -1 or react_times < max_steps):
                         result = cast(str, llm_tool_call(*prompt_args, acts=acts, **prompt_kwargs))
                         act = Action.from_response(result, _call_tool)
                         default_console.log_react(act.__dict__, live)
@@ -120,7 +121,7 @@ def react(
                     executor.submit(loop.run_until_complete, client.close())
             loop.close()
             response: str | T = act.obs
-            if not act.done and react_times >= max_reacts or default_response_format is not None:
+            if not act.done and react_times >= max_steps or default_response_format is not None:
                 response = llm_final_call(*prompt_args, acts=acts, **prompt_kwargs)  # type: ignore
             assert not isinstance(response, list)
             return response
@@ -134,12 +135,13 @@ def react(
 
 
 SYSTEM_PROMPT = """You are an expert assistant who can solve any task using tools. You will be given a task to solve as best you can.
-To do so, you have been given access to a list of tools: [{tool_names}].
+To do so, you have been given access to the following tools: [{tool_names}].
+
 To solve the task, you must plan forward to proceed in a series of steps, in a cycle of 'Thought:', 'Action:', 'Action Input:', and 'Observation:' sequences.
 
 At each step, in the 'Thought:' sequence, you should first explain your reasoning towards solving the task and the tools that you want to use.
 Then in the 'Action:' and 'Action Input:' sequence, you should tell system what tool to use and what arguments to use.
-The action result will then appear in the 'Observation:' field, which will be available as input for the next step. And you do not need to generate this part, it will be automatically filled by the system.
+The action result will then appear in the 'Observation:' field, which will be available as input for the next step. And you do not need to generate this part, it will be automatically filled by the system. The observation will always be a string: it can represent a file, like "image_1.jpg".
 In the end you have to return a final answer using the `final_answer` tool.
 
 ## Example
@@ -162,12 +164,13 @@ Action Input: {{"answer":"<answer>"}}
 
 ## Tools
 {tool_descriptions}
+
+## Instructions
+1. ALWAYS provide a tool call, else you will fail.
+2. Always use the right arguments for the tools. Never use variable names as the action arguments, use the value instead.
+3. Call a tool only when needed: do not call the search agent if you do not need information, try to solve the task yourself. If no tool call is needed, use final_answer tool to return your answer.
+4. Never re-do a tool call that you previously did with the exact same parameters.
 """
-
-
-def final_answer(answer: str) -> str:
-    """When get Final Answer, use this tool to return the answer and finishes the task."""
-    return answer
 
 
 @dataclass
