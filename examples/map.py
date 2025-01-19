@@ -6,7 +6,7 @@ from uglychain import config, llm
 
 
 def map():
-    @llm("openai:gpt-4o-mini", map_keys=["input"])
+    @llm(map_keys=["input"])
     def _map(input: list[str]):
         return input
 
@@ -20,7 +20,7 @@ def map():
 
 
 def map_input():
-    @llm("openai:gpt-4o-mini", map_keys=["book"], response_format=AUTHOR)
+    @llm(map_keys=["book"], response_format=AUTHOR)
     def _map(book: list[str], position: str):
         return f"{book}的{position}是谁？"
 
@@ -45,7 +45,7 @@ def test():
 
 
 if __name__ == "__main__":
-    # config.verbose = True
+    config.verbose = True
     config.use_parallel_processing = True
     # map()
     map_input()

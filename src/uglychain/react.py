@@ -22,7 +22,7 @@ P = ParamSpec("P")
 
 
 def react(
-    model: str,
+    model: str = "",
     tools: list[Callable] | None = None,
     mcp_config: str = "",
     max_steps: int = -1,

@@ -29,7 +29,7 @@ def test():
     return "牛顿生于哪一年？"
 
 
-@react("openai:gpt-4o-mini", [execute_command])
+@react(tools=[execute_command])
 def update():
     return "更新我的电脑系统"
 
@@ -52,5 +52,5 @@ def weather(city: str):
 if __name__ == "__main__":
     config.verbose = True
     # test()
-    update()
-    # weather("北京")
+    # update()
+    weather("北京")

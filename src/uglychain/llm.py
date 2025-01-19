@@ -4,7 +4,7 @@ import inspect
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import wraps
-from typing import Any, ParamSpec
+from typing import Any, ParamSpec, TypeVar, Union, overload
 
 from .client import Client
 from .config import config
@@ -15,8 +15,16 @@ from .tools import ToolResopnse
 P = ParamSpec("P")
 
 
+@overload
+def llm(
+    func: Callable[P, str | list[dict[str, str]] | T],
+    /,
+) -> Callable[P, str | list[str] | T | list[T] | ToolResopnse | list[ToolResopnse]]: ...
+@overload
 def llm(
     model: str,
+    /,
+    *,
     map_keys: list[str] | None = None,
     response_format: type[T] | None = None,
     console: Console | None = None,
@@ -24,7 +32,37 @@ def llm(
 ) -> Callable[
     [Callable[P, str | list[dict[str, str]] | T]],
     Callable[P, str | list[str] | T | list[T] | ToolResopnse | list[ToolResopnse]],
-]:
+]: ...
+@overload
+def llm(
+    *,
+    model: str = "",
+    map_keys: list[str] | None = None,
+    response_format: type[T] | None = None,
+    console: Console | None = None,
+    **api_params: Any,
+) -> Callable[
+    [Callable[P, str | list[dict[str, str]] | T]],
+    Callable[P, str | list[str] | T | list[T] | ToolResopnse | list[ToolResopnse]],
+]: ...
+
+
+def llm(
+    func_or_model: Callable[P, str | list[dict[str, str]] | T] | str | None = None,
+    /,
+    *,
+    model: str = "",
+    map_keys: list[str] | None = None,
+    response_format: type[T] | None = None,
+    console: Console | None = None,
+    **api_params: Any,
+) -> (
+    Callable[
+        [Callable[P, str | list[dict[str, str]] | T]],
+        Callable[P, str | list[str] | T | list[T] | ToolResopnse | list[ToolResopnse]],
+    ]
+    | Callable[P, str | list[str] | T | list[T] | ToolResopnse | list[ToolResopnse]]
+):
     """
     LLM 装饰器，用于指定语言模型和其参数。
 
@@ -32,7 +70,14 @@ def llm(
     :param api_params: API 参数，以关键字参数形式传入
     :return: 返回一个装饰器，用于装饰提示函数
     """
-    default_model_from_decorator = model
+    if isinstance(func_or_model, str):
+        model = func_or_model
+        func = None
+    elif callable(func_or_model):
+        func = func_or_model
+    else:
+        func = None
+    default_model_from_decorator = model if model else config.default_model
     default_console = console or Console()
     default_api_params_from_decorator = api_params.copy()
 
@@ -84,8 +129,8 @@ def llm(
                 messages = _get_messages(res, prompt)
                 response_model.process_parameters(model, messages, merged_api_params)
 
-                default_console.log_messages(messages)
                 default_console.log_api_params(merged_api_params)
+                default_console.log_messages(messages)
 
                 response = Client.generate(model, messages, **merged_api_params)
 
@@ -120,6 +165,10 @@ def llm(
         model_call.__func__ = prompt  # type: ignore
 
         return model_call  # type: ignore
+
+    # 检查是否直接应用装饰器而不是传递参数
+    if func is not None:
+        return parameterized_lm_decorator(func)  # type: ignore[return-value]
 
     return parameterized_lm_decorator  # type: ignore[return-value]
 

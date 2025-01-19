@@ -20,7 +20,8 @@ def user_input(question: str) -> str:
     return user_input
 
 
-@llm("openai:gpt-4o-mini")
+
+@llm
 def chat(question: str):
     """
     You are a helpful assistant. You are designed to answer questions for users.

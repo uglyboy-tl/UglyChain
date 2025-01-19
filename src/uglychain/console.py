@@ -41,10 +41,7 @@ class Console:
     react_table: Table = field(init=False, default_factory=Table)
 
     def __post_init__(self) -> None:
-        self.react_table.box = box.SIMPLE
-        self.react_table.expand = True
-        self.react_table.add_column("Type", justify="center")
-        self.react_table.add_column("Information", justify="left")
+        self._init_react_table()
 
     def init(self):
         self.show_base_info = self.show_base_info and config.verbose
@@ -55,6 +52,13 @@ class Console:
         self.show_api_params = self.show_api_params and config.verbose
         self.show_result = self.show_result and config.verbose
 
+    def _init_react_table(self):
+        self.react_table.box = box.SIMPLE
+        self.react_table.show_header = False
+        self.react_table.expand = True
+        self.react_table.add_column("Type")
+        self.react_table.add_column("Information")
+
     def log_model_usage_pre(
         self,
         model: str,
@@ -62,8 +66,9 @@ class Console:
         args: tuple[object, ...],
         kwargs: dict[str, Any],
     ) -> None:
-        if not self.show_base_info or not config.verbose:
+        if not self.show_base_info:
             return
+        self.console.print(f"[bold green]Model[/bold green]: {model}")
 
     def log_progress_start(self, n: int) -> None:
         self._task_id = self.progress.add_task("模型进度", total=n)
@@ -78,9 +83,9 @@ class Console:
     def log_messages(self, messages: list[dict[str, str]]) -> None:
         if not self.show_message:
             return
-        table = Table(title="Prompt", box=box.SIMPLE, show_header=False)
-        table.add_column("角色", justify="right", no_wrap=True)
-        table.add_column("内容", justify="left")
+        messages_table = Table(title="Prompt", box=box.SIMPLE, show_header=False, expand=True)
+        messages_table.add_column("角色", justify="right", no_wrap=True)
+        messages_table.add_column("内容")
         for message in messages:
             if message["role"] == "system":
                 style = "bold green"
@@ -88,8 +93,8 @@ class Console:
                 style = "italic yellow"
             else:
                 style = "italic blue"
-            table.add_row(message["role"], message["content"], style=style)
-        self.console.print(table)
+            messages_table.add_row(message["role"], message["content"], style=style)
+        self.console.print(messages_table)
 
     def log_api_params(
         self,
@@ -99,7 +104,7 @@ class Console:
             return
         if api_params:
             if "tools" in api_params:
-                params_table = Table(title="Tools", box=box.SIMPLE)
+                params_table = Table(title="Tools", box=box.SIMPLE, expand=True)
                 params_table.add_column("Name", justify="right", no_wrap=True)
                 params_table.add_column("Parameters", justify="center")
                 for tool in api_params["tools"]:

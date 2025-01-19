@@ -3,7 +3,7 @@ from __future__ import annotations
 from uglychain import config, llm
 
 
-@llm(model="openai:gpt-4o-mini", temperature=0.7)
+@llm(temperature=0.7)
 def chat_bot(message_history: list):
     "You are a friendly chatbot. Engage in casual conversation."
     return message_history

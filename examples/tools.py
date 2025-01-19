@@ -10,7 +10,6 @@ from uglychain import ToolResopnse, config, get_tools_schema, llm
 
 def functian_call():
     @llm(
-        "openai:gpt-4o-mini",
         tools=get_tools_schema([get_current_weather]),
         tool_choice={"type": "function", "function": {"name": get_current_weather.__name__}},
     )
@@ -23,7 +22,7 @@ def functian_call():
 
 
 def tools():
-    @llm("openai:gpt-4o-mini", tools=get_tools_schema([get_current_weather, search_baidu, search_google, search_bing]))
+    @llm(tools=get_tools_schema([get_current_weather, search_baidu, search_google, search_bing]))
     def _tools():
         return "牛顿生于哪一年？请搜索查询"
 

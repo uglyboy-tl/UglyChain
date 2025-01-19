@@ -5,7 +5,7 @@ from examples.schema import ClassifyResponse
 from uglychain import config, llm
 
 
-@llm("openai:gpt-4o-mini", map_keys=["input"], response_format=ClassifyResponse)
+@llm(map_keys=["input"], response_format=ClassifyResponse)
 def classify(input: list[str], samples: dict[str, str] | None = None):
     """You are an expert classifier who can help me."""
     if samples:
