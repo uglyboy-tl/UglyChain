@@ -1,24 +1,14 @@
 from __future__ import annotations
 
 import inspect
-import json
 import textwrap
 import warnings
 from collections.abc import Callable, Sequence
 from typing import Annotated, Any, get_args, get_origin
 
 from openai.lib import _pydantic
-from pydantic import BaseModel, ConfigDict, Field, PydanticDeprecationWarning, create_model, validate_arguments
+from pydantic import BaseModel, ConfigDict, PydanticDeprecationWarning, create_model, validate_arguments
 from pydantic.fields import FieldInfo
-
-
-class ToolResopnse(BaseModel):
-    name: str = Field(..., description="tool name")
-    parameters: dict = Field(..., description="tool arguments")
-
-
-def parse(response: Any) -> ToolResopnse:
-    return ToolResopnse(name=response.name, parameters=json.loads(response.arguments))
 
 
 def function_schema(func: Callable) -> dict[str, Any]:
@@ -30,13 +20,6 @@ def get_tools_schema(tools: list[Callable]) -> list[dict[str, Any]]:
     if not tools:
         return []
     return [{"type": "function", "function": function_schema(tool)} for tool in tools]
-
-
-def run_function(tools: list[Callable[..., str]], response: ToolResopnse) -> str:
-    for tool in tools:
-        if tool.__name__ == response.name:
-            return tool(**response.parameters)
-    raise ValueError(f"Can't find tool {response.name}")
 
 
 def add_tools_to_parameters(params: dict[str, Any], tools: list[Callable] | None) -> None:

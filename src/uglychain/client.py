@@ -5,6 +5,8 @@ from typing import Any
 
 import aisuite
 
+from .schema import Messages
+
 
 class Client:
     # 单例模式缓存 Client 实例
@@ -42,7 +44,7 @@ class Client:
     def generate(
         cls,
         model: str,
-        messages: list[dict[str, str]],
+        messages: Messages,
         **api_params: Any,
     ) -> list[Any]:
         try:

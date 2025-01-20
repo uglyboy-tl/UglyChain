@@ -8,7 +8,7 @@ from uglychain import config, llm
 def map():
     @llm(map_keys=["input"])
     def _map(input: list[str]):
-        return input
+        return f"{input}"
 
     input = [
         "How old are you?",

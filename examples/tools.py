@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from enum import Enum
 from typing import cast
 
 from examples.schema import get_current_weather, search_baidu, search_bing, search_google
@@ -17,7 +16,7 @@ def functian_call():
         return "What's the weather in Beijing?"
 
     response = cast(ToolResopnse, _tools())
-    result = get_current_weather(**response.parameters)
+    result = response.run_function([get_current_weather])
     print(result)
 
 

@@ -5,15 +5,12 @@ import json
 import re
 from collections.abc import Callable
 from enum import Enum, unique
-from typing import Any, Generic, TypeVar, get_type_hints
+from typing import Any, Generic, get_type_hints
 
 from openai.lib import _pydantic
 from pydantic import BaseModel, ValidationError
 
-from .tools import ToolResopnse, parse
-
-# 创建一个泛型变量，用于约束BaseModel的子类
-T = TypeVar("T", bound=BaseModel)
+from .schema import Messages, T, ToolResopnse
 
 
 @unique
@@ -52,7 +49,7 @@ Make sure to return an instance of the JSON which can be parsed by Python json.l
     def process_parameters(
         self,
         model: str,
-        messages: list[dict[str, str]],
+        messages: Messages,
         merged_api_params: dict[str, Any],
     ) -> None:
         if self.response_type is str:
@@ -85,7 +82,7 @@ Make sure to return an instance of the JSON which can be parsed by Python json.l
     def parse_from_response(self, choice: Any) -> str | T | ToolResopnse:
         # USE TOOLS
         if hasattr(choice.message, "tool_calls") and choice.message.tool_calls and self.mode != Mode.TOOLS:
-            return parse(choice.message.tool_calls[0].function)
+            return ToolResopnse.parse(choice.message.tool_calls[0].function)
         # Other modes
         if self.response_type is str:
             return choice.message.content.strip()
@@ -119,14 +116,14 @@ Make sure to return an instance of the JSON which can be parsed by Python json.l
                 name = self.response_type.__name__
                 raise ValueError(f"Failed to find JSON object in response for {name}: {response}") from None
 
-    def _update_markdown_json_schema_from_system_prompt(self, messages: list[dict[str, str]]) -> None:
+    def _update_markdown_json_schema_from_system_prompt(self, messages: Messages) -> None:
         if not messages:
             raise ValueError("Messages is empty")
 
         system_prompt = self.PROMPT_TEMPLATE.format(output_schema=json.dumps(self.parameters, ensure_ascii=False))
         system_message = messages[0]
         if system_message["role"] == "system":
-            system_message["content"] += "\n\n" + system_prompt
+            system_message["content"] += "\n\n" + system_prompt  # type: ignore
         else:
             messages.insert(
                 0,
