@@ -7,8 +7,10 @@ from typing import Any
 
 import rich
 from rich.columns import Columns
+from rich.console import Group
 from rich.live import Live
 from rich.progress import Progress
+from rich.prompt import Confirm, Prompt
 from rich.table import Table, box
 
 from .config import config
@@ -39,9 +41,12 @@ class Console:
     console: rich.console.Console = field(init=False, default_factory=rich.console.Console)
     progress: Progress = field(init=False, default_factory=Progress)
     react_table: Table = field(init=False, default_factory=Table)
+    group: Group = field(init=False)
+    _live: Live = field(init=False)
 
     def __post_init__(self) -> None:
         self._init_react_table()
+        self.group = Group(self.react_table)
 
     def init(self):
         self.show_base_info = self.show_base_info and config.verbose
@@ -62,7 +67,7 @@ class Console:
     def log_model_usage_pre(
         self,
         model: str,
-        prompt: Callable,
+        func: Callable,
         args: tuple[object, ...],
         kwargs: dict[str, Any],
     ) -> None:
@@ -118,12 +123,18 @@ class Console:
             return
         self.console.print(Columns([i.model_dump_json(indent=2) if not isinstance(i, str) else i for i in result]))
 
-    def log_react(self, act: dict[str, Any], live: Live) -> None:
+    def log_react(self, act: dict[str, Any]) -> None:
         if not self.show_react:
             return
         for key in ["thought", "tool", "args", "obs"]:
             self.react_table.add_row(REACT_NAME[key], str(act[key]).strip(), style=REACT_STYLE[key])
-        live.update(self.react_table)
+        self._update_live()
+
+    def input(self, prompt: str, default: str = "") -> str:
+        return Prompt.ask(prompt, console=self.console, default=default)
+
+    def confirm(self, prompt: str, default: bool = True) -> bool:
+        return Confirm.ask(prompt, console=self.console, show_default=default)
 
     def off(self) -> None:
         self.show_base_info = False
@@ -132,3 +143,21 @@ class Console:
         self.show_api_params = False
         self.show_result = False
         self.progress.disable = True
+
+    def _get_live(self) -> Live:
+        if not hasattr(self, "_live") or not self._live:
+            self._live = Live(self.group, console=self.console, auto_refresh=False)
+        if not self._live.is_started:
+            self._live.start(refresh=True)
+        return self._live
+
+    def _update_live(self) -> None:
+        live = self._get_live()
+        live.update(self.group, refresh=True)
+
+    def _stop_live(self) -> None:
+        if hasattr(self, "_live") and self._live and self._live.is_started:
+            self._live.stop()
+
+    def stop(self):
+        self._stop_live()

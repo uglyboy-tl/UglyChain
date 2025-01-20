@@ -11,6 +11,7 @@ from typing import Any, ParamSpec, cast
 
 from rich.live import Live
 
+from .config import config
 from .console import Console
 from .default_tools import final_answer
 from .llm import llm
@@ -93,6 +94,9 @@ def react(
                 )(react_once)
 
                 def _call_tool(name: str, args: dict[str, Any]) -> str:
+                    if config.need_confirm:
+                        if not default_console.confirm(f"Do you want to use tool {name}?"):
+                            return "User cancelled. Please find other ways to solve this problem."
                     for tool in default_tools:
                         if tool.__name__ == name:
                             return tool(**args)
@@ -106,16 +110,15 @@ def react(
                 result = llm_tool_call(*prompt_args, **prompt_kwargs)
                 assert isinstance(result, str)
                 default_console.off()
-                with Live(default_console.react_table, console=default_console.console) as live:
+                act = Action.from_response(result, _call_tool)
+                default_console.log_react(act.__dict__)
+                acts = [act]
+                while not act.done and (max_steps == -1 or react_times < max_steps):
+                    result = cast(str, llm_tool_call(*prompt_args, acts=acts, **prompt_kwargs))
                     act = Action.from_response(result, _call_tool)
-                    default_console.log_react(act.__dict__, live)
-                    acts = [act]
-                    while not act.done and (max_steps == -1 or react_times < max_steps):
-                        result = cast(str, llm_tool_call(*prompt_args, acts=acts, **prompt_kwargs))
-                        act = Action.from_response(result, _call_tool)
-                        default_console.log_react(act.__dict__, live)
-                        react_times += 1
-                        acts.append(act)
+                    default_console.log_react(act.__dict__)
+                    react_times += 1
+                    acts.append(act)
                 # Close all clients
                 for client in mcp_clients:
                     executor.submit(loop.run_until_complete, client.close())
@@ -124,6 +127,7 @@ def react(
             if not act.done and react_times >= max_steps or default_response_format is not None:
                 response = llm_final_call(*prompt_args, acts=acts, **prompt_kwargs)  # type: ignore
             assert not isinstance(response, list)
+            default_console.stop()
             return response
 
         model_call.__api_params__ = default_api_params_from_decorator  # type: ignore
