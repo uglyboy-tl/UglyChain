@@ -50,7 +50,7 @@ class Console:
         self._init_messages_table()
 
     @property
-    def group(self):
+    def group(self) -> Group:
         _group = []
         if self.show_message:
             _group.append(self.messages_table)
@@ -58,7 +58,7 @@ class Console:
             _group.append(self.react_table)
         return Group(*_group)
 
-    def init(self):
+    def init(self) -> None:
         self.show_base_info = self.show_base_info and config.verbose
         self.show_progress = self.show_progress and not config.verbose
         self.progress.disable = not self.show_progress
@@ -67,12 +67,12 @@ class Console:
         self.show_api_params = self.show_api_params and config.verbose
         self.show_result = self.show_result and config.verbose
 
-    def _init_react_table(self):
+    def _init_react_table(self) -> None:
         self.react_table = Table(box=box.SIMPLE, show_header=False, expand=True)
         self.react_table.add_column("Type")
         self.react_table.add_column("Information")
 
-    def _init_messages_table(self):
+    def _init_messages_table(self) -> None:
         self.messages_table = Table(title="Prompt", box=box.SIMPLE, show_header=False, expand=True)
         self.messages_table.add_column("角色", justify="right", no_wrap=True)
         self.messages_table.add_column("内容")
@@ -169,5 +169,5 @@ class Console:
         if hasattr(self, "_live") and self._live and self._live.is_started:
             self._live.stop()
 
-    def stop(self):
+    def stop(self) -> None:
         self._stop_live()

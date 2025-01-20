@@ -100,3 +100,9 @@ coverage = "pytest --cov=src --cov-report=term-missing"
 docs = "mkdocs serve"
 docs-build = "mkdocs build"
 docs-deploy = "mkdocs gh-deploy"
+
+[tool.coverage.run]
+omit = [
+    "src/uglychain/tools.py",
+    # 你可以在这里添加更多的路径
+]

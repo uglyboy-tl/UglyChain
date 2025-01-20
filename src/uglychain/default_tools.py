@@ -20,9 +20,8 @@ def user_input(question: str) -> str:
     return user_input
 
 
-
 @llm
-def chat(question: str):
+def chat(question: str) -> str:
     """
     You are a helpful assistant. You are designed to answer questions for users.
     """

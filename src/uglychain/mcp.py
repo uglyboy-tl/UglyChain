@@ -85,7 +85,7 @@ class McpTool:
     session: ClientSession
     client: McpClient
 
-    async def _arun(self, **kwargs):
+    async def _arun(self, **kwargs: Any) -> str:
         if not self.session:
             self.session = await self.client._start_session()
 
@@ -113,7 +113,7 @@ class McpClient:
                 await self._session.initialize()
             return self._session
 
-    async def initialize(self, force_refresh: bool = False):
+    async def initialize(self, force_refresh: bool = False) -> None:
         if self._tools and not force_refresh:
             return
 
@@ -137,7 +137,7 @@ class McpClient:
             print(f"Error gathering tools for {self.server_param.command} {' '.join(self.server_param.args)}: {e}")
             raise e
 
-    async def close(self):
+    async def close(self) -> None:
         try:
             if self._session:
                 await self._session.__aexit__(None, None, None)
@@ -173,7 +173,7 @@ async def load_tools(app_config: AppConfig, force_refresh: bool = False) -> tupl
     clients: list[McpClient] = []
     tools: list[McpTool] = []
 
-    async def convert_toolkit(server_config: McpServerConfig):
+    async def convert_toolkit(server_config: McpServerConfig) -> None:
         client = McpClient(server_config.server_name, server_config.server_param, server_config.exclude_tools)
         await client.initialize(force_refresh=force_refresh)
         clients.append(client)

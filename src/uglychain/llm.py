@@ -225,9 +225,9 @@ def llm(
                     for key, value in prompt_kwargs.items()
                 }
                 res = prompt(*args, **kwargs)  # type: ignore
-                assert isinstance(res, str) or isinstance(res, list) and all(isinstance(item, dict) for item in res), (
-                    ValueError("被修饰的函数返回值必须是 str 或 `messages`(list[dict[str, str]]) 类型")
-                )
+                assert (
+                    isinstance(res, str) or isinstance(res, list) and all(isinstance(item, dict) for item in res)
+                ), ValueError("被修饰的函数返回值必须是 str 或 `messages`(list[dict[str, str]]) 类型")
                 messages = _get_messages(res, prompt)
                 response_model.process_parameters(model, messages, merged_api_params)
 

@@ -137,9 +137,9 @@ def react(
                     for tool in default_tools:
                         if tool.__name__ == name:
                             return tool(**args)
-                    for tool in mcp_tools:
-                        if tool.name == name:
-                            future = executor.submit(loop.run_until_complete, tool._arun(**args))
+                    for mcp_tool in mcp_tools:
+                        if mcp_tool.name == name:
+                            future = executor.submit(loop.run_until_complete, mcp_tool._arun(**args))
                             return future.result()
                     raise ValueError(f"Can't find tool {name}")
 
