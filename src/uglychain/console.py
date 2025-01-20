@@ -14,6 +14,7 @@ from rich.prompt import Confirm, Prompt
 from rich.table import Table, box
 
 from .config import config
+from .schema import Messages
 
 REACT_NAME = {
     "thought": "Thought",
@@ -34,19 +35,28 @@ REACT_STYLE = {
 class Console:
     show_base_info: bool = True
     show_progress: bool = True
-    show_message: bool = True
     show_api_params: bool = True
-    show_result: bool = True
-    show_react: bool = True
+    show_result: bool = False
+    show_message: bool = True
+    show_react: bool = False
     console: rich.console.Console = field(init=False, default_factory=rich.console.Console)
     progress: Progress = field(init=False, default_factory=Progress)
     react_table: Table = field(init=False, default_factory=Table)
-    group: Group = field(init=False)
+    messages_table: Table = field(init=False, default_factory=Table)
     _live: Live = field(init=False)
 
     def __post_init__(self) -> None:
         self._init_react_table()
-        self.group = Group(self.react_table)
+        self._init_messages_table()
+
+    @property
+    def group(self):
+        _group = []
+        if self.show_message:
+            _group.append(self.messages_table)
+        if self.show_react:
+            _group.append(self.react_table)
+        return Group(*_group)
 
     def init(self):
         self.show_base_info = self.show_base_info and config.verbose
@@ -58,11 +68,14 @@ class Console:
         self.show_result = self.show_result and config.verbose
 
     def _init_react_table(self):
-        self.react_table.box = box.SIMPLE
-        self.react_table.show_header = False
-        self.react_table.expand = True
+        self.react_table = Table(box=box.SIMPLE, show_header=False, expand=True)
         self.react_table.add_column("Type")
         self.react_table.add_column("Information")
+
+    def _init_messages_table(self):
+        self.messages_table = Table(title="Prompt", box=box.SIMPLE, show_header=False, expand=True)
+        self.messages_table.add_column("角色", justify="right", no_wrap=True)
+        self.messages_table.add_column("内容")
 
     def log_model_usage_pre(
         self,
@@ -85,12 +98,10 @@ class Console:
     def log_progress_end(self) -> None:
         self.progress.stop()
 
-    def log_messages(self, messages: list[dict[str, str]]) -> None:
+    def log_messages(self, messages: Messages) -> None:
         if not self.show_message:
             return
-        messages_table = Table(title="Prompt", box=box.SIMPLE, show_header=False, expand=True)
-        messages_table.add_column("角色", justify="right", no_wrap=True)
-        messages_table.add_column("内容")
+        self._init_messages_table()
         for message in messages:
             if message["role"] == "system":
                 style = "bold green"
@@ -98,8 +109,8 @@ class Console:
                 style = "italic yellow"
             else:
                 style = "italic blue"
-            messages_table.add_row(message["role"], message["content"], style=style)
-        self.console.print(messages_table)
+            self.messages_table.add_row(str(message["role"]), str(message["content"]), style=style)
+        self._update_live()
 
     def log_api_params(
         self,
@@ -139,7 +150,6 @@ class Console:
     def off(self) -> None:
         self.show_base_info = False
         self.show_progress = False
-        self.show_message = False
         self.show_api_params = False
         self.show_result = False
         self.progress.disable = True

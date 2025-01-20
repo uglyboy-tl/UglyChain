@@ -78,8 +78,8 @@ def test_log_results(console, mock_config):
 
 def test_log_react(console, mock_config):
     act = {"thought": "test thought", "tool": "test tool", "args": "test args", "obs": "test obs"}
-    live = Live()
-    console.log_react(act, live)
+    console.show_react = True
+    console.log_react(act)
     assert len(console.react_table.rows) == 4
 
 
@@ -87,7 +87,6 @@ def test_off_method(console):
     console.off()
     assert console.show_base_info is False
     assert console.show_progress is False
-    assert console.show_message is False
     assert console.show_api_params is False
     assert console.show_result is False
     assert console.progress.disable is True
