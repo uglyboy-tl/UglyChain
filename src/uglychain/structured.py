@@ -5,7 +5,7 @@ import json
 import re
 from collections.abc import Callable
 from enum import Enum, unique
-from typing import Any, Generic, get_type_hints
+from typing import Any, Generic, get_origin, get_type_hints
 
 from openai.lib import _pydantic
 from pydantic import BaseModel, ValidationError
@@ -38,7 +38,7 @@ Make sure to return an instance of the JSON which can be parsed by Python json.l
     def __init__(self, func: Callable, response_model: type[T] | None = None) -> None:
         # 获取被修饰函数的返回类型
         response_type = get_type_hints(func).get("return", str if response_model is None else response_model)
-        self.response_type: type[str] | type[T] = str if response_type is list[dict[str, str]] else response_type
+        self.response_type: type[str] | type[T] = str if get_origin(response_type) is list else response_type
         self.mode: Mode = Mode.MD_JSON
         self._validate_response_type()
 

@@ -55,7 +55,7 @@ def react(
     console: Console | None = None,
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages]], Callable[P, str | T]]:
-    default_model_from_decorator = model
+    default_model_from_decorator = model if model else config.default_model
     default_tools: list[Callable] = [] if tools is None else tools
     default_mcp_config = AppConfig.load(mcp_config)
     default_response_format = response_format  # noqa: F841
@@ -110,6 +110,8 @@ def react(
                 else:
                     raise ValueError("Invalid output type")
 
+            default_console.log_model_usage_pre(default_model_from_decorator, prompt, prompt_args, prompt_kwargs)
+            default_console.off()
             loop = asyncio.get_event_loop()
             with ThreadPoolExecutor() as executor:
                 future = executor.submit(loop.run_until_complete, load_tools(default_mcp_config))
@@ -148,7 +150,6 @@ def react(
 
                 react_times = 0
                 result = llm_tool_call(*prompt_args, acts=None, **prompt_kwargs)
-                default_console.off()
                 act = Action.from_response(result, _call_tool)
                 default_console.log_react(act.__dict__)
                 acts = [act]

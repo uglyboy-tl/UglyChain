@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import inspect
 import json
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from types import TracebackType
 from typing import Any
 
 import rich
@@ -15,6 +17,9 @@ from rich.table import Table, box
 
 from .config import config
 from .schema import Messages
+
+MAX_AGRS: int = 5
+MAX_ARGS_LEN: int = 8
 
 REACT_NAME = {
     "thought": "Thought",
@@ -86,7 +91,12 @@ class Console:
     ) -> None:
         if not self.show_base_info:
             return
-        self.console.print(f"[bold green]Model[/bold green]: {model}")
+        base_table = Table(box=box.SIMPLE, show_header=False)
+        base_table.add_column(style="green")
+        base_table.add_column(style="blue")
+        base_table.add_row("Model", model)
+        base_table.add_row("Func", _format_func_call(func, *args, **kwargs))
+        self.console.print(base_table)
 
     def log_progress_start(self, n: int) -> None:
         self._task_id = self.progress.add_task("模型进度", total=n)
@@ -145,7 +155,10 @@ class Console:
         return Prompt.ask(prompt, console=self.console, default=default)
 
     def confirm(self, prompt: str, default: bool = True) -> bool:
-        return Confirm.ask(prompt, console=self.console, show_default=default)
+        with PauseLive(self._get_live()):
+            with self.console.status(prompt):
+                output = Confirm.ask("", console=self.console, show_default=default)
+        return output
 
     def off(self) -> None:
         self.show_base_info = False
@@ -171,3 +184,67 @@ class Console:
 
     def stop(self) -> None:
         self._stop_live()
+
+
+class PauseLive:
+    def __init__(self, live: Live) -> None:
+        self._live = live
+
+    def __enter__(self) -> Live:
+        self._live.stop()
+        return self._live
+
+    def __exit__(
+        self, exc_type: type[BaseException] | None, exc_value: BaseException | None, traceback: TracebackType | None
+    ) -> None:
+        self._live.start()
+
+
+def _format_arg_str(arg_str: Any) -> str:
+    if isinstance(arg_str, str):
+        if len(arg_str) > MAX_ARGS_LEN:
+            return f"'{arg_str[:MAX_ARGS_LEN].strip()}...'"
+        else:
+            return f"'{arg_str}'"
+    else:
+        arg_str = repr(arg_str)
+        if len(arg_str) > MAX_ARGS_LEN:
+            return f"{arg_str[:MAX_ARGS_LEN].strip()}..."
+        else:
+            return arg_str
+
+
+def _format_func_call(func: Callable, *args: Any, **kwargs: Any) -> str:
+    # 获取函数的参数信息
+    signature = inspect.signature(func)
+    bound_arguments = signature.bind(*args, **kwargs)
+    bound_arguments.apply_defaults()
+
+    # 构建参数字符串
+    args_str = []
+    for name, value in bound_arguments.arguments.items():
+        if isinstance(value, list | dict | set | tuple):
+            end_str = ""
+            if len(value) > 2:
+                value = list(value)[:2]
+                end_str = ",..."
+            if isinstance(value, list):
+                display_value = f"[{', '.join([_format_arg_str(i) for i in value[:2]])}{end_str}]"
+            elif isinstance(value, dict):
+                display_value = f"{{{', '.join([f'{_format_arg_str(k)}: {_format_arg_str(value[k])}' for k in list(value)[:2]])}{end_str}}}"
+            elif isinstance(value, set):
+                display_value = f"{{{', '.join([_format_arg_str(i) for i in list(value)[:2]])}{end_str}}}"
+            elif isinstance(value, tuple):
+                display_value = f"({', '.join([_format_arg_str(i) for i in value[:2]])}{end_str})"
+            else:
+                display_value = value
+            args_str.append(f"{name}={display_value}")
+        else:
+            args_str.append(f"{name}={_format_arg_str(value)}")
+
+    # 构建最终的函数调用字符串
+    if len(args_str) < MAX_AGRS:
+        func_call_str = f"{func.__name__}({', '.join(args_str)})"
+    else:
+        func_call_str = f"{func.__name__}({', '.join(args_str[:MAX_AGRS])}, ...)"
+    return func_call_str
