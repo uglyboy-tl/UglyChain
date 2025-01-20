@@ -264,7 +264,7 @@ def test_llm_decorator_with_tools(monkeypatch):
 
 def test_llm_decorator_with_response_format(monkeypatch):
     @llm(model="test:model", response_format=SampleModel)
-    def sample_prompt() -> SampleModel:
+    def sample_prompt() -> str:
         return "Hello, world!"  # type: ignore
 
     def mock_generate(model, messages, **kwargs):
