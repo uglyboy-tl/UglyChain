@@ -54,7 +54,7 @@ def react(
     response_format: type[T] | None = None,
     console: Console | None = None,
     **api_params: Any,
-) -> Callable[[Callable[P, str | Messages]], Callable[P, str] | Callable[P, T]]:
+) -> Callable[[Callable[P, str | Messages]], Callable[P, str | T]]:
     default_model_from_decorator = model
     default_tools: list[Callable] = [] if tools is None else tools
     default_mcp_config = AppConfig.load(mcp_config)
@@ -64,7 +64,7 @@ def react(
 
     def parameterized_lm_decorator(
         prompt: Callable[P, str | Messages],
-    ) -> Callable[P, str] | Callable[P, T]:
+    ) -> Callable[P, str | T]:
         @wraps(prompt)
         def model_call(
             *prompt_args: P.args,
@@ -93,10 +93,11 @@ def react(
                 response_format=default_response_format,
                 map_keys=None,
                 n=None,
+                tools=None,
                 **default_api_params_from_decorator,
             )(final_call)
 
-            def react_once(*prompt_args: P.args, acts: list[Action] = None, **prompt_kwargs: P.kwargs):  # type: ignore
+            def react_once(*prompt_args: P.args, acts: list[Action] | None = None, **prompt_kwargs: P.kwargs):  # type: ignore
                 if acts is None:
                     acts = []
                 output = prompt(*prompt_args, **prompt_kwargs)
@@ -122,10 +123,12 @@ def react(
                 )
 
                 llm_tool_call = llm(
-                    default_model_from_decorator,
+                    model=default_model_from_decorator,
                     console=default_console,
                     map_keys=None,
+                    response_format=None,
                     n=None,
+                    tools=None,
                     stop=["Observation:"],
                     **default_api_params_from_decorator,
                 )(react_once)
@@ -144,14 +147,13 @@ def react(
                     raise ValueError(f"Can't find tool {name}")
 
                 react_times = 0
-                result = llm_tool_call(*prompt_args, **prompt_kwargs)
-                assert isinstance(result, str)
+                result = llm_tool_call(*prompt_args, acts=None, **prompt_kwargs)
                 default_console.off()
                 act = Action.from_response(result, _call_tool)
                 default_console.log_react(act.__dict__)
                 acts = [act]
                 while not act.done and (max_steps == -1 or react_times < max_steps):
-                    result = cast(str, llm_tool_call(*prompt_args, acts=acts, **prompt_kwargs))
+                    result = llm_tool_call(*prompt_args, acts=acts, **prompt_kwargs)
                     act = Action.from_response(result, _call_tool)
                     default_console.log_react(act.__dict__)
                     react_times += 1
@@ -162,14 +164,14 @@ def react(
             loop.close()
             response: str | T = act.obs
             if not act.done and react_times >= max_steps or default_response_format is not None:
-                response = llm_final_call(*prompt_args, acts=acts, **prompt_kwargs)  # type: ignore
+                response = llm_final_call(*prompt_args, acts=acts, **prompt_kwargs)
             default_console.stop()
             return response
 
         model_call.__api_params__ = default_api_params_from_decorator  # type: ignore
         model_call.__func__ = prompt  # type: ignore
 
-        return model_call  # type: ignore
+        return model_call
 
     return parameterized_lm_decorator
 

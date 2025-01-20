@@ -15,7 +15,8 @@ def functian_call():
     def _tools():
         return "What's the weather in Beijing?"
 
-    response = cast(ToolResopnse, _tools())
+    response = _tools()
+    assert isinstance(response, ToolResopnse)
     result = response.run_function([get_current_weather])
     print(result)
 

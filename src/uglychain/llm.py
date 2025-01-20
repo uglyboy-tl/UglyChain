@@ -17,7 +17,19 @@ from .structured import ResponseModel
 def llm(
     func: Callable[P, str | Messages],
     /,
-) -> Callable[P, str | ToolResopnse]: ...
+) -> Callable[P, str]: ...
+@overload
+def llm(
+    model: str,
+    /,
+    *,
+    map_keys: None = None,
+    response_format: None = None,
+    console: Console | None = None,
+    n: None = None,
+    tools: None = None,
+    **api_params: Any,
+) -> Callable[[Callable[P, str | Messages]], Callable[P, str]]: ...
 @overload
 def llm(
     model: str,
@@ -38,8 +50,20 @@ def llm(
     response_format: None = None,
     console: Console | None = None,
     n: int,
+    tools: None = None,
     **api_params: Any,
-) -> Callable[[Callable[P, str | Messages]], Callable[P, str | ToolResopnse]]: ...
+) -> Callable[[Callable[P, str | Messages]], Callable[P, list[str]]]: ...
+@overload
+def llm(
+    model: str,
+    /,
+    *,
+    map_keys: None = None,
+    response_format: None = None,
+    console: Console | None = None,
+    n: int,
+    **api_params: Any,
+) -> Callable[[Callable[P, str | Messages]], Callable[P, list[str] | list[ToolResopnse]]]: ...
 @overload
 def llm(
     model: str,
@@ -61,7 +85,18 @@ def llm(
     console: Console | None = None,
     n: int,
     **api_params: Any,
-) -> Callable[[Callable[P, str | Messages]], Callable[P, T]]: ...
+) -> Callable[[Callable[P, str | Messages]], Callable[P, list[T]]]: ...
+@overload
+def llm(
+    *,
+    model: str = "",
+    map_keys: None = None,
+    response_format: None = None,
+    console: Console | None = None,
+    n: None = None,
+    tools: None = None,
+    **api_params: Any,
+) -> Callable[[Callable[P, str | Messages]], Callable[P, str]]: ...
 @overload
 def llm(
     *,
@@ -90,6 +125,17 @@ def llm(
     map_keys: list[str],
     response_format: None = None,
     console: Console | None = None,
+    tools: None = None,
+    **api_params: Any,
+) -> Callable[[Callable[P, str | Messages]], Callable[P, list[str]]]: ...
+@overload
+def llm(
+    model: str,
+    /,
+    *,
+    map_keys: list[str],
+    response_format: None = None,
+    console: Console | None = None,
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages]], Callable[P, list[str] | list[ToolResopnse]]]: ...
 @overload
@@ -100,8 +146,29 @@ def llm(
     response_format: None = None,
     console: Console | None = None,
     n: int,
+    tools: None = None,
+    **api_params: Any,
+) -> Callable[[Callable[P, str | Messages]], Callable[P, list[str]]]: ...
+@overload
+def llm(
+    *,
+    model: str = "",
+    map_keys: None = None,
+    response_format: None = None,
+    console: Console | None = None,
+    n: int,
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages]], Callable[P, list[str] | list[ToolResopnse]]]: ...
+@overload
+def llm(
+    *,
+    model: str = "",
+    map_keys: list[str],
+    response_format: None = None,
+    console: Console | None = None,
+    tools: None = None,
+    **api_params: Any,
+) -> Callable[[Callable[P, str | Messages]], Callable[P, list[str]]]: ...
 @overload
 def llm(
     *,
@@ -152,11 +219,10 @@ def llm(
     console: Console | None = None,
     **api_params: Any,
 ) -> (
-    Callable[P, str | ToolResopnse]
-    | Callable[[Callable[P, str | Messages]], Callable[P, str | ToolResopnse]]
-    | Callable[[Callable[P, str | Messages]], Callable[P, T]]
-    | Callable[[Callable[P, str | Messages]], Callable[P, list[str] | list[ToolResopnse]]]
-    | Callable[[Callable[P, str | Messages]], Callable[P, list[T]]]
+    Callable[P, str]
+    | Callable[
+        [Callable[P, str | Messages]], Callable[P, str | ToolResopnse | T | list[str] | list[ToolResopnse] | list[T]]
+    ]
 ):
     """
     LLM 装饰器，用于指定语言模型和其参数。
@@ -178,27 +244,24 @@ def llm(
 
     def parameterized_lm_decorator(
         prompt: Callable[P, str | Messages],
-    ) -> (
-        Callable[P, str | ToolResopnse]
-        | Callable[P, T]
-        | Callable[P, list[str] | list[ToolResopnse]]
-        | Callable[P, list[T]]
-    ):
+    ) -> Callable[P, str | ToolResopnse | T | list[str] | list[ToolResopnse] | list[T]]:
         @wraps(prompt)
         def model_call(
             *prompt_args: P.args,
             api_params: dict[str, Any] | None = None,  # type: ignore
             **prompt_kwargs: P.kwargs,
-        ) -> str | list[str] | T | list[T] | ToolResopnse | list[ToolResopnse]:
+        ) -> str | ToolResopnse | T | list[str] | list[ToolResopnse] | list[T]:
             default_console.init()
             # 获取被修饰函数的返回类型
             response_model = ResponseModel[T](prompt, response_format)
 
             # 合并装饰器级别的API参数和函数级别的API参数
             merged_api_params = config.default_api_params.copy()
+            merged_api_params.pop("tools")
             if default_api_params_from_decorator:
                 merged_api_params.update(default_api_params_from_decorator)
             if api_params:
+                api_params.pop("tools")
                 merged_api_params.update(api_params)
 
             # 获取同时运行的次数
@@ -272,7 +335,7 @@ def llm(
     if func is not None:
         return parameterized_lm_decorator(func)  # type: ignore
 
-    return parameterized_lm_decorator  # type: ignore
+    return parameterized_lm_decorator
 
 
 def _get_map_keys(
