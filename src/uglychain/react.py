@@ -1,25 +1,48 @@
 from __future__ import annotations
 
+import ast
 import asyncio
 import json
 import re
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from functools import wraps
-from typing import Any, ParamSpec, cast
-
-from rich.live import Live
+from typing import Any, cast, overload
 
 from .config import config
 from .console import Console
 from .default_tools import final_answer
 from .llm import llm
 from .mcp import AppConfig, McpTool, load_tools
-from .structured import T
+from .schema import Messages, P, T
 from .tools import function_schema
 
-P = ParamSpec("P")
+
+@overload
+def react(
+    model: str = "",
+    tools: list[Callable] | None = None,
+    mcp_config: str = "",
+    max_steps: int = -1,
+    *,
+    response_format: None = None,
+    console: Console | None = None,
+    **api_params: Any,
+) -> Callable[[Callable[P, str | Messages]], Callable[P, str]]: ...
+
+
+@overload
+def react(
+    model: str = "",
+    tools: list[Callable] | None = None,
+    mcp_config: str = "",
+    max_steps: int = -1,
+    *,
+    response_format: type[T],
+    console: Console | None = None,
+    **api_params: Any,
+) -> Callable[[Callable[P, str | Messages]], Callable[P, T]]: ...
 
 
 def react(
@@ -27,20 +50,21 @@ def react(
     tools: list[Callable] | None = None,
     mcp_config: str = "",
     max_steps: int = -1,
+    *,
     response_format: type[T] | None = None,
     console: Console | None = None,
     **api_params: Any,
-) -> Callable[[Callable[P, str | list[dict[str, str]] | T]], Callable[P, str | T]]:
+) -> Callable[[Callable[P, str | Messages]], Callable[P, str] | Callable[P, T]]:
     default_model_from_decorator = model
     default_tools: list[Callable] = [] if tools is None else tools
     default_mcp_config = AppConfig.load(mcp_config)
     default_response_format = response_format  # noqa: F841
     default_api_params_from_decorator = api_params.copy()
-    default_console = console or Console(show_message=False)
+    default_console = console or Console(show_message=False, show_react=True)
 
     def parameterized_lm_decorator(
-        prompt: Callable[P, str | list[dict[str, str]] | T],
-    ) -> Callable[P, str | T]:
+        prompt: Callable[P, str | Messages],
+    ) -> Callable[P, str] | Callable[P, T]:
         @wraps(prompt)
         def model_call(
             *prompt_args: P.args,
@@ -55,24 +79,35 @@ def react(
                 output = prompt(*prompt_args, **prompt_kwargs)
                 history = "\n".join(str(a) for a in acts)
                 if isinstance(output, list):
-                    output[-1]["content"] += f"\n-----{history}\n-----\n Now you must give an final answer!"
+                    output.append(
+                        {"role": "assistant", "content": str(acts[-1]) + "\n-----\n Now you must give an final answer!"}
+                    )
+                    return output
                 elif isinstance(output, str):
                     return output + f"\n-----{history}\n-----\n Now you must give an final answer!"
+                else:
+                    raise ValueError("Invalid output type")
 
             llm_final_call = llm(
                 default_model_from_decorator,
                 response_format=default_response_format,
+                map_keys=None,
+                n=None,
                 **default_api_params_from_decorator,
-            )(final_call)  # type: ignore
+            )(final_call)
 
             def react_once(*prompt_args: P.args, acts: list[Action] = None, **prompt_kwargs: P.kwargs):  # type: ignore
                 if acts is None:
                     acts = []
                 output = prompt(*prompt_args, **prompt_kwargs)
                 if isinstance(output, list):
-                    output[-1]["content"] += "\n".join(str(a) for a in acts)
+                    if acts:
+                        output.append({"role": "assistant", "content": str(acts[-1])})
+                    return output
                 elif isinstance(output, str):
                     return output + "\n".join(str(a) for a in acts)
+                else:
+                    raise ValueError("Invalid output type")
 
             loop = asyncio.get_event_loop()
             with ThreadPoolExecutor() as executor:
@@ -86,9 +121,11 @@ def react(
                     tool_descriptions=_tool_descriptions(default_tools) + "\n" + _mcp_tool_descriptions(mcp_tools),
                 )
 
-                llm_tool_call: Callable = llm(
+                llm_tool_call = llm(
                     default_model_from_decorator,
                     console=default_console,
+                    map_keys=None,
+                    n=None,
                     stop=["Observation:"],
                     **default_api_params_from_decorator,
                 )(react_once)
@@ -126,7 +163,6 @@ def react(
             response: str | T = act.obs
             if not act.done and react_times >= max_steps or default_response_format is not None:
                 response = llm_final_call(*prompt_args, acts=acts, **prompt_kwargs)  # type: ignore
-            assert not isinstance(response, list)
             default_console.stop()
             return response
 
@@ -135,7 +171,7 @@ def react(
 
         return model_call  # type: ignore
 
-    return parameterized_lm_decorator  # type: ignore[return-value]
+    return parameterized_lm_decorator
 
 
 SYSTEM_PROMPT = """You are an expert assistant who can solve any task using tools. You will be given a task to solve as best you can.
@@ -191,7 +227,7 @@ class Action:
         else:
             return False
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return self.info
 
     @property
@@ -229,7 +265,7 @@ class Action:
         if func_name is None or func_args is None:
             raise ValueError("Can't parse the response")
         tool = func_name
-        args = json.loads(func_args.replace("'", '"'))
+        args = ast.literal_eval(func_args)
         return cls(
             thought=text,
             tool=tool,
