@@ -7,4 +7,4 @@ from .schema import ToolResopnse
 from .tools import get_tools_schema
 
 __all__ = ["llm", "config", "react", "get_tools_schema", "ToolResopnse"]
-__version__ = "1.0.5"
+__version__ = "1.1.0"
