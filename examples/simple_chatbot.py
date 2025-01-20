@@ -4,7 +4,7 @@ from uglychain import config, llm
 
 
 @llm(temperature=0.7)
-def chat_bot(message_history: list[dict[str, str]]):
+def chat_bot(message_history: list[dict[str, str]]) -> list[dict[str, str]]:
     "You are a friendly chatbot. Engage in casual conversation."
     return message_history
 

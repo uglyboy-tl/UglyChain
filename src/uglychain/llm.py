@@ -257,11 +257,13 @@ def llm(
 
             # 合并装饰器级别的API参数和函数级别的API参数
             merged_api_params = config.default_api_params.copy()
-            merged_api_params.pop("tools")
+            if "tools" in merged_api_params:
+                merged_api_params.pop("tools")
             if default_api_params_from_decorator:
                 merged_api_params.update(default_api_params_from_decorator)
             if api_params:
-                api_params.pop("tools")
+                if "tools" in api_params:
+                    api_params.pop("tools")
                 merged_api_params.update(api_params)
 
             # 获取同时运行的次数
