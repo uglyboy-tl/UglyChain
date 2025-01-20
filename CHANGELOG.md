@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.1.0] - 2025-01-20
+### Features
+- feat(console): 增加函数调用日志并优化控制台输出 (Uglyboy)
+- feat(交互): 增加用户确认功能并优化日志显示 (Uglyboy)
+
+### Refactor
+- refactor(uglychain): 优化类型注解和测试代码 (Uglyboy)
+- refactor(uglychain): 优化 API 参数显示逻辑 (Uglyboy)
+- refactor(llm): 优化 API 参数处理逻辑 (Uglyboy)
+- refactor(tools): 重构工具调用和响应处理 (Uglyboy)
+- refactor(dev): 优化代码结构并添加测试用例 (Uglyboy)
+- refactor(console): 重构消息显示逻辑 (Uglyboy)
+- refactor(代码重构): 重构工具函数和类型定义 (Uglyboy)
+- refactor(llm): 重构 llm 和 react 函数 (Uglyboy)
+
+### Tests
+- test(default_tools): 添加默认工具模块的测试用例 (Uglyboy)
+
 ## [1.0.5] - 2025-01-15
 ### Features
 - feat(uglychain): 添加 MCP 支持并优化 react 函数 (Uglyboy)
@@ -56,6 +74,7 @@
 - feat(console): 添加工具参数日志输出 (Uglyboy)
 - feat(react): 增加反应链超过最大次数时的处理机制 (Uglyboy)
 - refactor(react): 重构反应式编程模型 (Uglyboy)
+- refactor(uglychain): 将 validate_response_type 方法
 - refactor(uglychain): 将 validate_response_type 方法改为受保护的方法 (Uglyboy)
 - refactor(uglychain): 重构 structured.py 中的模型匹配逻辑 (Uglyboy)
 
