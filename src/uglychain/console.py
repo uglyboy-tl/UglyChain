@@ -119,7 +119,7 @@ class Console:
         if not self.show_api_params:
             return
         if api_params:
-            if "tools" in api_params:
+            if "tools" in api_params and api_params["tools"]:
                 params_table = Table(title="Tools", box=box.SIMPLE, expand=True)
                 params_table.add_column("Name", justify="right", no_wrap=True)
                 params_table.add_column("Parameters", justify="center")
