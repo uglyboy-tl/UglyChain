@@ -4,7 +4,7 @@ from typing import cast
 
 from examples.schema import get_current_weather, search_baidu, search_bing, search_google
 
-from uglychain import ToolResopnse, config, get_tools_schema, llm
+from uglychain import ToolResponse, config, get_tools_schema, llm
 
 
 def functian_call():
@@ -16,7 +16,7 @@ def functian_call():
         return "What's the weather in Beijing?"
 
     response = _tools()
-    assert isinstance(response, ToolResopnse)
+    assert isinstance(response, ToolResponse)
     result = response.run_function([get_current_weather])
     print(result)
 

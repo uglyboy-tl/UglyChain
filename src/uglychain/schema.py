@@ -12,12 +12,12 @@ Content = TypeVar("Content", bound=str | dict[str, Any])
 Messages = list[dict[str, Content]]
 
 
-class ToolResopnse(BaseModel):
+class ToolResponse(BaseModel):
     name: str = Field(..., description="tool name")
     parameters: dict = Field(..., description="tool arguments")
 
     @classmethod
-    def parse(cls, response: Any) -> ToolResopnse:
+    def parse(cls, response: Any) -> ToolResponse:
         return cls(name=response.name, parameters=json.loads(response.arguments))
 
     def run_function(self, tools: list[Callable[..., str]]) -> str:

@@ -102,6 +102,7 @@ def react(
                 response_format=default_response_format,
                 console=react_console,
                 map_keys=None,
+                need_retry=True,
                 n=None,
                 tools=None,
                 **default_api_params_from_decorator,
@@ -146,12 +147,13 @@ def react(
                     tool_names=", ".join(tool_names),
                     tool_descriptions=_tool_descriptions(default_tools) + "\n" + _mcp_tool_descriptions(mcp_tools),
                 )
-                # TODO: 增加 retry 流程，确保 ReAct 不中断
+
                 llm_tool_call = llm(
                     model=default_model_from_decorator,
                     console=react_console,
                     map_keys=None,
                     response_format=None,
+                    need_retry=True,
                     n=None,
                     tools=None,
                     stop=["Observation:"],

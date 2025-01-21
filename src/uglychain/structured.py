@@ -10,7 +10,7 @@ from typing import Any, Generic, get_origin, get_type_hints
 from openai.lib import _pydantic
 from pydantic import BaseModel, ValidationError
 
-from .schema import Messages, T, ToolResopnse
+from .schema import Messages, T, ToolResponse
 
 
 @unique
@@ -81,10 +81,10 @@ Make sure to return an instance of the JSON which can be parsed by Python json.l
         elif self.mode == Mode.MD_JSON:
             self._update_markdown_json_schema_from_system_prompt(messages)
 
-    def parse_from_response(self, choice: Any) -> str | T | ToolResopnse:
+    def parse_from_response(self, choice: Any) -> str | T | ToolResponse:
         # USE TOOLS
         if hasattr(choice.message, "tool_calls") and choice.message.tool_calls and self.mode != Mode.TOOLS:
-            return ToolResopnse.parse(choice.message.tool_calls[0].function)
+            return ToolResponse.parse(choice.message.tool_calls[0].function)
         # Other modes
         if self.response_type is str:
             return choice.message.content.strip()
