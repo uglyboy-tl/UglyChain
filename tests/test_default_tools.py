@@ -6,7 +6,7 @@ from io import StringIO
 from pathlib import Path
 
 from uglychain.client import Client
-from uglychain.default_tools import chat, execute_command, final_answer, user_input
+from uglychain.default_tools import execute_command, final_answer, user_input
 
 
 def load_env_file(filepath):

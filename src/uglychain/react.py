@@ -6,7 +6,7 @@ import json
 import re
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import wraps
 from typing import Any, overload
 
@@ -99,9 +99,7 @@ def react(
                 **default_api_params_from_decorator,
             )(final_call)
 
-            def react_once(*prompt_args: P.args, acts: list[Action] | None = None, **prompt_kwargs: P.kwargs):  # type: ignore
-                if acts is None:
-                    acts = []
+            def react_once(*prompt_args: P.args, acts: list[Action], **prompt_kwargs: P.kwargs):  # type: ignore
                 output = prompt(*prompt_args, **prompt_kwargs)
                 if isinstance(output, list):
                     if acts:
@@ -119,17 +117,16 @@ def react(
                 future = executor.submit(loop.run_until_complete, load_tools(default_mcp_config))
                 mcp_clients, mcp_tools = future.result()
 
-                def _call_tool(name: str, args: dict[str, Any]) -> str:
+                def _call_tool(name: str, args: dict[str, Any], console: Console) -> str:
                     for tool in default_tools:
                         if tool.__name__ == name:
-                            if not default_console.call_tool_confirm(name, args):
+                            if not console.call_tool_confirm(name, args):
                                 return "User cancelled. Please find other ways to solve this problem."
                             return tool(**args)
                     for mcp_tool in mcp_tools:
                         if mcp_tool.name == name:
-                            if (
-                                name in default_mcp_config.tools_requires_confirmation
-                                and not default_console.call_tool_confirm(name, args)
+                            if name in default_mcp_config.tools_requires_confirmation and not console.call_tool_confirm(
+                                name, args
                             ):
                                 return "User cancelled. Please find other ways to solve this problem."
                             future = executor.submit(loop.run_until_complete, mcp_tool._arun(**args))
@@ -142,7 +139,7 @@ def react(
                     tool_names=", ".join(tool_names),
                     tool_descriptions=_tool_descriptions(default_tools) + "\n" + _mcp_tool_descriptions(mcp_tools),
                 )
-
+                # TODO: 增加 retry 流程，确保 ReAct 不中断
                 llm_tool_call = llm(
                     model=default_model_from_decorator,
                     console=default_console,
@@ -154,17 +151,14 @@ def react(
                     **default_api_params_from_decorator,
                 )(react_once)
 
-                # TODO: 增加 try except 流程，确保 ReAct 不中断
                 react_times = 0
-                result = llm_tool_call(*prompt_args, acts=None, **prompt_kwargs)
-                act = Action.from_response(result, _call_tool)
-                default_console.log_react(act.__dict__)
-                acts = [act]
-                while not act.done and (max_steps == -1 or react_times < max_steps):
-                    result = llm_tool_call(*prompt_args, acts=acts, **prompt_kwargs)
-                    act = Action.from_response(result, _call_tool)
-                    default_console.log_react(act.__dict__)
+                acts: list[Action] = []
+                act = Action()
+                while react_times == 0 or not act.done and (max_steps == -1 or react_times < max_steps):
                     react_times += 1
+                    default_console.rule(f"Step {react_times}", default_console.show_react, align="left")
+                    result = llm_tool_call(*prompt_args, acts=acts, **prompt_kwargs)
+                    act = Action.from_response(result, _call_tool, default_console)
                     acts.append(act)
                 # Close all clients
                 for client in mcp_clients:
@@ -225,10 +219,10 @@ Action Input: {{"answer":"<answer>"}}
 
 @dataclass
 class Action:
-    thought: str
-    tool: str
-    args: dict
-    obs: str
+    thought: str = ""
+    tool: str = ""
+    args: dict = field(default_factory=dict)
+    obs: str = ""
 
     @property
     def done(self) -> bool:
@@ -247,7 +241,7 @@ class Action:
         return f"\nThought: {self.thought}\nAction: {self.tool}\nAction Input: {self.args}\nObservation: {self.obs}"
 
     @classmethod
-    def from_response(cls, text: str, call: Callable[[str, dict[str, Any]], str]) -> Action:
+    def from_response(cls, text: str, call: Callable[[str, dict[str, Any], Console], str], console: Console) -> Action:
         special_func_token = "\nAction:"
         special_args_token = "\nAction Input:"
         special_obs_token = "\nObservation:"
@@ -274,12 +268,15 @@ class Action:
         # return (func_name is not None), func_name, func_args, text
         if func_name is None or func_args is None:
             raise ValueError("Can't parse the response")
+        console.log(text, console.show_react, style="yellow")
         tool = func_name
         args = ast.literal_eval(func_args)
         try:
-            obs = call(tool, args)
+            obs = call(tool, args, console)
+            console.log(obs, console.show_react, style="bold green")
         except Exception as e:
             obs = f"Error: {e}"
+            console.log(obs, console.show_react, style="bold red")
         return cls(
             thought=text,
             tool=tool,

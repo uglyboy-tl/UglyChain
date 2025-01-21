@@ -47,21 +47,35 @@ class Console:
     show_react: bool = False
     console: rich.console.Console = field(init=False, default_factory=rich.console.Console)
     progress: Progress = field(init=False, default_factory=Progress)
-    react_table: Table = field(init=False, default_factory=Table)
     messages_table: Table = field(init=False, default_factory=Table)
     _live: Live = field(init=False)
 
     def __post_init__(self) -> None:
-        self._init_react_table()
         self._init_messages_table()
+
+    def _get_live(self) -> Live:
+        if not hasattr(self, "_live") or not self._live:
+            self._live = Live(self.group, console=self.console, auto_refresh=False)
+        if not self._live.is_started:
+            self._live.start(refresh=True)
+        return self._live
+
+    def _update_live(self) -> None:
+        live = self._get_live()
+        live.update(self.group, refresh=True)
+
+    def _stop_live(self) -> None:
+        if hasattr(self, "_live") and self._live and self._live.is_started:
+            self._live.stop()
+
+    def stop(self) -> None:
+        self._stop_live()
 
     @property
     def group(self) -> Group:
         _group = []
         if self.show_message:
             _group.append(self.messages_table)
-        if self.show_react:
-            _group.append(self.react_table)
         return Group(*_group)
 
     def init(self) -> None:
@@ -73,15 +87,20 @@ class Console:
         self.show_api_params = self.show_api_params and config.verbose
         self.show_result = self.show_result and config.verbose
 
-    def _init_react_table(self) -> None:
-        self.react_table = Table(box=box.SIMPLE, show_header=False, expand=True)
-        self.react_table.add_column("Type")
-        self.react_table.add_column("Information")
-
     def _init_messages_table(self) -> None:
         self.messages_table = Table(title="Prompt", box=box.SIMPLE, show_header=False, expand=True)
         self.messages_table.add_column("角色", justify="right", no_wrap=True)
         self.messages_table.add_column("内容")
+
+    def log(self, prompt: str, condition: bool = True, **kwargs: Any) -> None:
+        if not config.verbose or not condition:
+            return
+        self.console.print(Panel(prompt, box=box.SIMPLE), **kwargs)
+
+    def rule(self, title: str = "", condition: bool = True, **kwargs: Any) -> None:
+        if not config.verbose or not condition:
+            return
+        self.console.rule(title=title, **kwargs)
 
     def log_model_usage_pre(
         self,
@@ -145,16 +164,6 @@ class Console:
             return
         self.console.print(Columns([i.model_dump_json(indent=2) if not isinstance(i, str) else i for i in result]))
 
-    def log_react(self, act: dict[str, Any]) -> None:
-        if not self.show_react:
-            return
-        for key in ["thought", "tool", "args", "obs"]:
-            self.react_table.add_row(REACT_NAME[key], str(act[key]).strip(), style=REACT_STYLE[key])
-        self._update_live()
-
-    def input(self, prompt: str, **kwargs: Any) -> str:
-        return Prompt.ask(prompt, console=self.console, **kwargs)
-
     def call_tool_confirm(self, name: str, args: dict[str, Any]) -> bool:
         if config.need_confirm and name not in ["final_answer", "user_input"]:
             self.console.print(
@@ -164,6 +173,13 @@ class Console:
                 )
             )
             return Confirm.ask("Do you confirm to run this tool?", console=self.console, show_default=True)
+        elif self.show_react and config.verbose:
+            self.console.print(
+                Panel(
+                    json.dumps(args, indent=2, ensure_ascii=False),
+                    title=name,
+                )
+            )
         return True
 
     def off(self) -> None:
@@ -172,24 +188,6 @@ class Console:
         self.show_api_params = False
         self.show_result = False
         self.progress.disable = True
-
-    def _get_live(self) -> Live:
-        if not hasattr(self, "_live") or not self._live:
-            self._live = Live(self.group, console=self.console, auto_refresh=False)
-        if not self._live.is_started:
-            self._live.start(refresh=True)
-        return self._live
-
-    def _update_live(self) -> None:
-        live = self._get_live()
-        live.update(self.group, refresh=True)
-
-    def _stop_live(self) -> None:
-        if hasattr(self, "_live") and self._live and self._live.is_started:
-            self._live.stop()
-
-    def stop(self) -> None:
-        self._stop_live()
 
 
 class PauseLive:
