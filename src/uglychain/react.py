@@ -13,7 +13,7 @@ from typing import Any, overload
 from .config import config
 from .console import Console
 from .default_tools import final_answer
-from .llm import llm
+from .llm import gen_prompt, llm
 from .mcp import AppConfig, McpTool, load_tools
 from .schema import Messages, P, T
 from .tools import function_schema
@@ -29,7 +29,7 @@ def react(
     response_format: None = None,
     console: Console | None = None,
     **api_params: Any,
-) -> Callable[[Callable[P, str | Messages]], Callable[P, str]]: ...
+) -> Callable[[Callable[P, str | Messages | None]], Callable[P, str]]: ...
 
 
 @overload
@@ -42,7 +42,7 @@ def react(
     response_format: type[T],
     console: Console | None = None,
     **api_params: Any,
-) -> Callable[[Callable[P, str | Messages]], Callable[P, T]]: ...
+) -> Callable[[Callable[P, str | Messages | None]], Callable[P, T]]: ...
 
 
 def react(
@@ -54,7 +54,7 @@ def react(
     response_format: type[T] | None = None,
     console: Console | None = None,
     **api_params: Any,
-) -> Callable[[Callable[P, str | Messages]], Callable[P, str | T]]:
+) -> Callable[[Callable[P, str | Messages | None]], Callable[P, str | T]]:
     default_model_from_decorator = model if model else config.default_model
     default_tools: list[Callable] = [] if tools is None else tools
     default_mcp_config = AppConfig.load(mcp_config)
@@ -63,7 +63,7 @@ def react(
     default_console = console or Console(show_message=False, show_react=True)
 
     def parameterized_lm_decorator(
-        prompt: Callable[P, str | Messages],
+        prompt: Callable[P, str | Messages | None],
     ) -> Callable[P, str | T]:
         @wraps(prompt)
         def model_call(
@@ -71,12 +71,19 @@ def react(
             **prompt_kwargs: P.kwargs,
         ) -> str | T:
             default_console.init()
-            default_console.show_result = False
+            react_console = Console(
+                False,
+                False,
+                False,
+                False,
+                False if default_console.show_react else default_console.show_message,
+                default_console.show_react,
+            )
             # Add final answer to the list of tools
             default_tools.insert(0, final_answer)
 
             def final_call(*prompt_args: P.args, acts: list[Action], **prompt_kwargs: P.kwargs):  # type: ignore
-                output = prompt(*prompt_args, **prompt_kwargs)
+                output = gen_prompt(prompt, *prompt_args, **prompt_kwargs)
                 history = "\n".join(str(a) for a in acts)
                 if isinstance(output, list):
                     output.append(
@@ -93,6 +100,7 @@ def react(
             llm_final_call = llm(
                 default_model_from_decorator,
                 response_format=default_response_format,
+                console=react_console,
                 map_keys=None,
                 n=None,
                 tools=None,
@@ -100,7 +108,7 @@ def react(
             )(final_call)
 
             def react_once(*prompt_args: P.args, acts: list[Action], **prompt_kwargs: P.kwargs):  # type: ignore
-                output = prompt(*prompt_args, **prompt_kwargs)
+                output = gen_prompt(prompt, *prompt_args, **prompt_kwargs)
                 if isinstance(output, list):
                     if acts:
                         output.append({"role": "assistant", "content": str(acts[-1])})
@@ -111,7 +119,6 @@ def react(
                     raise ValueError("Invalid output type")
 
             default_console.log_model_usage_pre(default_model_from_decorator, prompt, prompt_args, prompt_kwargs)
-            default_console.off()
             loop = asyncio.get_event_loop()
             with ThreadPoolExecutor() as executor:
                 future = executor.submit(loop.run_until_complete, load_tools(default_mcp_config))
@@ -142,7 +149,7 @@ def react(
                 # TODO: 增加 retry 流程，确保 ReAct 不中断
                 llm_tool_call = llm(
                     model=default_model_from_decorator,
-                    console=default_console,
+                    console=react_console,
                     map_keys=None,
                     response_format=None,
                     n=None,

@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 from pydantic import BaseModel
 
-from uglychain.llm import _get_map_keys, _get_messages, llm
+from uglychain.llm import _gen_messages, _get_map_keys, llm
 
 
 class SampleModel(BaseModel):
@@ -31,7 +31,7 @@ def test_llm_decorator(monkeypatch):
 
 
 def test_llm_decorator_with_basemodel(monkeypatch):
-    @llm(model="test:model")
+    @llm(model="test:model")  # type: ignore
     def sample_prompt() -> SampleModel:
         return "Hello, world!"  # type: ignore
 
@@ -165,7 +165,7 @@ def test_get_messages_with_string():
         """System message"""
         return "User message"
 
-    result = _get_messages("User message", sample_prompt)
+    result = _gen_messages("User message", sample_prompt)
     expected = [
         {"role": "system", "content": "System message"},
         {"role": "user", "content": "User message"},
@@ -177,7 +177,7 @@ def test_get_messages_without_docstring():
     def sample_prompt():  # type: ignore
         return "User message"
 
-    result = _get_messages("User message", sample_prompt)
+    result = _gen_messages("User message", sample_prompt)
     expected = [
         {"role": "user", "content": "User message"},
     ]
@@ -186,7 +186,7 @@ def test_get_messages_without_docstring():
     def sample_prompt():
         return [{"role": "user", "content": "User message"}]
 
-    result = _get_messages([{"role": "user", "content": "User message"}], sample_prompt)
+    result = _gen_messages([{"role": "user", "content": "User message"}], sample_prompt)
     expected = [{"role": "user", "content": "User message"}]
     assert result == expected
 
@@ -196,7 +196,7 @@ def test_get_messages_with_invalid_type():
         return 12345
 
     with pytest.raises(TypeError):
-        _get_messages(12345, sample_prompt)  # type: ignore
+        _gen_messages(12345, sample_prompt)  # type: ignore
 
 
 def test_llm_decorator_with_inconsistent_list_lengths(monkeypatch):

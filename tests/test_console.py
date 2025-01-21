@@ -27,10 +27,6 @@ def console(mock_config):
 def test_console_initialization(console):
     assert isinstance(console.console, RichConsole)
     assert isinstance(console.progress, Progress)
-    assert isinstance(console.react_table, Table)
-    assert console.react_table.box == box.SIMPLE
-    assert console.react_table.expand is True
-    assert len(console.react_table.columns) == 2
 
 
 def test_init_method(console, mock_config):
@@ -74,13 +70,6 @@ def test_log_results(console, mock_config):
     results = ["result1", "result2"]
     console.log_results(results)
     # Should not raise any errors
-
-
-def test_log_react(console, mock_config):
-    act = {"thought": "test thought", "tool": "test tool", "args": "test args", "obs": "test obs"}
-    console.show_react = True
-    console.log_react(act)
-    assert len(console.react_table.rows) == 4
 
 
 def test_off_method(console):

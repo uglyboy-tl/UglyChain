@@ -25,7 +25,7 @@ def weather(city: str):
     return f"使用 wttr.in 获取{city}的天气信息"
 
 
-@react("openai:gpt-4o-mini", mcp_config=gen_mcp_configs([e2b_mcp_server]))
+@react(mcp_config=gen_mcp_configs([e2b_mcp_server]))
 def code_interpreter(question: str):
     return f"{question}"
 

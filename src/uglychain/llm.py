@@ -15,7 +15,7 @@ from .structured import ResponseModel
 
 @overload
 def llm(
-    func: Callable[P, str | Messages],
+    func: Callable[P, str | Messages | None],
     /,
 ) -> Callable[P, str]: ...
 @overload
@@ -29,7 +29,7 @@ def llm(
     n: None = None,
     tools: None = None,
     **api_params: Any,
-) -> Callable[[Callable[P, str | Messages]], Callable[P, str]]: ...
+) -> Callable[[Callable[P, str | Messages | None]], Callable[P, str]]: ...
 @overload
 def llm(
     model: str,
@@ -40,7 +40,7 @@ def llm(
     console: Console | None = None,
     n: None = None,
     **api_params: Any,
-) -> Callable[[Callable[P, str | Messages]], Callable[P, str | ToolResopnse]]: ...
+) -> Callable[[Callable[P, str | Messages | None]], Callable[P, str | ToolResopnse]]: ...
 @overload
 def llm(
     model: str,
@@ -52,7 +52,7 @@ def llm(
     n: int,
     tools: None = None,
     **api_params: Any,
-) -> Callable[[Callable[P, str | Messages]], Callable[P, list[str]]]: ...
+) -> Callable[[Callable[P, str | Messages | None]], Callable[P, list[str]]]: ...
 @overload
 def llm(
     model: str,
@@ -63,7 +63,7 @@ def llm(
     console: Console | None = None,
     n: int,
     **api_params: Any,
-) -> Callable[[Callable[P, str | Messages]], Callable[P, list[str] | list[ToolResopnse]]]: ...
+) -> Callable[[Callable[P, str | Messages | None]], Callable[P, list[str] | list[ToolResopnse]]]: ...
 @overload
 def llm(
     model: str,
@@ -74,7 +74,7 @@ def llm(
     console: Console | None = None,
     n: None = None,
     **api_params: Any,
-) -> Callable[[Callable[P, str | Messages]], Callable[P, T]]: ...
+) -> Callable[[Callable[P, str | Messages | None]], Callable[P, T]]: ...
 @overload
 def llm(
     model: str,
@@ -85,7 +85,7 @@ def llm(
     console: Console | None = None,
     n: int,
     **api_params: Any,
-) -> Callable[[Callable[P, str | Messages]], Callable[P, list[T]]]: ...
+) -> Callable[[Callable[P, str | Messages | None]], Callable[P, list[T]]]: ...
 @overload
 def llm(
     *,
@@ -96,7 +96,7 @@ def llm(
     n: None = None,
     tools: None = None,
     **api_params: Any,
-) -> Callable[[Callable[P, str | Messages]], Callable[P, str]]: ...
+) -> Callable[[Callable[P, str | Messages | None]], Callable[P, str]]: ...
 @overload
 def llm(
     *,
@@ -106,7 +106,7 @@ def llm(
     console: Console | None = None,
     n: None = None,
     **api_params: Any,
-) -> Callable[[Callable[P, str | Messages]], Callable[P, str | ToolResopnse]]: ...
+) -> Callable[[Callable[P, str | Messages | None]], Callable[P, str | ToolResopnse]]: ...
 @overload
 def llm(
     *,
@@ -116,7 +116,7 @@ def llm(
     console: Console | None = None,
     n: None = None,
     **api_params: Any,
-) -> Callable[[Callable[P, str | Messages]], Callable[P, T]]: ...
+) -> Callable[[Callable[P, str | Messages | None]], Callable[P, T]]: ...
 @overload
 def llm(
     model: str,
@@ -127,7 +127,7 @@ def llm(
     console: Console | None = None,
     tools: None = None,
     **api_params: Any,
-) -> Callable[[Callable[P, str | Messages]], Callable[P, list[str]]]: ...
+) -> Callable[[Callable[P, str | Messages | None]], Callable[P, list[str]]]: ...
 @overload
 def llm(
     model: str,
@@ -137,7 +137,7 @@ def llm(
     response_format: None = None,
     console: Console | None = None,
     **api_params: Any,
-) -> Callable[[Callable[P, str | Messages]], Callable[P, list[str] | list[ToolResopnse]]]: ...
+) -> Callable[[Callable[P, str | Messages | None]], Callable[P, list[str] | list[ToolResopnse]]]: ...
 @overload
 def llm(
     *,
@@ -148,7 +148,7 @@ def llm(
     n: int,
     tools: None = None,
     **api_params: Any,
-) -> Callable[[Callable[P, str | Messages]], Callable[P, list[str]]]: ...
+) -> Callable[[Callable[P, str | Messages | None]], Callable[P, list[str]]]: ...
 @overload
 def llm(
     *,
@@ -158,7 +158,7 @@ def llm(
     console: Console | None = None,
     n: int,
     **api_params: Any,
-) -> Callable[[Callable[P, str | Messages]], Callable[P, list[str] | list[ToolResopnse]]]: ...
+) -> Callable[[Callable[P, str | Messages | None]], Callable[P, list[str] | list[ToolResopnse]]]: ...
 @overload
 def llm(
     *,
@@ -168,7 +168,7 @@ def llm(
     console: Console | None = None,
     tools: None = None,
     **api_params: Any,
-) -> Callable[[Callable[P, str | Messages]], Callable[P, list[str]]]: ...
+) -> Callable[[Callable[P, str | Messages | None]], Callable[P, list[str]]]: ...
 @overload
 def llm(
     *,
@@ -177,7 +177,7 @@ def llm(
     response_format: None = None,
     console: Console | None = None,
     **api_params: Any,
-) -> Callable[[Callable[P, str | Messages]], Callable[P, list[str] | list[ToolResopnse]]]: ...
+) -> Callable[[Callable[P, str | Messages | None]], Callable[P, list[str] | list[ToolResopnse]]]: ...
 @overload
 def llm(
     model: str,
@@ -187,7 +187,7 @@ def llm(
     response_format: type[T],
     console: Console | None = None,
     **api_params: Any,
-) -> Callable[[Callable[P, str | Messages]], Callable[P, list[T]]]: ...
+) -> Callable[[Callable[P, str | Messages | None]], Callable[P, list[T]]]: ...
 @overload
 def llm(
     *,
@@ -197,7 +197,7 @@ def llm(
     console: Console | None = None,
     n: int,
     **api_params: Any,
-) -> Callable[[Callable[P, str | Messages]], Callable[P, list[T]]]: ...
+) -> Callable[[Callable[P, str | Messages | None]], Callable[P, list[T]]]: ...
 @overload
 def llm(
     *,
@@ -206,11 +206,11 @@ def llm(
     response_format: type[T],
     console: Console | None = None,
     **api_params: Any,
-) -> Callable[[Callable[P, str | Messages]], Callable[P, list[T]]]: ...
+) -> Callable[[Callable[P, str | Messages | None]], Callable[P, list[T]]]: ...
 
 
 def llm(
-    func_or_model: Callable[P, str | Messages] | str | None = None,
+    func_or_model: Callable[P, str | Messages | None] | str | None = None,
     /,
     *,
     model: str = "",
@@ -221,7 +221,8 @@ def llm(
 ) -> (
     Callable[P, str]
     | Callable[
-        [Callable[P, str | Messages]], Callable[P, str | ToolResopnse | T | list[str] | list[ToolResopnse] | list[T]]
+        [Callable[P, str | Messages | None]],
+        Callable[P, str | ToolResopnse | T | list[str] | list[ToolResopnse] | list[T]],
     ]
 ):
     """
@@ -243,7 +244,7 @@ def llm(
     default_api_params_from_decorator = api_params.copy()
 
     def parameterized_lm_decorator(
-        prompt: Callable[P, str | Messages],
+        prompt: Callable[P, str | Messages | None],
     ) -> Callable[P, str | ToolResopnse | T | list[str] | list[ToolResopnse] | list[T]]:
         @wraps(prompt)
         def model_call(
@@ -289,11 +290,11 @@ def llm(
                     key: value[i] if key in map_kwargs_keys_set else value  # type: ignore
                     for key, value in prompt_kwargs.items()
                 }
-                res = prompt(*args, **kwargs)  # type: ignore
+                res = gen_prompt(prompt, *args, **kwargs)
                 assert (
                     isinstance(res, str) or isinstance(res, list) and all(isinstance(item, dict) for item in res)
                 ), ValueError("被修饰的函数返回值必须是 str 或 `messages`(list[dict[str, str]]) 类型")
-                messages = _get_messages(res, prompt)
+                messages = _gen_messages(res, prompt)
                 response_model.process_parameters(model, messages, merged_api_params)
 
                 default_console.log_api_params(merged_api_params)
@@ -369,7 +370,7 @@ def _get_map_keys(
     return list_lengths[0], map_num_set, map_key_set
 
 
-def _get_messages(prompt_ret: str | Messages, prompt: Callable) -> Messages:
+def _gen_messages(prompt_ret: str | Messages, prompt: Callable) -> Messages:
     if isinstance(prompt_ret, str):
         messages = []
         if prompt.__doc__ and prompt.__doc__.strip():
@@ -383,3 +384,19 @@ def _get_messages(prompt_ret: str | Messages, prompt: Callable) -> Messages:
         return messages
     else:
         raise TypeError("Expected prompt_ret to be a str or list of Messages")
+
+
+def gen_prompt(prompt: Callable[P, str | Messages | None], *args: Any, **kwargs: Any) -> str | Messages:
+    output = prompt(*args, **kwargs)
+    if output is not None:
+        return output
+    signature = inspect.signature(prompt)
+    bound_arguments = signature.bind(*args, **kwargs)
+    bound_arguments.apply_defaults()
+    segments: list[str] = []
+    for name, value in bound_arguments.arguments.items():
+        if isinstance(value, str):
+            segments.append(f"<{name}>\n{value}\n</{name}>")
+        else:
+            segments.append(f"<{name}>\n{value!r}\n</{name}>")
+    return "\n".join(segments)

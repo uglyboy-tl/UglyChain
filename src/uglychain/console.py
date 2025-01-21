@@ -42,7 +42,7 @@ class Console:
     show_base_info: bool = True
     show_progress: bool = True
     show_api_params: bool = True
-    show_result: bool = False
+    show_result: bool = True
     show_message: bool = True
     show_react: bool = False
     console: rich.console.Console = field(init=False, default_factory=rich.console.Console)
@@ -162,7 +162,9 @@ class Console:
     def log_results(self, result: list) -> None:
         if not self.show_result:
             return
-        self.console.print(Columns([i.model_dump_json(indent=2) if not isinstance(i, str) else i for i in result]))
+        self.console.print(
+            Columns([i.model_dump_json(indent=2) if not isinstance(i, str) else i for i in result]), no_wrap=False
+        )
 
     def call_tool_confirm(self, name: str, args: dict[str, Any]) -> bool:
         if config.need_confirm and name not in ["final_answer", "user_input"]:
