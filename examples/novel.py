@@ -7,14 +7,10 @@ from pydantic import BaseModel, Field
 from uglychain import llm
 
 
-class Memory(BaseModel):
-    rational: str = Field(..., description="string that explain how to update the memory")
-    updated_memory: str = Field(..., description="string of updated memory, around 10 to 20 sentences")
-
-
 class NovelDetail(BaseModel):
     paragraph: str = Field(..., description="string of output paragraph, around 20 sentences.")
-    memory: Memory
+    rational: str = Field(..., description="string that explain how to update the memory")
+    memory: str = Field(..., description="string of updated memory, around 10 to 20 sentences")
     instructions: list[str] = Field(..., description="list of instructions, each instruction is around 5 sentences.")
 
 
@@ -84,9 +80,9 @@ if __name__ == "__main__":
     print(f"名称: {first.title}")
     print(f"概述: {first.outline}")
     print("======")
-    for i in range(0, 3):
-        print(first.paragraphs[i])
-        novel_paragraphs.append(first.paragraphs[i])
+    for paragraph in first.paragraphs:
+        print(paragraph)
+        novel_paragraphs.append(paragraph)
     print("======")
     instruction = select_instruction(first.instructions)
     new = novel(
@@ -102,7 +98,7 @@ if __name__ == "__main__":
             print("======")
             instruction = select_instruction(new.instructions)
             new = novel(
-                new.memory.updated_memory,
+                new.memory,
                 input_paragraph=new.paragraph,
                 instruction=instruction,
                 related_paragraphs=search(instruction, novel_paragraphs),
