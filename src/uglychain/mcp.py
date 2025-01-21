@@ -11,11 +11,6 @@ from mcp import ClientSession, StdioServerParameters, types
 from mcp.client.stdio import stdio_client
 from pydantic_core import to_json
 
-DEFAULT_CONFIG = """{
-  "mcpServers": {
-  }
-}"""
-
 
 @dataclass
 class ServerConfig:
@@ -35,7 +30,7 @@ class ServerConfig:
             command=config["command"],
             args=config.get("args", []),
             env=config.get("env", {}),
-            enabled=config.get("enabled", True),
+            enabled=config.get("enabled", not config.get("disabled", False)),
             exclude_tools=config.get("exclude_tools", []),
             requires_confirmation=config.get("requires_confirmation", []),
         )
@@ -48,9 +43,10 @@ class AppConfig:
 
     @classmethod
     def load(cls, config_str: str = "") -> AppConfig:
-        if not config_str:
-            config_str = DEFAULT_CONFIG
-        config = json.loads(config_str)
+        if config_str:
+            config = json.loads(config_str)
+        else:
+            config = {"mcpServers": {}}
 
         # Extract tools requiring confirmation
         tools_requires_confirmation = []

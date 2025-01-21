@@ -85,6 +85,7 @@ def visit_webpage(url: str) -> str:
 
 
 e2b_mcp_server = {
+    "name": "e2b",
     "command": "npx",
     "args": ["-y", "@e2b/mcp-server"],
     "env": {"E2B_API_KEY": ""},
@@ -94,15 +95,12 @@ e2b_mcp_server = {
 
 def gen_mcp_configs(mcp_tool_configs: list[dict]) -> str:
     configs: dict[str, dict] = {"mcpServers": {}}
-    global_vars = globals()
     for mcp_tool_config in mcp_tool_configs:
+        name = mcp_tool_config.pop("name")
         if "env" in mcp_tool_config:
             for env in mcp_tool_config["env"]:
                 mcp_tool_config["env"][env] = os.getenv(env) or mcp_tool_config["env"][env]
-        for name, value in global_vars.items():
-            if value == mcp_tool_config:
-                configs["mcpServers"].update({name: mcp_tool_config})
-                break
+        configs["mcpServers"].update({name: mcp_tool_config})
 
     return json.dumps(configs)
 
