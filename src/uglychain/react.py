@@ -8,7 +8,7 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from functools import wraps
-from typing import Any, cast, overload
+from typing import Any, overload
 
 from .config import config
 from .console import Console
@@ -88,6 +88,8 @@ def react(
                 else:
                     raise ValueError("Invalid output type")
 
+            final_call.__doc__ = prompt.__doc__ if prompt.__doc__ else ""
+
             llm_final_call = llm(
                 default_model_from_decorator,
                 response_format=default_response_format,
@@ -117,9 +119,26 @@ def react(
                 future = executor.submit(loop.run_until_complete, load_tools(default_mcp_config))
                 mcp_clients, mcp_tools = future.result()
 
+                def _call_tool(name: str, args: dict[str, Any]) -> str:
+                    for tool in default_tools:
+                        if tool.__name__ == name:
+                            if not default_console.call_tool_confirm(name, args):
+                                return "User cancelled. Please find other ways to solve this problem."
+                            return tool(**args)
+                    for mcp_tool in mcp_tools:
+                        if mcp_tool.name == name:
+                            if (
+                                name in default_mcp_config.tools_requires_confirmation
+                                and not default_console.call_tool_confirm(name, args)
+                            ):
+                                return "User cancelled. Please find other ways to solve this problem."
+                            future = executor.submit(loop.run_until_complete, mcp_tool._arun(**args))
+                            return future.result()
+                    raise ValueError(f"Can't find tool {name}")
+
                 tool_names = [f"`{tool.__name__}`" for tool in default_tools]
                 tool_names.extend(f"`{tool.name}`" for tool in mcp_tools)
-                react_once.__doc__ = (prompt.__doc__ if prompt.__doc__ else "") + SYSTEM_PROMPT.format(
+                react_once.__doc__ = SYSTEM_PROMPT.format(
                     tool_names=", ".join(tool_names),
                     tool_descriptions=_tool_descriptions(default_tools) + "\n" + _mcp_tool_descriptions(mcp_tools),
                 )
@@ -135,19 +154,7 @@ def react(
                     **default_api_params_from_decorator,
                 )(react_once)
 
-                def _call_tool(name: str, args: dict[str, Any]) -> str:
-                    if config.need_confirm:
-                        if not default_console.confirm(f"Do you want to use tool {name}?"):
-                            return "User cancelled. Please find other ways to solve this problem."
-                    for tool in default_tools:
-                        if tool.__name__ == name:
-                            return tool(**args)
-                    for mcp_tool in mcp_tools:
-                        if mcp_tool.name == name:
-                            future = executor.submit(loop.run_until_complete, mcp_tool._arun(**args))
-                            return future.result()
-                    raise ValueError(f"Can't find tool {name}")
-
+                # TODO: 增加 try except 流程，确保 ReAct 不中断
                 react_times = 0
                 result = llm_tool_call(*prompt_args, acts=None, **prompt_kwargs)
                 act = Action.from_response(result, _call_tool)
@@ -269,11 +276,15 @@ class Action:
             raise ValueError("Can't parse the response")
         tool = func_name
         args = ast.literal_eval(func_args)
+        try:
+            obs = call(tool, args)
+        except Exception as e:
+            obs = f"Error: {e}"
         return cls(
             thought=text,
             tool=tool,
             args=args,
-            obs=call(tool, args),  # type: ignore
+            obs=obs,
         )
 
 

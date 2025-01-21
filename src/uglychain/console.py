@@ -11,6 +11,7 @@ import rich
 from rich.columns import Columns
 from rich.console import Group
 from rich.live import Live
+from rich.panel import Panel
 from rich.progress import Progress
 from rich.prompt import Confirm, Prompt
 from rich.table import Table, box
@@ -151,14 +152,19 @@ class Console:
             self.react_table.add_row(REACT_NAME[key], str(act[key]).strip(), style=REACT_STYLE[key])
         self._update_live()
 
-    def input(self, prompt: str, default: str = "") -> str:
-        return Prompt.ask(prompt, console=self.console, default=default)
+    def input(self, prompt: str, **kwargs: Any) -> str:
+        return Prompt.ask(prompt, console=self.console, **kwargs)
 
-    def confirm(self, prompt: str, default: bool = True) -> bool:
-        with PauseLive(self._get_live()):
-            with self.console.status(prompt):
-                output = Confirm.ask("", console=self.console, show_default=default)
-        return output
+    def call_tool_confirm(self, name: str, args: dict[str, Any]) -> bool:
+        if config.need_confirm and name not in ["final_answer", "user_input"]:
+            self.console.print(
+                Panel(
+                    json.dumps(args, indent=2, ensure_ascii=False),
+                    title=name,
+                )
+            )
+            return Confirm.ask("Do you confirm to run this tool?", console=self.console, show_default=True)
+        return True
 
     def off(self) -> None:
         self.show_base_info = False
@@ -200,16 +206,16 @@ class PauseLive:
         self._live.start()
 
 
-def _format_arg_str(arg_str: Any) -> str:
+def _format_arg_str(arg_str: Any, max_len: int = MAX_ARGS_LEN) -> str:
     if isinstance(arg_str, str):
-        if len(arg_str) > MAX_ARGS_LEN:
-            return f"'{arg_str[:MAX_ARGS_LEN].strip()}...'"
+        if len(arg_str) > max_len:
+            return f"'{arg_str[:max_len].strip()}...'"
         else:
             return f"'{arg_str}'"
     else:
         arg_str = repr(arg_str)
-        if len(arg_str) > MAX_ARGS_LEN:
-            return f"{arg_str[:MAX_ARGS_LEN].strip()}..."
+        if len(arg_str) > max_len:
+            return f"{arg_str[:max_len].strip()}..."
         else:
             return arg_str
 

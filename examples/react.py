@@ -1,56 +1,38 @@
 from __future__ import annotations
 
-import os
-import platform
-from pathlib import Path
-
-from examples.schema import get_current_weather, search_baidu
 from pydantic import BaseModel
 
 from uglychain import config, react
-from uglychain.default_tools import execute_command
-
-SYSTEM_INFORMATION = f"""====
-SYSTEM INFORMATION
-
-Operating System: {platform.system()}
-Default Shell: {os.environ.get("SHELL")}
-Home Directory: {os.environ.get("HOME")}
-Current Working Directory: {str(Path.cwd().absolute)}"""
-""""""
+from uglychain.default_tools import e2b_mcp_server, execute_command, gen_mcp_configs, visit_webpage, web_search
 
 
 class Date(BaseModel):
     year: int
 
 
-@react("openai:gpt-4o-mini", [get_current_weather, search_baidu], response_format=Date)
-def test():
-    return "牛顿生于哪一年？"
+@react("openai:gpt-4o-mini", [web_search], response_format=Date)
+def search(name: str):
+    return f"{name}生于哪一年？"
 
 
 @react(tools=[execute_command])
-def update():
-    return "更新我的电脑系统"
+def update(message_history: list[dict[str, str]]):
+    return message_history
 
 
-CONFIG = """{
-  "mcpServers": {
-    "fetch": {
-      "command": "uvx",
-      "args": ["mcp-server-fetch"]
-    }
-  }
-}"""
-
-
-@react("openai:gpt-4o-mini", [execute_command], CONFIG)
+@react("openai:gpt-4o-mini", [execute_command, visit_webpage])
 def weather(city: str):
     return f"使用 wttr.in 获取{city}的天气信息"
 
 
+@react("openai:gpt-4o-mini", mcp_config=gen_mcp_configs([e2b_mcp_server]))
+def code_interpreter(question: str):
+    return f"{question}"
+
+
 if __name__ == "__main__":
     config.verbose = True
-    # test()
-    # update()
+    # search("牛顿")
+    # update([{"role": "user", "content": "更新我的电脑系统"}])
     weather("北京")
+    # code_interpreter("我买房贷款了187万，贷款的年利率是4.9%，贷款期限是30年，每月还款多少？")
