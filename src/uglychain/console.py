@@ -13,7 +13,7 @@ from rich.console import Group
 from rich.live import Live
 from rich.panel import Panel
 from rich.progress import Progress
-from rich.prompt import Confirm, Prompt
+from rich.prompt import Confirm
 from rich.table import Table, box
 
 from .config import config
@@ -231,25 +231,23 @@ def _format_func_call(func: Callable, *args: Any, **kwargs: Any) -> str:
     for name, value in bound_arguments.arguments.items():
         if isinstance(value, list | dict | set | tuple):
             end_str = ""
+            display_value = ""
             if len(value) > 2:
-                value = list(value)[:2]
                 end_str = ",..."
-            if isinstance(value, list):
-                display_value = f"[{', '.join([_format_arg_str(i) for i in value[:2]])}{end_str}]"
-            elif isinstance(value, dict):
+            if isinstance(value, dict):
                 display_value = f"{{{', '.join([f'{_format_arg_str(k)}: {_format_arg_str(value[k])}' for k in list(value)[:2]])}{end_str}}}"
-            elif isinstance(value, set):
-                display_value = f"{{{', '.join([_format_arg_str(i) for i in list(value)[:2]])}{end_str}}}"
             elif isinstance(value, tuple):
                 display_value = f"({', '.join([_format_arg_str(i) for i in value[:2]])}{end_str})"
-            else:
-                display_value = value
+            elif isinstance(value, set):
+                display_value = f"{{{', '.join([_format_arg_str(i) for i in list(value)[:2]])}{end_str}}}"
+            elif isinstance(value, list):
+                display_value = f"[{', '.join([_format_arg_str(i) for i in value[:2]])}{end_str}]"
             args_str.append(f"{name}={display_value}")
         else:
             args_str.append(f"{name}={_format_arg_str(value)}")
 
     # 构建最终的函数调用字符串
-    if len(args_str) < MAX_AGRS:
+    if len(args_str) <= MAX_AGRS:
         func_call_str = f"{func.__name__}({', '.join(args_str)})"
     else:
         func_call_str = f"{func.__name__}({', '.join(args_str[:MAX_AGRS])}, ...)"

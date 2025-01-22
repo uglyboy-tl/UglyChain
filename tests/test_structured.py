@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 import pytest
 from pydantic import BaseModel
 
@@ -61,8 +63,19 @@ def test_response_formatter_parse_from_response():
 
     invalid_response = Choice()
     invalid_response.message.content = '{"bar": "foo"}'
-    with pytest.raises(ValueError):
+    with pytest.raises(
+        ValueError, match=re.compile(r"Failed to parse MockModel from completion \{\"bar\": \"foo\"\}\. Got: .*")
+    ):
         formatter.parse_from_response(invalid_response)
+
+    response = Choice()
+    response.message.content = "Invalid JSON"
+    with pytest.raises(ValueError, match="Failed to find JSON object in response for MockModel: Invalid JSON"):
+        formatter.parse_from_response(response)
+
+    formatter.mode = 101  # type: ignore
+    with pytest.raises(ValueError, match="Unsupported mode: 101"):
+        formatter.parse_from_response(choice)
 
 
 def test_response_formatter_update_markdown_json_schema_from_system_prompt():
@@ -122,6 +135,7 @@ def test_response_formatter_openai_schema():
     def mock_func() -> MockModel:
         return MockModel(foo="test")
 
+    MockModel.__doc__ = "MockModel"
     formatter = ResponseModel(mock_func)
     openai_schema = formatter.openai_schema
     assert "name" in openai_schema
@@ -129,3 +143,12 @@ def test_response_formatter_openai_schema():
     assert "parameters" in openai_schema
     assert "properties" in openai_schema["parameters"]
     assert "foo" in openai_schema["parameters"]["properties"]
+
+
+def test_update_markdown_json_schema_from_system_prompt():
+    def mock_func() -> MockModel:
+        return MockModel(foo="test")
+
+    formatter = ResponseModel(mock_func)
+    with pytest.raises(ValueError, match="Messages is empty"):
+        formatter._update_markdown_json_schema_from_system_prompt([])

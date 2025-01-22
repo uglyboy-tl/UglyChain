@@ -14,7 +14,7 @@ from .schema import Messages, P, T, ToolResponse
 from .structured import ResponseModel
 
 
-def retry(n: int, timeout: int, wait: int) -> Callable[[Callable[P, Any]], Callable[P, Any]]:
+def retry(n: int, timeout: float, wait: float) -> Callable[[Callable[P, Any]], Callable[P, Any]]:
     def decorator_retry(func: Callable[P, Any]) -> Callable[P, Any]:
         max_retries = n
         llm_timeout = timeout
