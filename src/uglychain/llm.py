@@ -14,7 +14,7 @@ from .schema import Messages, P, T, ToolResponse
 from .structured import ResponseModel
 
 
-def retry(n: int, timeout: int) -> Callable[[Callable[P, Any]], Callable[P, Any]]:
+def retry(n: int, timeout: int, wait: int) -> Callable[[Callable[P, Any]], Callable[P, Any]]:
     def decorator_retry(func: Callable[P, Any]) -> Callable[P, Any]:
         max_retries = n
         llm_timeout = timeout
@@ -34,6 +34,8 @@ def retry(n: int, timeout: int) -> Callable[[Callable[P, Any]], Callable[P, Any]
                     except Exception as e:
                         print(f"Function failed with error: {e}, retrying...")
                         attempts += 1
+                if wait > 0:
+                    time.sleep(wait)
             raise Exception(f"Function failed after {n} attempts")
 
         return wrapper_retry
@@ -380,7 +382,7 @@ def llm(
         model_call.__func__ = prompt  # type: ignore
 
         if need_retry:
-            return retry(n=config.llm_max_retry, timeout=config.llm_timeout)(model_call)  # type: ignore
+            return retry(n=config.llm_max_retry, timeout=config.llm_timeout, wait=config.llm_wait_time)(model_call)  # type: ignore
         else:
             return model_call  # type: ignore
 

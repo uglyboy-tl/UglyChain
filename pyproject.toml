@@ -39,6 +39,7 @@ follow_imports = "silent"
 ignore_missing_imports = true
 mypy_path = "src"
 namespace_packages = true
+exclude = '.*[/\\]tmp[/\\].*'
 
 [tool.ruff]
 fix = true
