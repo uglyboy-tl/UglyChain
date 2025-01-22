@@ -114,6 +114,3 @@ __all__ = [
     "gen_mcp_configs",
     "e2b_mcp_server",
 ]
-
-if __name__ == "__main__":
-    print(gen_mcp_configs([e2b_mcp_server]))

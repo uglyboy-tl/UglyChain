@@ -24,6 +24,7 @@ dev = [
     "mkdocs-material>=9.5.49",
     "mkdocstrings[python]>=0.27.0",
     "mkdocs-static-i18n[material]>=1.2.3",
+    "pytest-mock>=3.14.0",
 ]
 
 

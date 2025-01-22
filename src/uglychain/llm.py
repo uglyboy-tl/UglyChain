@@ -423,19 +423,19 @@ def _get_map_keys(
 
 
 def _gen_messages(prompt_ret: str | Messages, prompt: Callable) -> Messages:
-    if isinstance(prompt_ret, str):
+    if isinstance(prompt_ret, str) and prompt_ret:
         messages = []
         if prompt.__doc__ and prompt.__doc__.strip():
             messages.append({"role": "system", "content": prompt.__doc__})
         messages.append({"role": "user", "content": prompt_ret})
         return messages
-    elif isinstance(prompt_ret, list):
+    elif isinstance(prompt_ret, list) and prompt_ret:
         messages = prompt_ret
         if (not messages or messages[0]["role"] != "system") and prompt.__doc__ and prompt.__doc__.strip():
             messages.insert(0, {"role": "system", "content": prompt.__doc__})
         return messages
     else:
-        raise TypeError("Expected prompt_ret to be a str or list of Messages")
+        raise TypeError("Expected prompt_ret to be a str or list of Messages and not empty")
 
 
 def gen_prompt(prompt: Callable[P, str | Messages | None], *args: Any, **kwargs: Any) -> str | Messages:
