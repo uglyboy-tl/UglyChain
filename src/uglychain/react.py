@@ -16,7 +16,7 @@ from .default_tools import final_answer
 from .llm import gen_prompt, llm
 from .mcp import AppConfig, McpTool, load_tools
 from .schema import Messages, P, T
-from .tools import function_schema
+from .tools_utils import function_schema
 
 
 @overload

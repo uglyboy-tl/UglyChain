@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import time
 from typing import Any
+from unittest.mock import ANY
 
 import pytest
 from pydantic import BaseModel
 
+from uglychain.client import Client
 from uglychain.config import config
 from uglychain.llm import _gen_messages, _get_map_keys, gen_prompt, llm, retry
 
@@ -19,7 +21,10 @@ def create_mock_choice(content: str) -> type[Any]:
 
 
 def mock_generate(model, messages, **kwargs):
-    return [create_mock_choice("Test response")]
+    n = 1
+    if "n" in kwargs and kwargs["n"]:
+        n = kwargs["n"]
+    return [create_mock_choice("Test response")] * n
 
 
 @pytest.fixture
@@ -28,7 +33,7 @@ def setup_client(monkeypatch):
 
 
 @pytest.mark.parametrize("n", [1, 2])
-def test_retry_timeout(n, monkeypatch):
+def test_retry_timeout(n):
     def sample_function():
         time.sleep(0.2)
         return "Success"
@@ -40,7 +45,7 @@ def test_retry_timeout(n, monkeypatch):
 
 
 @pytest.mark.parametrize("n", [1, 3])
-def test_retry_exception(n, monkeypatch):
+def test_retry_exception(n):
     def sample_function():
         raise ValueError("Test error")
 
@@ -50,7 +55,7 @@ def test_retry_exception(n, monkeypatch):
         decorated_function()
 
 
-def test_retry_success(monkeypatch):
+def test_retry_success():
     def sample_function():
         return "Success"
 
@@ -61,20 +66,12 @@ def test_retry_success(monkeypatch):
 
 
 def test_llm_decorator(setup_client):
-    config.default_api_params = {"tools": "test"}
-
     @llm("test:model", n=None)
     def sample_prompt() -> str:
         return "Hello, world!"
 
-    @llm
-    def sample1_prompt() -> str:
-        return "Hello, world!"
-
-    result = sample_prompt(api_params={"tools": "test"})  # type: ignore
-    result1 = sample1_prompt()
+    result = sample_prompt()
     assert result == "Test response"
-    assert result1 == "Test response"
 
 
 def test_llm_decorator_with_zero_result(monkeypatch):
@@ -102,14 +99,10 @@ def test_llm_decorator_with_basemodel(monkeypatch):
 
 
 @pytest.mark.parametrize("n", [1, 2])
-def test_llm_decorator_with_list_str(monkeypatch, n):
+def test_llm_decorator_with_list_str(setup_client, n):
     @llm(model="test:model", n=n)
     def sample_prompt() -> str:
         return "Hello, world!"
-
-    monkeypatch.setattr(
-        "uglychain.client.Client.generate", lambda *args, **kwargs: [create_mock_choice("Test response")] * n
-    )
 
     result = sample_prompt()
     assert result == ["Test response"] * n
@@ -179,7 +172,7 @@ def test_llm_decorator_with_empty_api_params(setup_client):
     assert result == "Test response"
 
 
-def test_llm_decorator_with_inconsistent_list_lengths(monkeypatch):
+def test_llm_decorator_with_inconsistent_list_lengths():
     @llm(model="test:model", map_keys=["arg1", "arg2"])
     def sample_prompt(arg1: list[str], arg2: list[str]) -> str:
         return "Hello, world!"
@@ -188,7 +181,7 @@ def test_llm_decorator_with_inconsistent_list_lengths(monkeypatch):
         sample_prompt(["a", "b"], ["c"])
 
 
-def test_llm_decorator_with_n_and_list_length_conflict(monkeypatch):
+def test_llm_decorator_with_n_and_list_length_conflict():
     @llm(model="test:model", map_keys=["arg1"], n=2)
     def sample_prompt(arg1: list[str]) -> str:
         return "Hello, world!"
@@ -213,7 +206,7 @@ def test_llm_decorator_with_parallel_processing(monkeypatch):
     assert set(results) == {"a", "b", "c"}
 
 
-def test_llm_decorator_with_tools(setup_client):
+def test_llm_decorator_with_tools(mocker):
     def mock_tool():
         pass
 
@@ -221,8 +214,23 @@ def test_llm_decorator_with_tools(setup_client):
     def sample_prompt() -> str:
         return "Hello, world!"
 
-    result = sample_prompt()
-    assert result == "Test response"
+    mock_generate = mocker.patch.object(Client, "generate", return_value=[create_mock_choice("Test response")])
+    sample_prompt()
+    mock_generate.assert_called_once_with("test:model", [{"role": "user", "content": "Hello, world!"}], tools=ANY)
+    # assert result == "Test response"
+
+
+def test_llm_decorator_with_invalid_tools_params(mocker):
+    config.default_api_params = {"tools": "test"}
+
+    @llm(model="test:model")
+    def sample_prompt() -> str:
+        return "Hello, world!"
+
+    mock_generate = mocker.patch.object(Client, "generate", return_value=[create_mock_choice("Test response")])
+    sample_prompt(api_params={"tools": "test"})  # type: ignore
+    mock_generate.assert_called_once_with("test:model", [{"role": "user", "content": "Hello, world!"}])
+    # assert result == "Test response"
 
 
 def test_gen_messages_with_string():

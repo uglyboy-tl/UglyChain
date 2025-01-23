@@ -74,7 +74,7 @@ class McpServerConfig:
 
 @dataclass
 class McpTool:
-    toolkit_name: str
+    client_name: str
     name: str
     description: str
     args_schema: dict[str, Any]
@@ -169,7 +169,7 @@ async def load_tools(app_config: AppConfig, force_refresh: bool = False) -> tupl
     clients: list[McpClient] = []
     tools: list[McpTool] = []
 
-    async def convert_toolkit(server_config: McpServerConfig) -> None:
+    async def convert_client(server_config: McpServerConfig) -> None:
         client = McpClient(server_config.server_name, server_config.server_param, server_config.exclude_tools)
         await client.initialize(force_refresh=force_refresh)
         clients.append(client)
@@ -177,6 +177,6 @@ async def load_tools(app_config: AppConfig, force_refresh: bool = False) -> tupl
 
     async with anyio.create_task_group() as tg:
         for server_param in server_configs:
-            tg.start_soon(convert_toolkit, server_param)
+            tg.start_soon(convert_client, server_param)
 
     return clients, tools

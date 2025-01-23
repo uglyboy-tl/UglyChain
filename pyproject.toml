@@ -105,6 +105,6 @@ docs-deploy = "mkdocs gh-deploy"
 
 [tool.coverage.run]
 omit = [
-    "src/uglychain/tools.py",
+    "src/uglychain/tools_utils.py",
     # 你可以在这里添加更多的路径
 ]
