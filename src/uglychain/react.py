@@ -13,7 +13,7 @@ from .console import Console
 from .default_tools import final_answer
 from .llm import gen_prompt, llm, retry
 from .schema import Messages, P, T
-from .tools import Tool
+from .tool import Tool
 
 
 @overload
@@ -252,7 +252,7 @@ class Action:
         tool = func_name
         args = ast.literal_eval(func_args)
         try:
-            obs = Tool.call_tool(tool, args)
+            obs = Tool.call_tool(tool, **args)
             console.log(obs, console.show_react, style="bold green")
         except Exception as e:
             obs = f"Error: {e}"

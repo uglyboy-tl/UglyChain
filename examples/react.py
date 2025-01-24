@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 from uglychain import config, react
 from uglychain.default_tools import e2b_mcp_server, execute_command, visit_webpage, web_search
-from uglychain.tools import Tool
+from uglychain.tool import Tool
 
 
 class Date(BaseModel):

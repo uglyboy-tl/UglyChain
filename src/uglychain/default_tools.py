@@ -8,7 +8,7 @@ import subprocess
 import urllib.parse
 from pathlib import Path
 
-from .tools import Tool
+from .tool import Tool
 
 
 @Tool.tool

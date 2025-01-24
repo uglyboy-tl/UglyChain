@@ -90,7 +90,7 @@ class Tool:
     _manager: ClassVar[ToolsManager] = ToolsManager.get()
 
     @classmethod
-    def call_tool(cls, tool_name: str, arguments: dict[str, Any]) -> str:
+    def call_tool(cls, tool_name: str, **arguments: Any) -> str:
         if tool_name not in cls._manager.tools and tool_name not in cls._manager.mcp_tools:
             raise ValueError(f"Can't find tool {tool_name}")
         if not cls.call_tool_confirm(tool_name, arguments):
