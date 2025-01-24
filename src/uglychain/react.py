@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 import ast
-import asyncio
 import json
 import re
 from collections.abc import Callable
-from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from functools import wraps
 from typing import Any, overload
@@ -13,17 +11,15 @@ from typing import Any, overload
 from .config import config
 from .console import Console
 from .default_tools import final_answer
-from .llm import gen_prompt, llm
-from .mcp import AppConfig, McpTool, load_tools
+from .llm import gen_prompt, llm, retry
 from .schema import Messages, P, T
-from .tools_utils import function_schema
+from .tools import Tool
 
 
 @overload
 def react(
     model: str = "",
-    tools: list[Callable] | None = None,
-    mcp_config: str = "",
+    tools: list[Tool] | None = None,
     max_steps: int = -1,
     *,
     response_format: None = None,
@@ -35,8 +31,7 @@ def react(
 @overload
 def react(
     model: str = "",
-    tools: list[Callable] | None = None,
-    mcp_config: str = "",
+    tools: list[Tool] | None = None,
     max_steps: int = -1,
     *,
     response_format: type[T],
@@ -47,8 +42,7 @@ def react(
 
 def react(
     model: str = "",
-    tools: list[Callable] | None = None,
-    mcp_config: str = "",
+    tools: list[Tool] | None = None,
     max_steps: int = -1,
     *,
     response_format: type[T] | None = None,
@@ -56,8 +50,7 @@ def react(
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages | None]], Callable[P, str | T]]:
     default_model_from_decorator = model if model else config.default_model
-    default_tools: list[Callable] = [] if tools is None else tools
-    default_mcp_config = AppConfig.load(mcp_config)
+    default_tools: list[Tool] = [] if tools is None else tools
     default_response_format = response_format  # noqa: F841
     default_api_params_from_decorator = api_params.copy()
     default_console = console or Console(show_message=False, show_react=True)
@@ -81,6 +74,23 @@ def react(
             )
             # Add final answer to the list of tools
             default_tools.insert(0, final_answer)
+            tool_names = [f"`{tool.name}`" for tool in default_tools]
+
+            def react_once(*prompt_args: P.args, acts: list[Action], **prompt_kwargs: P.kwargs):  # type: ignore
+                output = gen_prompt(prompt, *prompt_args, **prompt_kwargs)
+                if isinstance(output, list):
+                    if acts:
+                        output.append({"role": "assistant", "content": str(acts[-1])})
+                    return output
+                elif isinstance(output, str):
+                    return output + "\n".join(str(a) for a in acts)
+                else:
+                    raise ValueError("Invalid output type")
+
+            react_once.__doc__ = SYSTEM_PROMPT.format(
+                tool_names=", ".join(tool_names),
+                tool_descriptions=_new_tool_descriptions(default_tools),
+            )
 
             def final_call(*prompt_args: P.args, acts: list[Action], **prompt_kwargs: P.kwargs):  # type: ignore
                 output = gen_prompt(prompt, *prompt_args, **prompt_kwargs)
@@ -108,71 +118,32 @@ def react(
                 **default_api_params_from_decorator,
             )(final_call)
 
-            def react_once(*prompt_args: P.args, acts: list[Action], **prompt_kwargs: P.kwargs):  # type: ignore
-                output = gen_prompt(prompt, *prompt_args, **prompt_kwargs)
-                if isinstance(output, list):
-                    if acts:
-                        output.append({"role": "assistant", "content": str(acts[-1])})
-                    return output
-                elif isinstance(output, str):
-                    return output + "\n".join(str(a) for a in acts)
-                else:
-                    raise ValueError("Invalid output type")
-
             default_console.log_model_usage_pre(default_model_from_decorator, prompt, prompt_args, prompt_kwargs)
-            loop = asyncio.get_event_loop()
-            with ThreadPoolExecutor() as executor:
-                future = executor.submit(loop.run_until_complete, load_tools(default_mcp_config))
-                mcp_clients, mcp_tools = future.result()
 
-                def _call_tool(name: str, args: dict[str, Any], console: Console) -> str:
-                    for tool in default_tools:
-                        if tool.__name__ == name:
-                            if not console.call_tool_confirm(name, args):
-                                return "User cancelled. Please find other ways to solve this problem."
-                            return tool(**args)
-                    for mcp_tool in mcp_tools:
-                        if mcp_tool.name == name:
-                            if name in default_mcp_config.tools_requires_confirmation and not console.call_tool_confirm(
-                                name, args
-                            ):
-                                return "User cancelled. Please find other ways to solve this problem."
-                            future = executor.submit(loop.run_until_complete, mcp_tool._arun(**args))
-                            return future.result()
-                    raise ValueError(f"Can't find tool {name}")
-
-                tool_names = [f"`{tool.__name__}`" for tool in default_tools]
-                tool_names.extend(f"`{tool.name}`" for tool in mcp_tools)
-                react_once.__doc__ = SYSTEM_PROMPT.format(
-                    tool_names=", ".join(tool_names),
-                    tool_descriptions=_tool_descriptions(default_tools) + "\n" + _mcp_tool_descriptions(mcp_tools),
-                )
-
-                llm_tool_call = llm(
+            @retry(n=config.llm_max_retry, timeout=config.llm_timeout, wait=config.llm_wait_time)
+            def react_retry(*args: Any, **kwargs: Any) -> Action:
+                result = llm(
                     model=default_model_from_decorator,
                     console=react_console,
                     map_keys=None,
                     response_format=None,
-                    need_retry=True,
                     n=None,
                     tools=None,
                     stop=["Observation:"],
                     **default_api_params_from_decorator,
-                )(react_once)
+                )(react_once)(*args, **kwargs)
+                act = Action.from_response(result, default_console)
+                return act
 
-                react_times = 0
-                acts: list[Action] = []
-                act = Action()
-                while react_times == 0 or not act.done and (max_steps == -1 or react_times < max_steps):
-                    react_times += 1
-                    default_console.rule(f"Step {react_times}", default_console.show_react, align="left")
-                    result = llm_tool_call(*prompt_args, acts=acts, **prompt_kwargs)
-                    act = Action.from_response(result, _call_tool, default_console)
-                    acts.append(act)
-                # Close all clients
-                for client in mcp_clients:
-                    executor.submit(loop.run_until_complete, client.close())
-            loop.close()
+            react_times = 0
+            acts: list[Action] = []
+            act = Action()
+            while react_times == 0 or not act.done and (max_steps == -1 or react_times < max_steps):
+                react_times += 1
+                default_console.rule(f"Step {react_times}", default_console.show_react, align="left")
+                act = react_retry(*prompt_args, acts=acts, **prompt_kwargs)
+                acts.append(act)
+
             response: str | T = act.obs
             if not act.done and react_times >= max_steps or default_response_format is not None:
                 response = llm_final_call(*prompt_args, acts=acts, **prompt_kwargs)
@@ -250,7 +221,7 @@ class Action:
         return f"\nThought: {self.thought}\nAction: {self.tool}\nAction Input: {self.args}\nObservation: {self.obs}"
 
     @classmethod
-    def from_response(cls, text: str, call: Callable[[str, dict[str, Any], Console], str], console: Console) -> Action:
+    def from_response(cls, text: str, console: Console) -> Action:
         special_func_token = "\nAction:"
         special_args_token = "\nAction Input:"
         special_obs_token = "\nObservation:"
@@ -281,7 +252,7 @@ class Action:
         tool = func_name
         args = ast.literal_eval(func_args)
         try:
-            obs = call(tool, args, console)
+            obs = Tool.call_tool(tool, args)
             console.log(obs, console.show_react, style="bold green")
         except Exception as e:
             obs = f"Error: {e}"
@@ -294,21 +265,10 @@ class Action:
         )
 
 
-def _tool_descriptions(tools: list[Callable]) -> str:
+def _new_tool_descriptions(tools: list[Tool]) -> str:
     descriptions = []
 
     for tool in tools:
-        schema = function_schema(tool)
-        markdown = f"### {schema['name']}\n"
-        markdown += f"{json.dumps(schema, ensure_ascii=False)}\n"
-        descriptions.append(markdown)
-    return "\n".join(descriptions)
-
-
-def _mcp_tool_descriptions(mcp_tools: list[McpTool]) -> str:
-    descriptions = []
-
-    for tool in mcp_tools:
         schema = tool.args_schema
         schema.update({"name": tool.name})
         markdown = f"### {tool.name}\n"

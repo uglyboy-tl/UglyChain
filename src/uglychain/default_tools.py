@@ -8,7 +8,10 @@ import subprocess
 import urllib.parse
 from pathlib import Path
 
+from .tools import Tool
 
+
+@Tool.tool
 def execute_command(command: str) -> str:
     """
     Request to execute a CLI command on the system. Use this when you need to perform system operations or run specific commands to accomplish any step in the user's task. You must tailor your command to the user's system and provide a clear explanation of what the command does. Prefer to execute complex CLI commands over creating executable scripts, as they are more flexible and easier to run. Commands will be executed in the specified working directory.
@@ -23,17 +26,20 @@ def execute_command(command: str) -> str:
     return result.stdout + result.stderr
 
 
+@Tool.tool
 def final_answer(answer: str) -> str:
     """When get Final Answer, use this tool to return the answer and finishes the task."""
     return answer
 
 
+@Tool.tool
 def user_input(question: str) -> str:
     """Asks for user's input on a specific question"""
     user_input = input(f"{question} => Type your answer here:")
     return user_input
 
 
+@Tool.tool
 def web_search(query: str) -> str:
     """Performs a web search based on your query (think a Google search) then returns the top 5 search results."""
 
@@ -64,6 +70,7 @@ def web_search(query: str) -> str:
         return f"Failed to fetch webpage. Status code: {response.status}"
 
 
+@Tool.tool
 def visit_webpage(url: str) -> str:
     """Visits a webpage at the given url and reads its content as a markdown string. Use this to browse webpages."""
     parsed_url = urllib.parse.urlparse(f"https://r.jina.ai/{url}")
@@ -84,25 +91,11 @@ def visit_webpage(url: str) -> str:
         return f"Failed to fetch webpage. Status code: {response.status}"
 
 
-e2b_mcp_server = {
-    "name": "e2b",
-    "command": "npx",
-    "args": ["-y", "@e2b/mcp-server"],
-    "env": {"E2B_API_KEY": ""},
-    "requires_confirmation": ["run_code"],
-}
-
-
-def gen_mcp_configs(mcp_tool_configs: list[dict]) -> str:
-    configs: dict[str, dict] = {"mcpServers": {}}
-    for mcp_tool_config in mcp_tool_configs:
-        name = mcp_tool_config.pop("name")
-        if "env" in mcp_tool_config:
-            for env in mcp_tool_config["env"]:
-                mcp_tool_config["env"][env] = os.getenv(env) or mcp_tool_config["env"][env]
-        configs["mcpServers"].update({name: mcp_tool_config})
-
-    return json.dumps(configs)
+@Tool.mcp
+class e2b_mcp_server:  # noqa: N801
+    command = "npx"
+    args = ["-y", "@e2b/mcp-server"]
+    env = {"E2B_API_KEY": ""}
 
 
 __all__ = [
@@ -111,6 +104,5 @@ __all__ = [
     "user_input",
     "web_search",
     "visit_webpage",
-    "gen_mcp_configs",
     "e2b_mcp_server",
 ]

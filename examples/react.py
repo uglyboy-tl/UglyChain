@@ -3,7 +3,8 @@ from __future__ import annotations
 from pydantic import BaseModel
 
 from uglychain import config, react
-from uglychain.default_tools import e2b_mcp_server, execute_command, gen_mcp_configs, visit_webpage, web_search
+from uglychain.default_tools import e2b_mcp_server, execute_command, visit_webpage, web_search
+from uglychain.tools import Tool
 
 
 class Date(BaseModel):
@@ -25,7 +26,7 @@ def weather(city: str):
     return f"使用 wttr.in 获取{city}的天气信息"
 
 
-@react(mcp_config=gen_mcp_configs([e2b_mcp_server]))
+@react(tools=e2b_mcp_server.tools)
 def code_interpreter(question: str):
     return f"{question}"
 
