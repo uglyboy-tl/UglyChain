@@ -447,7 +447,9 @@ def gen_prompt(prompt: Callable[P, str | Messages | None], *args: Any, **kwargs:
     bound_arguments.apply_defaults()
     segments: list[str] = []
     for name, value in bound_arguments.arguments.items():
-        if isinstance(value, str):
+        if not value:
+            continue
+        elif isinstance(value, str):
             segments.append(f"<{name}>\n{value}\n</{name}>")
         else:
             segments.append(f"<{name}>\n{value!r}\n</{name}>")

@@ -13,13 +13,13 @@ from .console import Console
 from .default_tools import final_answer
 from .llm import gen_prompt, llm, retry
 from .schema import Messages, P, T
-from .tool import Tool
+from .tool import MCP, Tool
 
 
 @overload
 def react(
     model: str = "",
-    tools: list[Tool] | None = None,
+    tools: list[Tool | MCP] | None = None,
     max_steps: int = -1,
     *,
     response_format: None = None,
@@ -31,7 +31,7 @@ def react(
 @overload
 def react(
     model: str = "",
-    tools: list[Tool] | None = None,
+    tools: list[Tool | MCP] | None = None,
     max_steps: int = -1,
     *,
     response_format: type[T],
@@ -42,7 +42,7 @@ def react(
 
 def react(
     model: str = "",
-    tools: list[Tool] | None = None,
+    tools: list[Tool | MCP] | None = None,
     max_steps: int = -1,
     *,
     response_format: type[T] | None = None,
@@ -50,7 +50,13 @@ def react(
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages | None]], Callable[P, str | T]]:
     default_model_from_decorator = model if model else config.default_model
-    default_tools: list[Tool] = [] if tools is None else tools
+    default_tools: list[Tool] = [final_answer]
+    if tools:
+        for tool in tools:
+            if isinstance(tool, MCP):
+                default_tools.extend(tool.tools)
+            else:
+                default_tools.append(tool)
     default_response_format = response_format  # noqa: F841
     default_api_params_from_decorator = api_params.copy()
     default_console = console or Console(show_message=False, show_react=True)
@@ -72,8 +78,6 @@ def react(
                 False if default_console.show_react else default_console.show_message,
                 default_console.show_react,
             )
-            # Add final answer to the list of tools
-            default_tools.insert(0, final_answer)
             tool_names = [f"`{tool.name}`" for tool in default_tools]
 
             def react_once(*prompt_args: P.args, acts: list[Action], **prompt_kwargs: P.kwargs):  # type: ignore
@@ -89,8 +93,23 @@ def react(
 
             react_once.__doc__ = SYSTEM_PROMPT.format(
                 tool_names=", ".join(tool_names),
-                tool_descriptions=_new_tool_descriptions(default_tools),
+                tool_descriptions=_tool_descriptions(default_tools),
             )
+
+            @retry(n=config.llm_max_retry, timeout=config.llm_timeout, wait=config.llm_wait_time)
+            def react_response_action_with_retry(*args: Any, **kwargs: Any) -> Action:
+                result = llm(
+                    model=default_model_from_decorator,
+                    console=react_console,
+                    map_keys=None,
+                    response_format=None,
+                    n=None,
+                    tools=None,
+                    stop=["Observation:"],
+                    **default_api_params_from_decorator,
+                )(react_once)(*args, **kwargs)
+                act = Action.from_response(result, default_console)
+                return act
 
             def final_call(*prompt_args: P.args, acts: list[Action], **prompt_kwargs: P.kwargs):  # type: ignore
                 output = gen_prompt(prompt, *prompt_args, **prompt_kwargs)
@@ -120,28 +139,13 @@ def react(
 
             default_console.log_model_usage_pre(default_model_from_decorator, prompt, prompt_args, prompt_kwargs)
 
-            @retry(n=config.llm_max_retry, timeout=config.llm_timeout, wait=config.llm_wait_time)
-            def react_retry(*args: Any, **kwargs: Any) -> Action:
-                result = llm(
-                    model=default_model_from_decorator,
-                    console=react_console,
-                    map_keys=None,
-                    response_format=None,
-                    n=None,
-                    tools=None,
-                    stop=["Observation:"],
-                    **default_api_params_from_decorator,
-                )(react_once)(*args, **kwargs)
-                act = Action.from_response(result, default_console)
-                return act
-
             react_times = 0
             acts: list[Action] = []
             act = Action()
             while react_times == 0 or not act.done and (max_steps == -1 or react_times < max_steps):
                 react_times += 1
                 default_console.rule(f"Step {react_times}", default_console.show_react, align="left")
-                act = react_retry(*prompt_args, acts=acts, **prompt_kwargs)
+                act = react_response_action_with_retry(*prompt_args, acts=acts, **prompt_kwargs)
                 acts.append(act)
 
             response: str | T = act.obs
@@ -265,13 +269,12 @@ class Action:
         )
 
 
-def _new_tool_descriptions(tools: list[Tool]) -> str:
+def _tool_descriptions(tools: list[Tool]) -> str:
     descriptions = []
 
     for tool in tools:
-        schema = tool.args_schema
-        schema.update({"name": tool.name})
         markdown = f"### {tool.name}\n"
-        markdown += f"{json.dumps(schema, ensure_ascii=False)}\n"
+        markdown += f"> {tool.description}\n\n"
+        markdown += f"{json.dumps(tool.args_schema, ensure_ascii=False)}\n"
         descriptions.append(markdown)
     return "\n".join(descriptions)
