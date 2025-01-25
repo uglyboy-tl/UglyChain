@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.2.0] - 2025-01-25
+### Features
+- feat(core): 新增任务执行框架 (Uglyboy)
+- feat(tools): 重构工具管理和调用机制 (Uglyboy)
+- feat(llm): 增加语言模型重试等待时间配置 (Uglyboy)
+- feat(llm): 为 llm 装饰器添加重试机制 (Uglyboy)
+- feat(examples): 重构 react.py 示例并添加新功能 (Uglyboy)
+- feat/examples: 添加小说生成示例 (Uglyboy)
+
+### Refactor
+- refactor(uglychain): 重构工具相关代码并优化测试 (Uglyboy)
+- refactor(tool): 修改工具调用方法并更新相关代码 (Uglyboy)
+- refactor(mcp): 重构 MCP 配置生成和解析逻辑 (Uglyboy)
+- refactor(novel): 重构小说生成示例 (Uglyboy)
+- refactor(llm): 重构 prompt 函数处理逻辑 (Uglyboy)
+- refactor(uglychain): 重构 ReAct 流程并优化日志输出 (Uglyboy)
+
+### Tests
+- test: 重构测试用例并添加新功能 (Uglyboy)
+- test: 优化测试用例并添加新功能的测试 (Uglyboy)
+
 ## [1.1.0] - 2025-01-20
 ### Features
 - feat(console): 增加函数调用日志并优化控制台输出 (Uglyboy)
