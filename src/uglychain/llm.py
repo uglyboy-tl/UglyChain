@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 import inspect
-import time
 from collections.abc import Callable
-from concurrent.futures import ThreadPoolExecutor, TimeoutError, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import wraps
 from typing import Any, overload
 
@@ -12,35 +11,7 @@ from .config import config
 from .console import Console
 from .schema import Messages, P, T, ToolResponse
 from .structured import ResponseModel
-
-
-def retry(n: int, timeout: float, wait: float) -> Callable[[Callable[P, Any]], Callable[P, Any]]:
-    def decorator_retry(func: Callable[P, Any]) -> Callable[P, Any]:
-        max_retries = n
-        llm_timeout = timeout
-
-        @wraps(func)
-        def wrapper_retry(*args: P.args, **kwargs: P.kwargs) -> Callable[P, Any]:
-            attempts = 0
-            while attempts < max_retries:
-                with ThreadPoolExecutor() as executor:
-                    future = executor.submit(func, *args, **kwargs)
-                    try:
-                        result = future.result(timeout=llm_timeout)
-                        return result
-                    except TimeoutError:
-                        print(f"Function execution exceeded {llm_timeout} seconds, retrying...")
-                        attempts += 1
-                    except Exception as e:
-                        print(f"Function failed with error: {e}, retrying...")
-                        attempts += 1
-                if wait > 0:
-                    time.sleep(wait)
-            raise Exception(f"Function failed after {n} attempts")
-
-        return wrapper_retry
-
-    return decorator_retry
+from .utils import retry
 
 
 @overload
@@ -48,6 +19,8 @@ def llm(
     func: Callable[P, str | Messages | None],
     /,
 ) -> Callable[P, str]: ...
+
+
 @overload
 def llm(
     model: str,
@@ -55,12 +28,12 @@ def llm(
     *,
     map_keys: None = None,
     response_format: None = None,
-    console: Console | None = None,
-    need_retry: bool = False,
     n: None = None,
     tools: None = None,
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages | None]], Callable[P, str]]: ...
+
+
 @overload
 def llm(
     model: str,
@@ -68,11 +41,11 @@ def llm(
     *,
     map_keys: None = None,
     response_format: None = None,
-    console: Console | None = None,
-    need_retry: bool = False,
     n: None = None,
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages | None]], Callable[P, str | ToolResponse]]: ...
+
+
 @overload
 def llm(
     model: str,
@@ -80,12 +53,12 @@ def llm(
     *,
     map_keys: None = None,
     response_format: None = None,
-    console: Console | None = None,
-    need_retry: bool = False,
     n: int,
     tools: None = None,
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages | None]], Callable[P, list[str]]]: ...
+
+
 @overload
 def llm(
     model: str,
@@ -93,11 +66,11 @@ def llm(
     *,
     map_keys: None = None,
     response_format: None = None,
-    console: Console | None = None,
-    need_retry: bool = False,
     n: int,
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages | None]], Callable[P, list[str] | list[ToolResponse]]]: ...
+
+
 @overload
 def llm(
     model: str,
@@ -105,11 +78,11 @@ def llm(
     *,
     map_keys: None = None,
     response_format: type[T],
-    console: Console | None = None,
-    need_retry: bool = False,
     n: None = None,
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages | None]], Callable[P, T]]: ...
+
+
 @overload
 def llm(
     model: str,
@@ -117,45 +90,45 @@ def llm(
     *,
     map_keys: None = None,
     response_format: type[T],
-    console: Console | None = None,
-    need_retry: bool = False,
     n: int,
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages | None]], Callable[P, list[T]]]: ...
+
+
 @overload
 def llm(
     *,
     model: str = "",
     map_keys: None = None,
     response_format: None = None,
-    console: Console | None = None,
-    need_retry: bool = False,
     n: None = None,
     tools: None = None,
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages | None]], Callable[P, str]]: ...
+
+
 @overload
 def llm(
     *,
     model: str = "",
     map_keys: None = None,
     response_format: None = None,
-    console: Console | None = None,
-    need_retry: bool = False,
     n: None = None,
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages | None]], Callable[P, str | ToolResponse]]: ...
+
+
 @overload
 def llm(
     *,
     model: str = "",
     map_keys: None = None,
     response_format: type[T],
-    console: Console | None = None,
-    need_retry: bool = False,
     n: None = None,
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages | None]], Callable[P, T]]: ...
+
+
 @overload
 def llm(
     model: str,
@@ -163,11 +136,11 @@ def llm(
     *,
     map_keys: list[str],
     response_format: None = None,
-    console: Console | None = None,
-    need_retry: bool = False,
     tools: None = None,
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages | None]], Callable[P, list[str]]]: ...
+
+
 @overload
 def llm(
     model: str,
@@ -175,54 +148,54 @@ def llm(
     *,
     map_keys: list[str],
     response_format: None = None,
-    console: Console | None = None,
-    need_retry: bool = False,
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages | None]], Callable[P, list[str] | list[ToolResponse]]]: ...
+
+
 @overload
 def llm(
     *,
     model: str = "",
     map_keys: None = None,
     response_format: None = None,
-    console: Console | None = None,
-    need_retry: bool = False,
     n: int,
     tools: None = None,
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages | None]], Callable[P, list[str]]]: ...
+
+
 @overload
 def llm(
     *,
     model: str = "",
     map_keys: None = None,
     response_format: None = None,
-    console: Console | None = None,
-    need_retry: bool = False,
     n: int,
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages | None]], Callable[P, list[str] | list[ToolResponse]]]: ...
+
+
 @overload
 def llm(
     *,
     model: str = "",
     map_keys: list[str],
     response_format: None = None,
-    console: Console | None = None,
-    need_retry: bool = False,
     tools: None = None,
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages | None]], Callable[P, list[str]]]: ...
+
+
 @overload
 def llm(
     *,
     model: str = "",
     map_keys: list[str],
     response_format: None = None,
-    console: Console | None = None,
-    need_retry: bool = False,
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages | None]], Callable[P, list[str] | list[ToolResponse]]]: ...
+
+
 @overload
 def llm(
     model: str,
@@ -230,29 +203,27 @@ def llm(
     *,
     map_keys: list[str],
     response_format: type[T],
-    console: Console | None = None,
-    need_retry: bool = False,
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages | None]], Callable[P, list[T]]]: ...
+
+
 @overload
 def llm(
     *,
     model: str = "",
     map_keys: None = None,
     response_format: type[T],
-    console: Console | None = None,
-    need_retry: bool = False,
     n: int,
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages | None]], Callable[P, list[T]]]: ...
+
+
 @overload
 def llm(
     *,
     model: str = "",
     map_keys: list[str],
     response_format: type[T],
-    console: Console | None = None,
-    need_retry: bool = False,
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages | None]], Callable[P, list[T]]]: ...
 

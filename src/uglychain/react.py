@@ -11,19 +11,18 @@ from typing import Any, overload
 from .config import config
 from .console import Console
 from .default_tools import final_answer
-from .llm import gen_prompt, llm, retry
+from .llm import gen_prompt, llm
 from .schema import Messages, P, T
 from .tool import MCP, Tool
+from .utils import retry
 
 
 @overload
 def react(
     model: str = "",
     tools: list[Tool | MCP] | None = None,
-    max_steps: int = -1,
     *,
     response_format: None = None,
-    console: Console | None = None,
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages | None]], Callable[P, str]]: ...
 
@@ -32,10 +31,8 @@ def react(
 def react(
     model: str = "",
     tools: list[Tool | MCP] | None = None,
-    max_steps: int = -1,
     *,
     response_format: type[T],
-    console: Console | None = None,
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages | None]], Callable[P, T]]: ...
 
@@ -43,10 +40,11 @@ def react(
 def react(
     model: str = "",
     tools: list[Tool | MCP] | None = None,
-    max_steps: int = -1,
     *,
     response_format: type[T] | None = None,
+    max_steps: int = -1,
     console: Console | None = None,
+    need_final_answer: bool = False,
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages | None]], Callable[P, str | T]]:
     default_model_from_decorator = model if model else config.default_model
@@ -149,7 +147,7 @@ def react(
                 acts.append(act)
 
             response: str | T = act.obs
-            if not act.done and react_times >= max_steps or default_response_format is not None:
+            if not act.done and react_times >= max_steps or default_response_format is not None or need_final_answer:
                 response = llm_final_call(*prompt_args, acts=acts, **prompt_kwargs)
             default_console.stop()
             return response
@@ -256,7 +254,7 @@ class Action:
         tool = func_name
         args = ast.literal_eval(func_args)
         try:
-            obs = Tool.call_tool(tool, **args)
+            obs = Tool.call_tool(tool, console, **args)
             console.log(obs, console.show_react, style="bold green")
         except Exception as e:
             obs = f"Error: {e}"

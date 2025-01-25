@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import time
 from typing import Any
 from unittest.mock import ANY
 
@@ -9,7 +8,7 @@ from pydantic import BaseModel
 
 from uglychain.client import Client
 from uglychain.config import config
-from uglychain.llm import _gen_messages, _get_map_keys, gen_prompt, llm, retry
+from uglychain.llm import _gen_messages, _get_map_keys, gen_prompt, llm
 
 
 class SampleModel(BaseModel):
@@ -30,39 +29,6 @@ def mock_generate(model, messages, **kwargs):
 @pytest.fixture
 def setup_client(monkeypatch):
     monkeypatch.setattr("uglychain.client.Client.generate", mock_generate)
-
-
-@pytest.mark.parametrize("n", [1, 2])
-def test_retry_timeout(n):
-    def sample_function():
-        time.sleep(0.2)
-        return "Success"
-
-    decorated_function = retry(n=n, timeout=0.1, wait=0)(sample_function)
-
-    with pytest.raises(Exception, match=f"Function failed after {n} attempts"):
-        decorated_function()
-
-
-@pytest.mark.parametrize("n", [1, 3])
-def test_retry_exception(n):
-    def sample_function():
-        raise ValueError("Test error")
-
-    decorated_function = retry(n=n, timeout=1, wait=0.1)(sample_function)
-
-    with pytest.raises(Exception, match=f"Function failed after {n} attempts"):
-        decorated_function()
-
-
-def test_retry_success():
-    def sample_function():
-        return "Success"
-
-    decorated_function = retry(n=3, timeout=1, wait=1)(sample_function)
-
-    result = decorated_function()
-    assert result == "Success"
 
 
 def test_llm_decorator(setup_client):
@@ -283,21 +249,6 @@ def test_gen_messages_with_invalid_type(input):
         _gen_messages(input, sample_prompt)  # type: ignore
 
 
-@pytest.mark.parametrize(
-    "args, expected",
-    [
-        (("value1", "value2"), "<arg1>\nvalue1\n</arg1>\n<arg2>\nvalue2\n</arg2>"),
-        ((123, ["a", "b"]), "<arg1>\n123\n</arg1>\n<arg2>\n['a', 'b']\n</arg2>"),
-    ],
-)
-def test_gen_prompt(args, expected):
-    def sample_prompt(arg1, arg2):
-        return None
-
-    result = gen_prompt(sample_prompt, *args)
-    assert result == expected
-
-
 @pytest.mark.parametrize("map_keys", [None, []])
 def test_get_map_keys_with_empty_map_keys(map_keys):
     def sample_prompt(arg1: str, arg2: str):
@@ -321,3 +272,18 @@ def test_get_map_keys_with_invalid_map_key_type():
 
     with pytest.raises(ValueError, match="map_key 必须是列表"):
         _get_map_keys(sample_prompt, ("a",), {}, ["arg1"])
+
+
+@pytest.mark.parametrize(
+    "args, expected",
+    [
+        (("value1", "value2"), "<arg1>\nvalue1\n</arg1>\n<arg2>\nvalue2\n</arg2>"),
+        ((123, ["a", "b"]), "<arg1>\n123\n</arg1>\n<arg2>\n['a', 'b']\n</arg2>"),
+    ],
+)
+def test_gen_prompt(args, expected):
+    def sample_prompt(arg1, arg2):
+        return None
+
+    result = gen_prompt(sample_prompt, *args)
+    assert result == expected

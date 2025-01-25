@@ -12,7 +12,8 @@ from mcp import ClientSession, StdioServerParameters, types
 from mcp.client.stdio import stdio_client
 from pydantic_core import to_json
 
-from .tools_utils import function_schema
+from .console import Console
+from .utils import function_schema
 
 
 def cleanup() -> None:
@@ -70,9 +71,14 @@ class ToolsManager:
             return future.result()
 
     def regedit_tool(self, name: str, func: Callable) -> None:
+        if name in self.tools:
+            raise ValueError(f"Tool {name} already exists")
         self.tools[name] = func
 
     def regedit_mcp(self, name: str, mcp: MCP) -> McpClient:
+        mcp_client_name = set([name.split(":")[0] for name in self.mcp_tools.keys()])
+        if name in mcp_client_name:
+            raise ValueError(f"MCP client {name} already exists")
         client = McpClient(name, StdioServerParameters(command=mcp.command, args=mcp.args, env=mcp.env))
         future = self._executor.submit(self._loop.run_until_complete, client.initialize())
         future.result()
@@ -90,16 +96,14 @@ class Tool:
     _manager: ClassVar[ToolsManager] = ToolsManager.get()
 
     @classmethod
-    def call_tool(cls, tool_name: str, **arguments: Any) -> str:
+    def call_tool(cls, tool_name: str, console: Console | None = None, **arguments: Any) -> str:
+        if console is None:
+            console = Console()
         if tool_name not in cls._manager.tools and tool_name not in cls._manager.mcp_tools:
             raise ValueError(f"Can't find tool {tool_name}")
-        if not cls.call_tool_confirm(tool_name, arguments):
+        if not console.call_tool_confirm(tool_name, arguments):
             return "User cancelled. Please find other ways to solve this problem."
         return cls._manager.call_tool(tool_name, arguments)
-
-    @staticmethod
-    def call_tool_confirm(tool_name: str, arguments: dict[str, Any]) -> bool:
-        return True
 
     @classmethod
     def tool(cls, func: Callable) -> Tool:
