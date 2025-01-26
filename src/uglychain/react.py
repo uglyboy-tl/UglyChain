@@ -6,7 +6,7 @@ import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from functools import wraps
-from typing import Any, overload
+from typing import Any, Literal, overload
 
 from .config import config
 from .console import Console
@@ -44,7 +44,6 @@ def react(
     response_format: type[T] | None = None,
     max_steps: int = -1,
     console: Console | None = None,
-    need_final_answer: bool = False,
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages | None]], Callable[P, str | T]]:
     default_model_from_decorator = model if model else config.default_model
@@ -79,19 +78,20 @@ def react(
             tool_names = [f"`{tool.name}`" for tool in default_tools]
 
             def react_once(*prompt_args: P.args, acts: list[Action], **prompt_kwargs: P.kwargs):  # type: ignore
-                output = gen_prompt(prompt, *prompt_args, **prompt_kwargs)
-                if isinstance(output, list):
+                message = gen_prompt(prompt, *prompt_args, **prompt_kwargs)
+                if isinstance(message, list):
                     if acts:
-                        output.append({"role": "assistant", "content": str(acts[-1])})
-                    return output
-                elif isinstance(output, str):
-                    return output + "\n".join(str(a) for a in acts)
+                        message.append({"role": "assistant", "content": str(acts[-1])})
+                    return message
+                elif isinstance(message, str):
+                    return message + "\n" + "\n".join(str(a) for a in acts)
                 else:
                     raise ValueError("Invalid output type")
 
             react_once.__doc__ = SYSTEM_PROMPT.format(
                 tool_names=", ".join(tool_names),
                 tool_descriptions=_tool_descriptions(default_tools),
+                extra_instructions=prompt.__doc__ if prompt.__doc__ else "",
             )
 
             @retry(n=config.llm_max_retry, timeout=config.llm_timeout, wait=config.llm_wait_time)
@@ -109,20 +109,37 @@ def react(
                 act = Action.from_response(result, default_console)
                 return act
 
-            def final_call(*prompt_args: P.args, acts: list[Action], **prompt_kwargs: P.kwargs):  # type: ignore
-                output = gen_prompt(prompt, *prompt_args, **prompt_kwargs)
-                history = "\n".join(str(a) for a in acts)
-                if isinstance(output, list):
-                    output.append(
-                        {"role": "assistant", "content": str(acts[-1]) + "\n-----\n Now you must give an final answer!"}
+            def final_call(  # type: ignore
+                *prompt_args: P.args,
+                acts: list[Action],  # type: ignore
+                call_type: Literal["failed", "trans"],  # type: ignore
+                **prompt_kwargs: P.kwargs,
+            ):
+                if call_type == "failed":
+                    system_prompt = "An agent attempted to solve the user's task but encountered difficulties and failed. Your task is to provide the final answer instead.\n"
+                else:
+                    system_prompt = "An agent has completed the user's task and now needs to convert the final answer into a new output format.\n"
+                message = gen_prompt(prompt, *prompt_args, **prompt_kwargs)
+                memory = "\n".join(str(a) for a in acts)
+                if isinstance(message, list):
+                    message.insert(0, {"role": "system", "content": system_prompt})
+                    message.append(
+                        {
+                            "role": "assistant",
+                            "content": str(acts[-1]),
+                        }
                     )
-                    return output
-                elif isinstance(output, str):
-                    return output + f"\n-----{history}\n-----\n Now you must give an final answer!"
+                    message.append(
+                        {
+                            "role": "user",
+                            "content": "Based on the information above, please provide a response to the user's request.",
+                        }
+                    )
+                    return message
+                elif isinstance(message, str):
+                    return f"{system_prompt}\nHere is the agent's memory:\n-----{message}\n{memory}\n-----\n Based on the information above, please provide a response to the user's request."
                 else:
                     raise ValueError("Invalid output type")
-
-            final_call.__doc__ = prompt.__doc__ if prompt.__doc__ else ""
 
             llm_final_call = llm(
                 default_model_from_decorator,
@@ -147,8 +164,10 @@ def react(
                 acts.append(act)
 
             response: str | T = act.obs
-            if not act.done and react_times >= max_steps or default_response_format is not None or need_final_answer:
-                response = llm_final_call(*prompt_args, acts=acts, **prompt_kwargs)
+            if not act.done and react_times == max_steps:
+                response = llm_final_call(*prompt_args, acts=acts, call_type="failed", **prompt_kwargs)
+            elif default_response_format is not None:
+                response = llm_final_call(*prompt_args, acts=acts, call_type="trans", **prompt_kwargs)
             default_console.stop()
             return response
 
@@ -196,6 +215,9 @@ Action Input: {{"answer":"<answer>"}}
 2. Always use the right arguments for the tools. Never use variable names as the action arguments, use the value instead.
 3. Call a tool only when needed: do not call the search agent if you do not need information, try to solve the task yourself. If no tool call is needed, use final_answer tool to return your answer.
 4. Never re-do a tool call that you previously did with the exact same parameters.
+
+## Extra instructions
+{extra_instructions}
 """
 
 

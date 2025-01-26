@@ -15,8 +15,5 @@ class Config(BaseModel):
     verbose: bool = Field(default=False, description="如果为真，则启用详细日志记录。")
     need_confirm: bool = Field(default=False, description="如果为真，则工具使用需要确认。")
 
-    def __init__(self, **data: Any) -> None:
-        super().__init__(**data)
-
 
 config = Config()
