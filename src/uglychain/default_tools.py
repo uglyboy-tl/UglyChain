@@ -22,7 +22,7 @@ def execute_command(command: str) -> str:
 
     working_directory = Path.cwd()
 
-    result = subprocess.run(shlex.split(command), cwd=working_directory, capture_output=True, text=True)
+    result = subprocess.run(command, shell=True, cwd=working_directory, capture_output=True, text=True)
     return result.stdout + result.stderr
 
 

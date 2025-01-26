@@ -56,7 +56,7 @@ def react(
                 default_tools.append(tool)
     default_response_format = response_format  # noqa: F841
     default_api_params_from_decorator = api_params.copy()
-    default_console = console or Console(show_message=False, show_react=True)
+    default_console = console or Console(True, False, False, False, False, True)
 
     def parameterized_lm_decorator(
         prompt: Callable[P, str | Messages | None],
@@ -67,14 +67,6 @@ def react(
             **prompt_kwargs: P.kwargs,
         ) -> str | T:
             default_console.init()
-            react_console = Console(
-                False,
-                False,
-                False,
-                False,
-                False if default_console.show_react else default_console.show_message,
-                default_console.show_react,
-            )
             tool_names = [f"`{tool.name}`" for tool in default_tools]
 
             def react_once(*prompt_args: P.args, acts: list[Action], **prompt_kwargs: P.kwargs):  # type: ignore
@@ -98,7 +90,7 @@ def react(
             def react_response_action_with_retry(*args: Any, **kwargs: Any) -> Action:
                 result = llm(
                     model=default_model_from_decorator,
-                    console=react_console,
+                    console=default_console,
                     map_keys=None,
                     response_format=None,
                     n=None,
@@ -144,7 +136,7 @@ def react(
             llm_final_call = llm(
                 default_model_from_decorator,
                 response_format=default_response_format,
-                console=react_console,
+                console=default_console,
                 map_keys=None,
                 need_retry=True,
                 n=None,
@@ -153,6 +145,7 @@ def react(
             )(final_call)
 
             default_console.log_model_usage_pre(default_model_from_decorator, prompt, prompt_args, prompt_kwargs)
+            default_console.show_base_info = False
 
             react_times = 0
             acts: list[Action] = []

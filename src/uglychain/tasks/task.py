@@ -3,15 +3,22 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Generic
 
+from pydantic import BaseModel, Field
+
 from uglychain import llm, react
 from uglychain.schema import T
 from uglychain.tool import MCP, Tool
 
 
+class TaskResult(BaseModel):
+    response: str = Field(description="The response of the task.")
+    steps: str = Field(description="Key steps to solve the task.")
+
+
 @dataclass
 class Task(Generic[T]):
     description: str
-    response_format: type[T] | None = None
+    response_format: type[T] = TaskResult  # type: ignore
     tools: list[MCP | Tool] | None = None
     reflection: bool = False
     _context: dict[str, Any] = field(init=False, default_factory=dict)
@@ -33,6 +40,9 @@ class Task(Generic[T]):
         pass
 
     def process(self) -> str | T:
+        print(self.tools)
+        print(self.response_format)
+
         @react(tools=self.tools, response_format=self.response_format)  # type: ignore
         def task(context: str, task: str) -> None:
             return

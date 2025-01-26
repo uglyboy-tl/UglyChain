@@ -183,8 +183,6 @@ Make sure to return an instance of the JSON which can be parsed by Python json.l
         if self.response_type.__doc__ is not None and self.response_type.__doc__.strip():
             self._openai_schema["description"] = self.response_type.__doc__
         else:
-            self._openai_schema["description"] = (
-                f"Correctly extracted `{self.schema['title']}` with all the required parameters with correct types"
-            )
+            self._openai_schema["description"] = "The final response which ends this conversation"
 
         return self._openai_schema

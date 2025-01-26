@@ -80,11 +80,14 @@ class ToolsManager:
         if name in mcp_client_name:
             raise ValueError(f"MCP client {name} already exists")
         client = McpClient(name, StdioServerParameters(command=mcp.command, args=mcp.args, env=mcp.env))
+        return client
+
+    def activate_client(self, client: McpClient) -> None:
         future = self._executor.submit(self._loop.run_until_complete, client.initialize())
         future.result()
+        print(f"{client.name} client is active")
         for tool in client.tools:
-            self.mcp_tools[f"{name}:{tool.name}"] = tool
-        return client
+            self.mcp_tools[f"{client.name}:{tool.name}"] = tool
 
 
 @dataclass
@@ -124,6 +127,10 @@ class Tool:
         mcp._client = cls._manager.regedit_mcp(obj.__name__, mcp)
         return mcp
 
+    @classmethod
+    def activate_client(cls, client: McpClient) -> None:
+        cls._manager.activate_client(client)
+
 
 @dataclass
 class MCP:
@@ -141,6 +148,7 @@ class MCP:
     @property
     def tools(self) -> list[Tool]:
         if not self._tools:
+            Tool.activate_client(self._client)
             for tool in self._client.tools:
                 self._tools.append(
                     Tool(
