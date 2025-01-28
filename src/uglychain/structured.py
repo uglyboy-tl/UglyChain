@@ -62,15 +62,20 @@ Make sure to return an instance of the JSON which can be parsed by Python json.l
             ("openai", ""): Mode.JSON_SCHEMA,
             ("openai", "yi-large"): Mode.MD_JSON,
             ("openai", "*"): Mode.TOOLS,
+            ("deepseek", "*"): Mode.TOOLS,
             ("openrouter", "openai/gpt-4o"): Mode.JSON_SCHEMA,
             ("openrouter", "openai/gpt-4o-mini"): Mode.JSON_SCHEMA,
-            ("openrouter", "*"): Mode.TOOLS,
             ("ollama", "*"): Mode.JSON_SCHEMA,
             ("gemini", "*"): Mode.JSON_SCHEMA,
+            ("*", "*"): Mode.MD_JSON,
         }
         # 使用通配符匹配
         self.mode = next(
-            (mode for (p, m), mode in mode_mapping.items() if p == provider and (m == model_name or m == "*")),
+            (
+                mode
+                for (p, m), mode in mode_mapping.items()
+                if (p == provider or p == "*") and (m == model_name or m == "*")
+            ),
             Mode.MD_JSON,
         )
 
@@ -149,20 +154,13 @@ Make sure to return an instance of the JSON which can be parsed by Python json.l
         api_params["tools"] = [
             {
                 "type": "function",
-                "function": self.openai_schema,
+                "function": self.tool_schema,
             }
         ]
         api_params["tool_choice"] = {
             "type": "function",
-            "function": {"name": self.openai_schema["name"]},
+            "function": {"name": self.tool_schema["name"]},
         }
-
-    @property
-    def schema(self) -> dict[str, Any]:
-        if not hasattr(self, "_schema"):
-            assert inspect.isclass(self.response_type) and issubclass(self.response_type, BaseModel)
-            self._schema: dict[str, Any] = self.response_type.model_json_schema()
-        return self._schema
 
     @property
     def parameters(self) -> dict[str, Any]:
@@ -172,17 +170,12 @@ Make sure to return an instance of the JSON which can be parsed by Python json.l
         return self._parameters
 
     @property
-    def openai_schema(self) -> dict[str, Any]:
-        if hasattr(self, "_openai_schema"):
-            return self._openai_schema
-        self._openai_schema: dict[str, Any] = {
-            "name": self.schema["title"],
-            "parameters": self.parameters,
-            "strict": True,
-        }
-        if self.response_type.__doc__ is not None and self.response_type.__doc__.strip():
-            self._openai_schema["description"] = self.response_type.__doc__
-        else:
-            self._openai_schema["description"] = "The final response which ends this conversation"
-
-        return self._openai_schema
+    def tool_schema(self) -> dict[str, Any]:
+        if not hasattr(self, "_tool_schema"):
+            self._tool_schema: dict[str, Any] = {
+                "name": self.response_type.__name__,
+                "description": self.response_type.__doc__ or "The final response which ends this conversation",
+                "parameters": self.parameters,
+                "strict": True,
+            }
+        return self._tool_schema

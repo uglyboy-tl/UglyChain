@@ -3,7 +3,6 @@ from __future__ import annotations
 import http.client
 import json
 import os
-import shlex
 import subprocess
 import urllib.parse
 from pathlib import Path

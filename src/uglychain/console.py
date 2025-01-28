@@ -22,20 +22,6 @@ from .schema import Messages
 MAX_AGRS: int = 5
 MAX_ARGS_LEN: int = 8
 
-REACT_NAME = {
-    "thought": "Thought",
-    "tool": "Action",
-    "args": "Action Input",
-    "obs": "Observation",
-}
-
-REACT_STYLE = {
-    "thought": "italic yellow",
-    "tool": "bold red",
-    "args": "bold red",
-    "obs": "bold green",
-}
-
 
 @dataclass
 class Console:

@@ -87,6 +87,9 @@ def test_response_formatter_update_markdown_json_schema_from_system_prompt():
     formatter._update_markdown_json_schema_from_system_prompt(messages)
     assert "properties" in messages[0]["content"]
 
+    with pytest.raises(ValueError, match="Messages is empty"):
+        formatter._update_markdown_json_schema_from_system_prompt([])
+
 
 def test_response_formatter_set_tools_from_params():
     def mock_func() -> MockModel:
@@ -121,34 +124,15 @@ def test_response_formatter_set_response_format_from_params():
     assert api_params["response_format"]["type"] == "json_schema"
 
 
-def test_response_formatter_schema():
-    def mock_func() -> MockModel:
-        return MockModel(foo="test")
-
-    formatter = ResponseModel(mock_func)
-    schema = formatter.schema
-    assert "properties" in schema
-    assert "foo" in schema["properties"]
-
-
-def test_response_formatter_openai_schema():
+def test_response_formatter_tool_schema():
     def mock_func() -> MockModel:
         return MockModel(foo="test")
 
     MockModel.__doc__ = "MockModel"
     formatter = ResponseModel(mock_func)
-    openai_schema = formatter.openai_schema
-    assert "name" in openai_schema
-    assert openai_schema["name"] == "MockModel"
-    assert "parameters" in openai_schema
-    assert "properties" in openai_schema["parameters"]
-    assert "foo" in openai_schema["parameters"]["properties"]
-
-
-def test_update_markdown_json_schema_from_system_prompt():
-    def mock_func() -> MockModel:
-        return MockModel(foo="test")
-
-    formatter = ResponseModel(mock_func)
-    with pytest.raises(ValueError, match="Messages is empty"):
-        formatter._update_markdown_json_schema_from_system_prompt([])
+    tool_schema = formatter.tool_schema
+    assert "name" in tool_schema
+    assert tool_schema["name"] == "MockModel"
+    assert "parameters" in tool_schema
+    assert "properties" in tool_schema["parameters"]
+    assert "foo" in tool_schema["parameters"]["properties"]
