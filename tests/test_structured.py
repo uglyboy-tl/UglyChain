@@ -12,41 +12,33 @@ class MockModel(BaseModel):
     foo: str
 
 
-def test_response_formatter_init():
-    def mock_func() -> MockModel:
-        return MockModel(foo="test")
+def create_mock_func() -> MockModel:
+    return MockModel(foo="test")
 
-    formatter = ResponseModel(mock_func)
+
+def test_response_formatter_init():
+    formatter = ResponseModel(create_mock_func)
 
     assert formatter.response_type == MockModel
     assert formatter.mode == Mode.MD_JSON
 
 
 def test_response_formatter_validate_response_type():
-    def mock_func() -> MockModel:
-        return MockModel(foo="test")
-
-    formatter = ResponseModel(mock_func)
+    formatter = ResponseModel(create_mock_func)
     with pytest.raises(TypeError):
         formatter.response_type = int
         formatter._validate_response_type()
 
 
 def test_response_formatter_get_response_format_prompt():
-    def mock_func() -> MockModel:
-        return MockModel(foo="test")
-
-    formatter = ResponseModel(mock_func)
+    formatter = ResponseModel(create_mock_func)
     prompt = formatter.parameters
     assert "properties" in prompt.keys()
     assert "foo" in str(prompt.values())
 
 
 def test_response_formatter_parse_from_response():
-    def mock_func() -> MockModel:
-        return MockModel(foo="test")
-
-    formatter = ResponseModel(mock_func)
+    formatter = ResponseModel(create_mock_func)
 
     class Choice:
         class Message:
@@ -79,10 +71,7 @@ def test_response_formatter_parse_from_response():
 
 
 def test_response_formatter_update_markdown_json_schema_from_system_prompt():
-    def mock_func() -> MockModel:
-        return MockModel(foo="test")
-
-    formatter = ResponseModel(mock_func)
+    formatter = ResponseModel(create_mock_func)
     messages = [{"role": "system", "content": "Initial content"}]
     formatter._update_markdown_json_schema_from_system_prompt(messages)
     assert "properties" in messages[0]["content"]
@@ -92,10 +81,7 @@ def test_response_formatter_update_markdown_json_schema_from_system_prompt():
 
 
 def test_response_formatter_set_tools_from_params():
-    def mock_func() -> MockModel:
-        return MockModel(foo="test")
-
-    formatter = ResponseModel(mock_func)
+    formatter = ResponseModel(create_mock_func)
     api_params = {}
     formatter._set_tools_from_params(api_params)
     assert "tools" in api_params
@@ -103,10 +89,7 @@ def test_response_formatter_set_tools_from_params():
 
 
 def test_response_formatter_process_parameters():
-    def mock_func() -> MockModel:
-        return MockModel(foo="test")
-
-    formatter = ResponseModel(mock_func)
+    formatter = ResponseModel(create_mock_func)
     messages = [{"role": "system", "content": "Initial content"}]
     merged_api_params = {}
     formatter.process_parameters("openai:gpt-4o", messages, merged_api_params)
@@ -114,10 +97,7 @@ def test_response_formatter_process_parameters():
 
 
 def test_response_formatter_set_response_format_from_params():
-    def mock_func() -> MockModel:
-        return MockModel(foo="test")
-
-    formatter = ResponseModel(mock_func)
+    formatter = ResponseModel(create_mock_func)
     api_params = {}
     formatter._set_response_format_from_params(api_params)
     assert "response_format" in api_params
@@ -125,11 +105,8 @@ def test_response_formatter_set_response_format_from_params():
 
 
 def test_response_formatter_tool_schema():
-    def mock_func() -> MockModel:
-        return MockModel(foo="test")
-
     MockModel.__doc__ = "MockModel"
-    formatter = ResponseModel(mock_func)
+    formatter = ResponseModel(create_mock_func)
     tool_schema = formatter.tool_schema
     assert "name" in tool_schema
     assert tool_schema["name"] == "MockModel"

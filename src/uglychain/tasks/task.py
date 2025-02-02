@@ -89,7 +89,9 @@ class LogicTask(BasicTask):
         if not self.condition:
             return self.context
         repeat = True
+        result = self.context  # 如果不满足条件，返回的结果是context
         while self._judge(self.context, self.condition).value and repeat:
             repeat = self.repeat
             result = self._run()
             self._context.update({"result": result})
+        return result

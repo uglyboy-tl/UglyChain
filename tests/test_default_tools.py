@@ -9,13 +9,6 @@ from pathlib import Path
 
 import pytest
 
-from uglychain.default_tools import (
-    execute_command,
-    final_answer,
-    user_input,
-    visit_webpage,
-    web_search,
-)
 from uglychain.tool import Tool
 
 

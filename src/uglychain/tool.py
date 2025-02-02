@@ -27,7 +27,7 @@ atexit.register(cleanup)
 class ToolsManager:
     tools: dict[str, Callable] = field(default_factory=dict)
     mcp_tools: dict[str, McpTool] = field(default_factory=dict)
-    _loop: asyncio.AbstractEventLoop = field(init=False, default_factory=asyncio.get_event_loop)
+    _loop: asyncio.AbstractEventLoop = field(init=False)
     _executor: ThreadPoolExecutor = field(init=False)
     _manager: ClassVar[ToolsManager]
 
@@ -41,6 +41,7 @@ class ToolsManager:
         return cls._manager
 
     def start(self) -> None:
+        self._loop = asyncio.get_event_loop()
         self._executor = ThreadPoolExecutor().__enter__()
 
     def stop(self) -> None:
@@ -51,9 +52,8 @@ class ToolsManager:
                 continue
             clients.append(tool.client)
             client_names.append(tool.client.name)
-
         for client in clients:
-            self._loop.run_until_complete(client.close())
+            asyncio.run(client.close())
         if self._executor:
             self._executor.__exit__(None, None, None)
         if self._loop:
@@ -80,12 +80,15 @@ class ToolsManager:
         if name in mcp_client_name:
             raise ValueError(f"MCP client {name} already exists")
         client = McpClient(name, StdioServerParameters(command=mcp.command, args=mcp.args, env=mcp.env))
+        self.mcp_tools[name] = McpTool(client_name=name, name=name, description="", args_schema={}, client=client)
         return client
 
-    def activate_client(self, client: McpClient) -> None:
+    def activate_mcp_client(self, client: McpClient) -> None:
+        if self._loop.is_closed():
+            self.start()
         future = self._executor.submit(self._loop.run_until_complete, client.initialize())
         future.result()
-        print(f"{client.name} client is active")
+        # print(f"{client.name} client is active")
         for tool in client.tools:
             self.mcp_tools[f"{client.name}:{tool.name}"] = tool
 
@@ -128,8 +131,8 @@ class Tool:
         return mcp
 
     @classmethod
-    def activate_client(cls, client: McpClient) -> None:
-        cls._manager.activate_client(client)
+    def activate_mcp_client(cls, client: McpClient) -> None:
+        cls._manager.activate_mcp_client(client)
 
 
 @dataclass
@@ -148,7 +151,7 @@ class MCP:
     @property
     def tools(self) -> list[Tool]:
         if not self._tools:
-            Tool.activate_client(self._client)
+            Tool.activate_mcp_client(self._client)
             for tool in self._client.tools:
                 self._tools.append(
                     Tool(
@@ -217,6 +220,8 @@ class McpClient:
             raise e
 
     async def close(self) -> None:
+        pass
+        """
         try:
             if self._session:
                 await self._session.__aexit__(None, None, None)
@@ -231,6 +236,7 @@ class McpClient:
         except Exception:
             # TODO find a way to cleanly close the client
             pass
+        """
 
     @property
     def tools(self) -> list[McpTool]:

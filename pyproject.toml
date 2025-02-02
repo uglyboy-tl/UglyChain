@@ -25,6 +25,7 @@ dev = [
     "mkdocstrings[python]>=0.27.0",
     "mkdocs-static-i18n[material]>=1.2.3",
     "pytest-mock>=3.14.0",
+    "pytest-asyncio>=0.25.3",
 ]
 
 
@@ -108,3 +109,6 @@ omit = [
     "src/uglychain/tools_utils.py",
     # 你可以在这里添加更多的路径
 ]
+
+[tool.pytest.ini_options]
+asyncio_default_fixture_loop_scope = "function"
