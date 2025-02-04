@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import atexit
+import json
 import os
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
@@ -101,6 +102,11 @@ class Tool:
 
     _manager: ClassVar[ToolsManager] = ToolsManager.get()
 
+    def __call__(self, **arguments: Any) -> str:
+        if self.name not in self._manager.tools:
+            raise ValueError(f"Tool {self.name} not registered")
+        return self._manager.call_tool(self.name, arguments)
+
     @classmethod
     def call_tool(cls, tool_name: str, console: Console | None = None, **arguments: Any) -> str:
         if console is None:
@@ -131,6 +137,20 @@ class Tool:
         return mcp
 
     @classmethod
+    def load_mcp_config(cls, config_str: str) -> MCP:
+        try:
+            config_origin = json.loads(f"{{{config_str}}}")
+        except json.JSONDecodeError as e:
+            raise ValueError("Invalid JSON format") from e
+        assert len(config_origin) == 1
+        name, config_dict = list(config_origin.items())[0]
+        assert isinstance(config_dict, dict)
+        config = {k: v for k, v in config_dict.items() if k in ["command", "args", "env", "disabled", "autoApprove"]}
+        mcp = MCP(**config)
+        mcp._client = cls._manager.regedit_mcp(name, mcp)
+        return mcp
+
+    @classmethod
     def activate_mcp_client(cls, client: McpClient) -> None:
         cls._manager.activate_mcp_client(client)
 
@@ -138,8 +158,10 @@ class Tool:
 @dataclass
 class MCP:
     command: str
-    args: list[str] = field(default_factory=list)
+    args: list[str]
     env: dict[str, str] = field(default_factory=dict)
+    disabled: bool = False
+    autoApprove: list[str] = field(default_factory=list)  # noqa: N815
     _client: McpClient = field(init=False)
     _tools: list[Tool] = field(init=False, default_factory=list)
 
@@ -150,6 +172,8 @@ class MCP:
 
     @property
     def tools(self) -> list[Tool]:
+        if self.disabled:
+            return []
         if not self._tools:
             Tool.activate_mcp_client(self._client)
             for tool in self._client.tools:

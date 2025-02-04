@@ -10,6 +10,10 @@ requires-python = ">=3.10"
 readme = "README.md"
 license = {text = "MIT"}
 
+[project.optional-dependencies]
+code = [
+    "unidiff>=0.7.5",
+]
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
@@ -60,6 +64,7 @@ ignore = [
     "B905",  # `zip()` without an explicit `strict=` parameter
     "E402",  # module level import not at top of file
     "E501",  # conflicts with black
+    "N801",  # enable lower case for all module names
 ]
 select = [
     "B",  # flake8-bugbear
@@ -106,7 +111,7 @@ docs-deploy = "mkdocs gh-deploy"
 
 [tool.coverage.run]
 omit = [
-    "src/uglychain/tools_utils.py",
+    "src/uglychain/utils/tools.py",
     # 你可以在这里添加更多的路径
 ]
 

@@ -10,11 +10,16 @@ from typing import Any, Literal, overload
 
 from .config import config
 from .console import Console
-from .default_tools import final_answer
 from .llm import gen_prompt, llm
 from .schema import Messages, P, T
 from .tool import MCP, Tool
 from .utils import retry
+
+
+@Tool.tool
+def final_answer(answer: str) -> str:
+    """When get Final Answer, use this tool to return the answer and finishes the task."""
+    return answer
 
 
 @overload

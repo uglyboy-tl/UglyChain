@@ -2,10 +2,10 @@
 # It is not intended for manual editing.
 
 [metadata]
-groups = ["default", "dev"]
+groups = ["default", "code", "dev"]
 strategy = []
 lock_version = "4.5.0"
-content_hash = "sha256:717a60d54cb1a74d5bcfc5397b9cb76df4b463e2d0e31de7b013ff0c1427f9a1"
+content_hash = "sha256:e6dc6240848bfd23176958cffafb4401c777dab7e8314f02d204a4c9a3cab565"
 
 [[metadata.targets]]
 requires_python = ">=3.10"
@@ -631,7 +631,7 @@ files = [
 
 [[package]]
 name = "mkdocs-material"
-version = "9.6.1"
+version = "9.6.2"
 summary = ""
 dependencies = [
     "babel",
@@ -647,8 +647,8 @@ dependencies = [
     "requests",
 ]
 files = [
-    {file = "mkdocs_material-9.6.1-py3-none-any.whl", hash = "sha256:c1742d410be29811a9b7e863cb25a578b9e255fe6f04c69f8c6838863a58e141"},
-    {file = "mkdocs_material-9.6.1.tar.gz", hash = "sha256:da37dba220d9fbfc5f1fc567fafc4028e3c3d7d828f2779ed09ab726ceca77dc"},
+    {file = "mkdocs_material-9.6.2-py3-none-any.whl", hash = "sha256:71d90dbd63b393ad11a4d90151dfe3dcbfcd802c0f29ce80bebd9bbac6abc753"},
+    {file = "mkdocs_material-9.6.2.tar.gz", hash = "sha256:a3de1c5d4c745f10afa78b1a02f917b9dce0808fb206adc0f5bb48b58c1ca21f"},
 ]
 
 [[package]]
@@ -688,21 +688,20 @@ files = [
 
 [[package]]
 name = "mkdocstrings"
-version = "0.27.0"
+version = "0.28.0"
 summary = ""
 dependencies = [
-    "click",
     "jinja2",
     "markdown",
     "markupsafe",
     "mkdocs",
     "mkdocs-autorefs",
-    "platformdirs",
+    "mkdocs-get-deps",
     "pymdown-extensions",
 ]
 files = [
-    {file = "mkdocstrings-0.27.0-py3-none-any.whl", hash = "sha256:6ceaa7ea830770959b55a16203ac63da24badd71325b96af950e59fd37366332"},
-    {file = "mkdocstrings-0.27.0.tar.gz", hash = "sha256:16adca6d6b0a1f9e0c07ff0b02ced8e16f228a9d65a37c063ec4c14d7b76a657"},
+    {file = "mkdocstrings-0.28.0-py3-none-any.whl", hash = "sha256:84cf3dc910614781fe0fee46ce8006fde7df6cc7cca2e3f799895fb8a9170b39"},
+    {file = "mkdocstrings-0.28.0.tar.gz", hash = "sha256:df20afef1eafe36ba466ae20732509ecb74237653a585f5061937e54b553b4e0"},
 ]
 
 [[package]]
@@ -721,16 +720,16 @@ files = [
 
 [[package]]
 name = "mkdocstrings"
-version = "0.27.0"
+version = "0.28.0"
 extras = ["python"]
 summary = ""
 dependencies = [
     "mkdocstrings-python",
-    "mkdocstrings==0.27.0",
+    "mkdocstrings==0.28.0",
 ]
 files = [
-    {file = "mkdocstrings-0.27.0-py3-none-any.whl", hash = "sha256:6ceaa7ea830770959b55a16203ac63da24badd71325b96af950e59fd37366332"},
-    {file = "mkdocstrings-0.27.0.tar.gz", hash = "sha256:16adca6d6b0a1f9e0c07ff0b02ced8e16f228a9d65a37c063ec4c14d7b76a657"},
+    {file = "mkdocstrings-0.28.0-py3-none-any.whl", hash = "sha256:84cf3dc910614781fe0fee46ce8006fde7df6cc7cca2e3f799895fb8a9170b39"},
+    {file = "mkdocstrings-0.28.0.tar.gz", hash = "sha256:df20afef1eafe36ba466ae20732509ecb74237653a585f5061937e54b553b4e0"},
 ]
 
 [[package]]
@@ -1276,6 +1275,15 @@ summary = ""
 files = [
     {file = "typing_extensions-4.12.2-py3-none-any.whl", hash = "sha256:04e5ca0351e0f3f85c6853954072df659d0d13fac324d0072316b67d7794700d"},
     {file = "typing_extensions-4.12.2.tar.gz", hash = "sha256:1a7ead55c7e559dd4dee8856e3a88b41225abfe1ce8df57b7c13915fe121ffb8"},
+]
+
+[[package]]
+name = "unidiff"
+version = "0.7.5"
+summary = ""
+files = [
+    {file = "unidiff-0.7.5-py2.py3-none-any.whl", hash = "sha256:c93bf2265cc1ba2a520e415ab05da587370bc2a3ae9e0414329f54f0c2fc09e8"},
+    {file = "unidiff-0.7.5.tar.gz", hash = "sha256:2e5f0162052248946b9f0970a40e9e124236bf86c82b70821143a6fc1dea2574"},
 ]
 
 [[package]]

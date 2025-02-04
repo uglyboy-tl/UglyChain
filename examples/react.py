@@ -3,7 +3,7 @@ from __future__ import annotations
 from pydantic import BaseModel
 
 from uglychain import config, react
-from uglychain.default_tools import e2b_mcp_server, execute_command, visit_webpage, web_search
+from uglychain.tools.default import e2b_mcp_server, execute_command, visit_webpage, web_search
 
 
 class Date(BaseModel):

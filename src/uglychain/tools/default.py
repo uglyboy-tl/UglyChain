@@ -7,7 +7,9 @@ import subprocess
 import urllib.parse
 from pathlib import Path
 
-from .tool import Tool
+from uglychain import Tool
+
+TIMEOUT = 60
 
 
 @Tool.tool
@@ -20,22 +22,30 @@ def execute_command(command: str) -> str:
         raise ValueError("Command cannot be empty")
 
     working_directory = Path.cwd()
-
-    result = subprocess.run(command, shell=True, cwd=working_directory, capture_output=True, text=True)
-    return result.stdout + result.stderr
-
-
-@Tool.tool
-def final_answer(answer: str) -> str:
-    """When get Final Answer, use this tool to return the answer and finishes the task."""
-    return answer
+    try:
+        result = subprocess.run(
+            command, shell=True, cwd=working_directory, capture_output=True, text=True, timeout=TIMEOUT
+        )
+        if result.returncode == 0:
+            return f"Command executed successfully.\n\nSTDOUT:\n{result.stdout}\n\nSTDERR:\n{result.stderr}"
+        else:
+            return f"Command execution failed with return code {result.returncode}.\n\nSTDOUT:\n{result.stdout}\n\nSTDERR:\n{result.stderr}"
+    except subprocess.TimeoutExpired:
+        return "Command execution timed out after {TIMEOUT} seconds."
+    except subprocess.SubprocessError as e:
+        return f"Failed to execute command: {str(e)}"
+    except Exception as e:
+        return f"Error executing command: {str(e)}"
 
 
 @Tool.tool
 def user_input(question: str) -> str:
     """Asks for user's input on a specific question"""
-    user_input = input(f"{question} => Type your answer here:")
-    return user_input
+    try:
+        user_input = input(f"{question} => Type your answer here:")
+        return user_input
+    except Exception as e:
+        return f"Failed to ask user: {str(e)}"
 
 
 @Tool.tool
@@ -91,7 +101,7 @@ def visit_webpage(url: str) -> str:
 
 
 @Tool.mcp
-class e2b_mcp_server:  # noqa: N801
+class e2b_mcp_server:
     command = "npx"
     args = ["-y", "@e2b/mcp-server"]
     env = {"E2B_API_KEY": ""}
@@ -99,7 +109,6 @@ class e2b_mcp_server:  # noqa: N801
 
 __all__ = [
     "execute_command",
-    "final_answer",
     "user_input",
     "web_search",
     "visit_webpage",
