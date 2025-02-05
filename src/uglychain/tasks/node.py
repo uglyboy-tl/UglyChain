@@ -40,28 +40,3 @@ def flow(task_list: list[BaseNode]) -> None:
 
         for task in task_list:
             in_degree[task] -= set(current_tasks)
-
-
-if __name__ == "__main__":
-
-    @dataclass
-    class Node(BaseNode):
-        name: str
-
-        def run(self) -> None:
-            super().run()
-            print(self.name)
-
-        def __hash__(self) -> int:
-            return hash(self.name)
-
-    node1 = Node("node1")
-    node2 = Node("node2")
-    node3 = Node("node3")
-    node4 = Node("node4")
-    node5 = Node("node5")
-
-    node2 >> node4 >> node5  # type: ignore
-    node1 >> node3 >> node5  # type: ignore
-
-    flow([node5])
