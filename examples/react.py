@@ -10,7 +10,7 @@ class Date(BaseModel):
     year: int
 
 
-@react("openai:gpt-4o-mini", [web_search], response_format=Date)
+@react(tools=[web_search], response_format=Date)
 def search(name: str):
     return f"{name}生于哪一年？"
 
@@ -20,7 +20,7 @@ def update(message_history: list[dict[str, str]]):
     return message_history
 
 
-@react("openai:gpt-4o-mini", [execute_command, visit_webpage])
+@react("deepseek:deepseek-chat", [execute_command, visit_webpage])
 def weather(city: str):
     return f"使用 wttr.in 获取{city}的天气信息"
 

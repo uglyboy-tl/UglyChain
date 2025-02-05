@@ -24,7 +24,7 @@ class Novel(BaseModel):
     instructions: list[str] = Field(description="三个不同的指示，说明接下来要写什么，每个指示包含大约五句话")
 
 
-@llm("openai:gpt-4o", response_format=NovelDetail, need_retry=True)
+@llm(response_format=NovelDetail, need_retry=True)
 def novel(short_memory: str, input_paragraph: str, instruction: str, related_paragraphs: list[str]) -> None:
     """
     我需要你帮我写一部小说。现在我给你一个400字的记忆（简短的总结），你应该用它来储存已经写过的关键内容，这样你就可以跟踪很长的上下文。每次，我会给你你当前的记忆（前面故事的简短总结。你应该用它来储存已经写过的关键内容，这样你就可以跟踪很长的上下文），之前写的段落，以及关于下一段要写什么的指示。
@@ -41,7 +41,7 @@ def novel(short_memory: str, input_paragraph: str, instruction: str, related_par
     pass
 
 
-@llm("openai:gpt-4o", response_format=Novel, need_retry=True)
+@llm(response_format=Novel, need_retry=True)
 def init(novel_type: str, description: str) -> str:
     """
     你将写一部小说，有50个章节。准确遵循以下格式：

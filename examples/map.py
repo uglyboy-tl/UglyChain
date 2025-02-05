@@ -35,7 +35,7 @@ def map_input():
 
 
 def test():
-    @llm("openai:gpt-4o-mini", map_keys=["input"], response_format=UserDetail)
+    @llm(map_keys=["input"], response_format=UserDetail)
     def _map(input: list[str]):
         return f"{input}"
 

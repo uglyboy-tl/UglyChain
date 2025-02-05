@@ -5,7 +5,7 @@ from uglychain.tools.coder import read_file, replace_in_file, write_to_file
 from uglychain.tools.default import execute_command
 
 
-@react("openai:gpt-4o", tools=[read_file, write_to_file, replace_in_file, execute_command])
+@react(tools=[read_file, write_to_file, replace_in_file, execute_command])
 def coder(task: str):
     return task
 
