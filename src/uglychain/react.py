@@ -81,7 +81,7 @@ def react(
                         message.append({"role": "assistant", "content": str(acts[-1])})
                     return message
                 elif isinstance(message, str):
-                    return message + "\n" + "\n".join(str(a) for a in acts)
+                    return message + "\n" + "\n".join(str(a) for a in acts) + "\n" + "Thought:"
                 else:
                     raise ValueError("Invalid output type")
 
@@ -193,16 +193,16 @@ An fake example:
 Task:
 the input question you must answer
 
-Thought: you should always think about what to do
-Action: the action to take, should be one of [{tool_names}]
-Action Input: the input to the action with JSON format representing the kwargs (e.g. {{"text": "hello world", "num_beams": 5}})
-Observation: the result of the action
+Thought: Always consider the appropriate course of action.
+Action: Choose one action from [{tool_names}]
+Action Input: Format the input using XML-style tags, with each parameter enclosed in its own set of tags (e.g. <text>hello world</text>\n<num_beams>5</num_beams>)
+Observation: The result of the action.
 
 ... (this Thought/Action/Action Input/Observation can be repeated zero or more times)
 
 Thought: I now know the final answer
 Action: final_answer
-Action Input: {{"answer":"<answer>"}}
+Action Input: <answer>final answer</answer>
 ```
 
 ## Tools
@@ -240,7 +240,8 @@ class Action:
     def info(self) -> str:
         if self.done:
             return f"\nThought: {self.thought}\nAction: Finish\nObservation: {self.obs}"
-        return f"\nThought: {self.thought}\nAction: {self.tool}\nAction Input: {self.args}\nObservation: {self.obs}"
+        xml_args = "".join([f"<{k}>{v}</{k}>" for k, v in self.args.items()])
+        return f"\nThought: {self.thought}\nAction: {self.tool}\nAction Input: {xml_args}\nObservation: {self.obs}"
 
     @classmethod
     def from_response(cls, text: str, console: Console) -> Action:
@@ -258,31 +259,35 @@ class Action:
                 text = text.rstrip() + special_obs_token  # Add it back.
             k = text.rfind(special_obs_token)
             func_name = text[i + len(special_func_token) : j].strip().split("#")[0]
-            func_args = text[j + len(special_args_token) : k].strip().split("#")[0]
-            match = re.search(r"(\{.*\})", func_args, re.MULTILINE | re.IGNORECASE | re.DOTALL)
-            if match:
-                func_args = match.group()
-            else:
-                raise ValueError("Can't parse the Action Input")
+            func_args_str = text[j + len(special_args_token) : k].strip()
+            param_regex = re.compile(r"<(\w+)>(.*?)</\1>", re.DOTALL)
+            func_args = {param: value for param, value in param_regex.findall(func_args_str)}
+            # match = re.search(r"(<\w+>.*</\w+>)", func_args, re.MULTILINE | re.IGNORECASE | re.DOTALL)
+            if not func_args:
+                # 尝试用 json 格式解析
+                match = re.search(r"(\{.*\})", func_args_str, re.MULTILINE | re.IGNORECASE | re.DOTALL)
+                if match:
+                    func_args_str = match.group()
+                    func_args = ast.literal_eval(func_args_str)
+                else:
+                    raise ValueError("Can't parse the Action Input")
+
             text = text[:i].strip()  # Return the response before tool call, i.e., `Thought`
             if text.startswith("Thought:"):
                 text = text[len("Thought:") :]
-        # return (func_name is not None), func_name, func_args, text
         if func_name is None or func_args is None:
-            raise ValueError("Can't parse the response")
+            raise ValueError("Can't parse the response, No `Action` or `Action Input`")
         console.log(text, console.show_react, style="yellow")
-        tool = func_name
-        args = ast.literal_eval(func_args)
         try:
-            obs = Tool.call_tool(tool, console, **args)
+            obs = Tool.call_tool(func_name, console, **func_args)
             console.log(obs, console.show_react, style="bold green")
         except Exception as e:
             obs = f"Error: {e}"
             console.log(obs, console.show_react, style="bold red")
         return cls(
             thought=text,
-            tool=tool,
-            args=args,
+            tool=func_name,
+            args=func_args,
             obs=obs,
         )
 

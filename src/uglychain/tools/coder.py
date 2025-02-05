@@ -8,6 +8,12 @@ from unidiff import PatchSet
 from uglychain import Tool
 
 
+def _convert_path(path: str) -> Path:
+    if "~/" in path:
+        return Path(path).expanduser()
+    return Path(path)
+
+
 def _convert_to_unified_diff(original_content: str, search_replace_diff: str) -> str:
     """Convert search/replace diff format to unified diff format."""
     # Parse the search/replace blocks
@@ -51,17 +57,24 @@ def _convert_to_unified_diff(original_content: str, search_replace_diff: str) ->
 @Tool.tool
 def read_file(path: str) -> str:
     """Request to read the contents of a file at the specified path. Use this when you need to examine the contents of an existing file you do not know the contents of, for example to analyze code, review text files, or extract information from configuration files. Automatically extracts raw text from PDF and DOCX files. May not be suitable for other types of binary files, as it returns the raw content as a string."""
+    _path = _convert_path(path)
     try:
-        return Path(path).read_text(encoding="utf-8")
+        return _path.read_text(encoding="utf-8")
     except Exception as e:
         return f"Error reading file: {path}. Error: {str(e)}"
 
 
 @Tool.tool
 def write_file(path: str, content: str) -> str:
-    """Request to write content to a file at the specified path. If the file exists, it will be overwritten with the provided content. If the file doesn't exist, it will be created. This tool will automatically create any directories needed to write the file."""
+    """Request to write content to a file at the specified path. If the file exists, it will be overwritten with the provided content. If the file doesn't exist, it will be created. This tool will automatically create any directories needed to write the file.
+    Usage:
+    <path>File path here</path>
+    <content>
+    Your file content here
+    </content>"""
+    _path = _convert_path(path)
     try:
-        Path(path).write_text(content, encoding="utf-8")
+        _path.write_text(content, encoding="utf-8")
         return f"Successfully wrote to file: {path}"
     except Exception as e:
         return f"Error writing to file: {path}. Error: {str(e)}"
@@ -97,9 +110,16 @@ def replace_file(path: str, diff: str) -> str:
     4. Special operations:
         * To move code: Use two SEARCH/REPLACE blocks (one to delete from original + one to insert at new location)
         * To delete code: Use empty REPLACE section
+
+    Usage:
+    <path>File path here</path>
+    <diff>
+    Search and replace blocks here
+    </diff>
     """
+    _path = _convert_path(path)
     try:
-        original_content = Path(path).read_text(encoding="utf-8")
+        original_content = _path.read_text(encoding="utf-8")
 
         # Convert search/replace format to unified diff
         unified_diff = _convert_to_unified_diff(original_content, diff)
@@ -121,7 +141,7 @@ def replace_file(path: str, diff: str) -> str:
                     start_pos = original_content.index(source_text)
                     end_pos = start_pos + len(source_text)
                     original_content = original_content[:start_pos] + target_text + original_content[end_pos:]
-        Path(path).write_text(original_content, encoding="utf-8")
+        _path.write_text(original_content, encoding="utf-8")
         return f"Successfully replaced content in file: {path}"
     except Exception as e:
         return f"Error replacing content in file: {path}. Error: {str(e)}"
