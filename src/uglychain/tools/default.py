@@ -12,6 +12,15 @@ from uglychain import Tool
 TIMEOUT = 60
 
 
+def _format_std(stdout: str, stderr: str) -> str:
+    output = ""
+    if stdout:
+        output += f"\n\nSTDOUT:\n{stdout}"
+    if stderr:
+        output += f"\n\nSTDERR:\n{stderr}"
+    return output
+
+
 @Tool.tool
 def execute_command(command: str) -> str:
     """
@@ -27,9 +36,9 @@ def execute_command(command: str) -> str:
             command, shell=True, cwd=working_directory, capture_output=True, text=True, timeout=TIMEOUT
         )
         if result.returncode == 0:
-            return f"Command executed successfully.\n\nSTDOUT:\n{result.stdout}\n\nSTDERR:\n{result.stderr}"
+            return f"Command executed successfully.{_format_std(result.stdout, result.stderr)}"
         else:
-            return f"Command execution failed with return code {result.returncode}.\n\nSTDOUT:\n{result.stdout}\n\nSTDERR:\n{result.stderr}"
+            return f"Command execution failed with return code {result.returncode}.{_format_std(result.stdout, result.stderr)}"
     except subprocess.TimeoutExpired:
         return "Command execution timed out after {TIMEOUT} seconds."
     except subprocess.SubprocessError as e:

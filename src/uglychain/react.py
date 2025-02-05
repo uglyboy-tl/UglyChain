@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import ast
 import json
-import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from functools import wraps
@@ -14,7 +12,7 @@ from .llm import gen_prompt, llm
 from .prompt import REACT_SYSTEM_PROMPT
 from .schema import Messages, P, T
 from .tool import MCP, Tool
-from .utils import retry
+from .utils import parse_to_dict, retry
 
 
 @Tool.tool
@@ -160,6 +158,7 @@ def react(
                 react_times += 1
                 default_console.rule(f"Step {react_times}", default_console.show_react, align="left")
                 act = react_response_action_with_retry(*prompt_args, acts=acts, **prompt_kwargs)
+                act.obs  # noqa: B018 单独执行一次函数调用，以生成结果，且不影响 retry 中的时长控制
                 acts.append(act)
 
             response: str | T = act.obs
@@ -183,7 +182,18 @@ class Action:
     thought: str = ""
     tool: str = ""
     args: dict = field(default_factory=dict)
-    obs: str = ""
+    console: Console = field(default_factory=Console)
+
+    @property
+    def obs(self) -> str:
+        if not hasattr(self, "_obs"):
+            try:
+                self._obs = Tool.call_tool(self.tool, self.console, **self.args)
+                self.console.log(self._obs, self.console.show_react, style="bold green")
+            except Exception as e:
+                self._obs = f"Error: {e}"
+                self.console.log(self._obs, self.console.show_react, style="bold red")
+        return self._obs
 
     @property
     def done(self) -> bool:
@@ -218,36 +228,18 @@ class Action:
                 text = text.rstrip() + special_obs_token  # Add it back.
             k = text.rfind(special_obs_token)
             func_name = text[i + len(special_func_token) : j].strip().split("#")[0]
-            func_args_str = text[j + len(special_args_token) : k].strip()
-            param_regex = re.compile(r"<(\w+)>(.*?)</\1>", re.DOTALL)
-            func_args = {param: value for param, value in param_regex.findall(func_args_str)}
-            # match = re.search(r"(<\w+>.*</\w+>)", func_args, re.MULTILINE | re.IGNORECASE | re.DOTALL)
-            if not func_args:
-                # 尝试用 json 格式解析
-                match = re.search(r"(\{.*\})", func_args_str, re.MULTILINE | re.IGNORECASE | re.DOTALL)
-                if match:
-                    func_args_str = match.group()
-                    func_args = ast.literal_eval(func_args_str)
-                else:
-                    raise ValueError("Can't parse the Action Input")
-
+            func_args = parse_to_dict(text[j + len(special_args_token) : k])
             text = text[:i].strip()  # Return the response before tool call, i.e., `Thought`
             if text.startswith("Thought:"):
                 text = text[len("Thought:") :]
         if func_name is None or func_args is None:
             raise ValueError("Can't parse the response, No `Action` or `Action Input`")
         console.log(text, console.show_react, style="yellow")
-        try:
-            obs = Tool.call_tool(func_name, console, **func_args)
-            console.log(obs, console.show_react, style="bold green")
-        except Exception as e:
-            obs = f"Error: {e}"
-            console.log(obs, console.show_react, style="bold red")
         return cls(
             thought=text,
             tool=func_name,
             args=func_args,
-            obs=obs,
+            console=console,
         )
 
 
