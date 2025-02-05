@@ -14,7 +14,7 @@ def _parse_json(response: str) -> dict[str, str]:
         try:
             args = ast.literal_eval(json_str)
             return args
-        except ValueError as e:
+        except Exception as e:
             raise ValueError("Invalid JSON format") from e
     else:
         raise ValueError("No JSON found in response")

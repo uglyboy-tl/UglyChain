@@ -274,6 +274,15 @@ def test_get_map_keys_with_invalid_map_key_type():
         _get_map_keys(sample_prompt, ("a",), {}, ["arg1"])
 
 
+def test_gen_prompt_with_empty_value():
+    def sample_prompt(arg1, arg2):
+        return None
+
+    result = gen_prompt(sample_prompt, arg1="value1", arg2=None)
+    expected = "<arg1>\nvalue1\n</arg1>"
+    assert result == expected
+
+
 @pytest.mark.parametrize(
     "args, expected",
     [

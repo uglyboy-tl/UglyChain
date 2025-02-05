@@ -26,11 +26,14 @@ def flow(task_list: list[BaseNode]) -> None:
     _deque: deque = deque(task_list)
     while _deque:
         task = _deque.pop()
-        dependencies = [task for task in task.dependencies if task not in task_list and task.completed is False]
+        dependencies = [
+            new_task for new_task in task.dependencies if new_task not in set(task_list) and new_task.completed is False
+        ]
         _deque.extendleft(dependencies)
         task_list.extend(dependencies)
-        if task in _deque or len(_deque) != len(set(_deque)):
-            raise ValueError("Circular dependency detected.")
+
+    if has_cycle(task_list):
+        raise ValueError("Circular dependency detected.")
     in_degree = {task: set(task.dependencies) for task in task_list}
     while task_list:
         current_tasks = [task for task in task_list if len(in_degree[task]) == 0]
@@ -40,3 +43,30 @@ def flow(task_list: list[BaseNode]) -> None:
 
         for task in task_list:
             in_degree[task] -= set(current_tasks)
+
+
+def has_cycle(nodes: list[BaseNode]) -> bool:
+    # 记录访问状态
+    visited = {node: False for node in nodes}
+    rec_stack = {node: False for node in nodes}
+
+    def dfs(node: BaseNode) -> bool:
+        visited[node] = True
+        rec_stack[node] = True
+
+        for neighbor in node.dependencies:
+            if not visited[neighbor]:
+                if dfs(neighbor):
+                    return True
+            elif rec_stack[neighbor]:
+                return True
+
+        rec_stack[node] = False
+        return False
+
+    # 检查每个任务
+    for node in nodes:
+        if not visited[node]:
+            if dfs(node):
+                return True
+    return False
