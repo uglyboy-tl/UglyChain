@@ -10,6 +10,7 @@ from typing import Any, Generic, get_origin, get_type_hints
 from openai.lib import _pydantic
 from pydantic import BaseModel, ValidationError
 
+from .prompt import RESPONSE_JSON_PROMPT
 from .schema import Messages, T, ToolResponse
 
 
@@ -20,21 +21,19 @@ class Mode(Enum):
     JSON_SCHEMA = "json_schema_mode"
 
 
+provider_model_to_mode = {
+    ("openai", ""): Mode.JSON_SCHEMA,
+    ("openai", "yi-large"): Mode.MD_JSON,
+    ("openai", "*"): Mode.TOOLS,
+    ("deepseek", "*"): Mode.TOOLS,
+    ("openrouter", "openai/gpt-4o"): Mode.JSON_SCHEMA,
+    ("openrouter", "openai/gpt-4o-mini"): Mode.JSON_SCHEMA,
+    ("ollama", "*"): Mode.JSON_SCHEMA,
+    ("gemini", "*"): Mode.JSON_SCHEMA,
+}
+
+
 class ResponseModel(Generic[T]):
-    # 定义输出格式的提示模板，包含对JSON schema的描述和示例
-    PROMPT_TEMPLATE = """## Output Format
-The output should be formatted as a JSON instance that conforms to the JSON schema below.
-
-As an example, for the schema {{"properties": {{"foo": {{"title": "Foo", "description": "a list of strings", "type": "array", "items": {{"type": "string"}}}}}}, "required": ["foo"]}}
-the object {{"foo": ["bar", "baz"]}} is a well-formatted instance of the schema. The object {{"properties": {{"foo": ["bar", "baz"]}}}} is not well-formatted.
-
-Here is the output schema:
-```
-{output_schema}
-```
-
-Make sure to return an instance of the JSON which can be parsed by Python json.loads, not the schema itself."""
-
     def __init__(self, func: Callable, response_model: type[T] | None = None) -> None:
         # 获取被修饰函数的返回类型
         response_type = get_type_hints(func).get("return", str) if response_model is None else response_model
@@ -53,31 +52,22 @@ Make sure to return an instance of the JSON which can be parsed by Python json.l
         model: str,
         messages: Messages,
         merged_api_params: dict[str, Any],
+        mode: Mode | None = None,
     ) -> None:
         if self.response_type is str:
             return
-        provider, model_name = model.split(":", 1)
-        # 使用字典映射来替代 match-case 语句，提高可维护性
-        mode_mapping = {
-            ("openai", ""): Mode.JSON_SCHEMA,
-            ("openai", "yi-large"): Mode.MD_JSON,
-            ("openai", "*"): Mode.TOOLS,
-            ("deepseek", "*"): Mode.TOOLS,
-            ("openrouter", "openai/gpt-4o"): Mode.JSON_SCHEMA,
-            ("openrouter", "openai/gpt-4o-mini"): Mode.JSON_SCHEMA,
-            ("ollama", "*"): Mode.JSON_SCHEMA,
-            ("gemini", "*"): Mode.JSON_SCHEMA,
-            ("*", "*"): Mode.MD_JSON,
-        }
-        # 使用通配符匹配
-        self.mode = next(
-            (
-                mode
-                for (p, m), mode in mode_mapping.items()
-                if (p == provider or p == "*") and (m == model_name or m == "*")
-            ),
-            Mode.MD_JSON,
-        )
+        if mode is None:
+            provider, model_name = model.split(":", 1)
+            self.mode = next(
+                (
+                    mode
+                    for (p, m), mode in provider_model_to_mode.items()
+                    if (p == provider or p == "*") and (m == model_name or m == "*")
+                ),
+                Mode.MD_JSON,
+            )
+        else:
+            self.mode = mode
 
         if self.mode == Mode.JSON_SCHEMA:
             self._set_response_format_from_params(merged_api_params)
@@ -127,7 +117,7 @@ Make sure to return an instance of the JSON which can be parsed by Python json.l
         if not messages:
             raise ValueError("Messages is empty")
 
-        system_prompt = self.PROMPT_TEMPLATE.format(output_schema=json.dumps(self.parameters, ensure_ascii=False))
+        system_prompt = RESPONSE_JSON_PROMPT.format(output_schema=json.dumps(self.parameters, ensure_ascii=False))
         system_message = messages[0]
         if system_message["role"] == "system":
             system_message["content"] += "\n\n" + system_prompt  # type: ignore

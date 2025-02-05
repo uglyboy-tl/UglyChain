@@ -11,6 +11,7 @@ from typing import Any, Literal, overload
 from .config import config
 from .console import Console
 from .llm import gen_prompt, llm
+from .prompt import REACT_SYSTEM_PROMPT
 from .schema import Messages, P, T
 from .tool import MCP, Tool
 from .utils import retry
@@ -85,7 +86,7 @@ def react(
                 else:
                     raise ValueError("Invalid output type")
 
-            react_once.__doc__ = SYSTEM_PROMPT.format(
+            react_once.__doc__ = REACT_SYSTEM_PROMPT.format(
                 tool_names=", ".join(tool_names),
                 tool_descriptions=_tool_descriptions(default_tools),
                 extra_instructions=prompt.__doc__ if prompt.__doc__ else "",
@@ -175,48 +176,6 @@ def react(
         return model_call
 
     return parameterized_lm_decorator
-
-
-SYSTEM_PROMPT = """You are an expert assistant who can solve any task using tools. You will be given a task to solve as best you can.
-To do so, you have been given access to the following tools: [{tool_names}].
-
-To solve the task, you must plan forward to proceed in a series of steps, in a cycle of 'Thought:', 'Action:', 'Action Input:', and 'Observation:' sequences.
-
-At each step, in the 'Thought:' sequence, you should first explain your reasoning towards solving the task and the tools that you want to use.
-Then in the 'Action:' and 'Action Input:' sequence, you should tell system what tool to use and what arguments to use.
-The action result will then appear in the 'Observation:' field, which will be available as input for the next step. And you do not need to generate this part, it will be automatically filled by the system. The observation will always be a string: it can represent a file, like "image_1.jpg".
-In the end you have to return a final answer using the `final_answer` tool.
-
-## Example
-An fake example:
-```
-Task:
-the input question you must answer
-
-Thought: Always consider the appropriate course of action.
-Action: Choose one action from [{tool_names}]
-Action Input: Format the input using XML-style tags, with each parameter enclosed in its own set of tags (e.g. <text>hello world</text>\n<num_beams>5</num_beams>)
-Observation: The result of the action.
-
-... (this Thought/Action/Action Input/Observation can be repeated zero or more times)
-
-Thought: I now know the final answer
-Action: final_answer
-Action Input: <answer>final answer</answer>
-```
-
-## Tools
-{tool_descriptions}
-
-## Instructions
-1. ALWAYS provide a tool call, else you will fail.
-2. Always use the right arguments for the tools. Never use variable names as the action arguments, use the value instead.
-3. Call a tool only when needed: do not call the search agent if you do not need information, try to solve the task yourself. If no tool call is needed, use final_answer tool to return your answer.
-4. Never re-do a tool call that you previously did with the exact same parameters.
-
-## Extra instructions
-{extra_instructions}
-"""
 
 
 @dataclass
