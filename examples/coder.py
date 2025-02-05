@@ -12,4 +12,4 @@ def coder(task: str):
 
 if __name__ == "__main__":
     config.verbose = True
-    coder("帮我看看 bspwm 的配置文件(~/.config/bspwm/bspwmrc)有什么值得优化的地方")
+    coder("帮我写一个贪吃蛇的网页小游戏")

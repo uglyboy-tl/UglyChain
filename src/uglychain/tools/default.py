@@ -40,7 +40,7 @@ def execute_command(command: str) -> str:
 
 @Tool.tool
 def user_input(question: str) -> str:
-    """Asks for user's input on a specific question"""
+    """Ask the user a question to gather additional information needed to complete the task. This tool should be used when you encounter ambiguities, need clarification, or require more details to proceed effectively. It allows for interactive problem-solving by enabling direct communication with the user. Use this tool judiciously to maintain a balance between gathering necessary information and avoiding excessive back-and-forth."""
     try:
         user_input = input(f"{question} => Type your answer here:")
         return user_input
