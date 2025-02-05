@@ -65,7 +65,7 @@ def read_file(path: str) -> str:
 
 
 @Tool.tool
-def write_file(path: str, content: str) -> str:
+def write_to_file(path: str, content: str) -> str:
     """Request to write content to a file at the specified path. If the file exists, it will be overwritten with the provided content. If the file doesn't exist, it will be created. This tool will automatically create any directories needed to write the file.
     Usage:
     <path>File path here</path>
@@ -82,7 +82,7 @@ def write_file(path: str, content: str) -> str:
 
 
 @Tool.tool
-def replace_file(path: str, diff: str) -> str:
+def replace_in_file(path: str, diff: str) -> str:
     """
     Description: Request to replace sections of content in an existing file using SEARCH/REPLACE blocks that define exact changes to specific parts of the file.
 

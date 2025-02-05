@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from uglychain.tools.coder import _convert_path, _convert_to_unified_diff, read_file, replace_file, write_file
+from uglychain.tools.coder import _convert_path, _convert_to_unified_diff, read_file, replace_in_file, write_to_file
 
 
 def test_read_file(mocker):
@@ -28,7 +28,7 @@ def test_write_file(mocker):
     mocker.patch("pathlib.Path.write_text", return_value=None)
     mocker.patch("pathlib.Path.mkdir", return_value=None)
 
-    result = write_file(path="/fake/path", content="new content")
+    result = write_to_file(path="/fake/path", content="new content")
     assert result == "Successfully wrote to file: /fake/path"
 
 
@@ -37,7 +37,7 @@ def test_write_file_error(mocker):
     mocker.patch("pathlib.Path.write_text", side_effect=Exception("write error"))
     mocker.patch("pathlib.Path.mkdir", return_value=None)
 
-    result = write_file(path="/fake/path", content="new content")
+    result = write_to_file(path="/fake/path", content="new content")
     assert "Error writing to file" in result
 
 
@@ -51,7 +51,7 @@ def test_replace_file(mocker):
         return_value="--- a/file\n+++ b/file\n@@ -1,1 +1,1 @@\n-original content\n+new content\n",
     )
 
-    result = replace_file(
+    result = replace_in_file(
         path="/fake/path", diff="<<<<<<< SEARCH\noriginal content\n=======\nnew content\n>>>>>>> REPLACE"
     )
     assert result == "Successfully replaced content in file: /fake/path"
@@ -63,7 +63,7 @@ def test_replace_file_error(mocker):
     mocker.patch("pathlib.Path.write_text", return_value=None)
     mocker.patch("pathlib.Path.mkdir", return_value=None)
 
-    result = replace_file(
+    result = replace_in_file(
         path="/fake/path", diff="<<<<<<< SEARCH\noriginal content\n=======\nnew content\n>>>>>>> REPLACE"
     )
     assert "Error replacing content in file" in result
