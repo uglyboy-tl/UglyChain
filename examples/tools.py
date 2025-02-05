@@ -1,10 +1,19 @@
 from __future__ import annotations
 
-from typing import cast
+from collections.abc import Callable
+from typing import Any
 
 from examples.schema import get_current_weather, search_baidu, search_bing, search_google
 
-from uglychain import ToolResponse, config, get_tools_schema, llm
+from uglychain import config, llm
+from uglychain.schema import ToolResponse
+from uglychain.utils import function_schema
+
+
+def get_tools_schema(tools: list[Callable]) -> list[dict[str, Any]]:
+    if not tools:
+        return []
+    return [{"type": "function", "function": function_schema(tool)} for tool in tools]
 
 
 def functian_call():

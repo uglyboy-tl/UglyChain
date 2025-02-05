@@ -74,6 +74,7 @@ def write_file(path: str, content: str) -> str:
     </content>"""
     _path = _convert_path(path)
     try:
+        _path.parent.mkdir(parents=True, exist_ok=True)
         _path.write_text(content, encoding="utf-8")
         return f"Successfully wrote to file: {path}"
     except Exception as e:
@@ -141,6 +142,7 @@ def replace_file(path: str, diff: str) -> str:
                     start_pos = original_content.index(source_text)
                     end_pos = start_pos + len(source_text)
                     original_content = original_content[:start_pos] + target_text + original_content[end_pos:]
+        _path.parent.mkdir(parents=True, exist_ok=True)
         _path.write_text(original_content, encoding="utf-8")
         return f"Successfully replaced content in file: {path}"
     except Exception as e:

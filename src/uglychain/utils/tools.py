@@ -16,23 +16,6 @@ def function_schema(func: Callable) -> dict[str, Any]:
     return convert_pydantic_to_openai_function(pydantic_func)
 
 
-def get_tools_schema(tools: list[Callable]) -> list[dict[str, Any]]:
-    if not tools:
-        return []
-    return [{"type": "function", "function": function_schema(tool)} for tool in tools]
-
-
-def add_tools_to_parameters(params: dict[str, Any], tools: list[Callable] | None) -> None:
-    if tools is None or not tools:
-        return
-    params["tools"] = []
-    for tool in tools:
-        params["tools"].append({"type": "function", "function": function_schema(tool)})
-    # TODO: 这里的逻辑后续需要重新确认
-    if len(tools) == 1:
-        params["tool_choice"] = {"type": "function", "function": {"name": tools[0].__name__}}
-
-
 def convert_pydantic_to_openai_function(
     model: type,
     *,
