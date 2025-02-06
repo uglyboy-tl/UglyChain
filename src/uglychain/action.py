@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any
 
 from .console import Console
 from .tool import Tool
@@ -11,7 +12,7 @@ from .utils import parse_to_dict
 class Action:
     thought: str = ""
     tool: str = ""
-    args: dict = field(default_factory=dict)
+    args: dict[str, Any] = field(default_factory=dict)
     console: Console = field(default_factory=Console)
 
     def _call_tool_with_logging(self) -> str:
@@ -25,7 +26,7 @@ class Action:
             return error_message
 
     def _format_args(self) -> str:
-        return "".join([f"<{k}>{v}</{k}>" for k, v in self.args.items()])
+        return "".join([f"<{k}>{v!r}</{k}>" for k, v in self.args.items()])
 
     @property
     def obs(self) -> str:

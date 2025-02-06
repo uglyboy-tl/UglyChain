@@ -23,8 +23,7 @@ class Mode(Enum):
 
 provider_model_to_mode = {
     ("openai", ""): Mode.JSON_SCHEMA,
-    ("openai", "yi-large"): Mode.MD_JSON,
-    ("openai", "*"): Mode.TOOLS,
+    # ("openai", "*"): Mode.TOOLS,
     ("deepseek", "*"): Mode.TOOLS,
     ("openrouter", "openai/gpt-4o"): Mode.JSON_SCHEMA,
     ("openrouter", "openai/gpt-4o-mini"): Mode.JSON_SCHEMA,

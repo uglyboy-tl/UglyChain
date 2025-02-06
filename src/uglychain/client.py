@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import threading
 from typing import Any
 
@@ -47,9 +48,10 @@ class Client:
         messages: Messages,
         **api_params: Any,
     ) -> list[Any]:
+        client_model = _router(model, cls.get())
         try:
             response = cls.get().chat.completions.create(
-                model=model,
+                model=client_model,
                 messages=messages,
                 **api_params,
             )
@@ -58,3 +60,15 @@ class Client:
         if not hasattr(response, "choices") or not response.choices:
             raise ValueError("No choices returned from the model")
         return response.choices
+
+
+def _router(model: str, client: aisuite.Client) -> str:
+    provider_key, model_name = model.split(":", 1)
+    if provider_key == "openrouter":
+        config = {
+            "openai": {"api_key": os.getenv("OPENROUTER_API_KEY") or "", "base_url": "https://openrouter.ai/api/v1"}
+        }
+        client.configure(config)
+        return f"openai:{model_name}"
+    else:
+        return model
