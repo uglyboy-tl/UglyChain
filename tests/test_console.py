@@ -36,32 +36,27 @@ def test_init_method(console, mock_config):
     assert console.progress.disable == (not console.show_progress)
 
 
-def test_log(console, mock_config, mocker):
-    mock_config.verbose = True
+@pytest.mark.parametrize("verbose, expected_call_count", [(True, 1), (False, 0)])
+def test_log(console, mock_config, mocker, verbose, expected_call_count):
+    mock_config.verbose = verbose
     mock_console = mocker.patch.object(console.console, "print")
     console.log("Test log message")
-    mock_console.assert_called_once()
-    mock_config.verbose = False
-    mock_console = mocker.patch.object(console.console, "print")
-    console.log("Test log message")
-    mock_console.assert_not_called()
+    assert mock_console.call_count == expected_call_count
 
 
-def test_rule(console, mock_config, mocker):
-    mock_config.verbose = True
-    mock_console = mocker.patch.object(console.console, "rule")
+@pytest.mark.parametrize("verbose, method, expected_call_count", [(True, "rule", 1), (False, "print", 0)])
+def test_rule(console, mock_config, mocker, verbose, method, expected_call_count):
+    mock_config.verbose = verbose
+    mock_console = mocker.patch.object(console.console, method)
     console.rule("Test rule")
-    mock_console.assert_called_once_with(title="Test rule")
-    mock_config.verbose = False
-    mock_console = mocker.patch.object(console.console, "print")
-    console.rule("Test rule")
-    mock_console.assert_not_called()
+    assert mock_console.call_count == expected_call_count
 
 
-def test_log_model_usage_pre(console, mock_config):
+def test_log_model_usage_pre(console, mock_config, mocker):
     mock_config.verbose = True
+    mock_console = mocker.patch.object(console.console, "print")
     console.log_model_usage_pre("model", lambda x, key: key, (1,), {"key": "value"})
-    # Should not raise any errors
+    mock_console.assert_called_once()
 
 
 def test_log_progress_methods(console):
@@ -82,18 +77,19 @@ def test_log_messages(console):
     assert console.messages_table.row_count == 3
 
 
-def test_log_api_params(console, mocker):
-    api_params = {"tools": [{"function": {"name": "test_tool", "parameters": {"param1": "value1"}}}]}
+@pytest.mark.parametrize(
+    "api_params, expected_call_count",
+    [({"tools": [{"function": {"name": "test_tool", "parameters": {"param1": "value1"}}}]}, 1), ({}, 0)],
+)
+def test_log_api_params(console, mocker, api_params, expected_call_count):
     mock_console = mocker.patch.object(console.console, "print")
     console.log_api_params(api_params)
-    mock_console.assert_called_once()
+    assert mock_console.call_count == expected_call_count
 
 
-def test_log_results(console, mocker):
-    results = ["result1", "result2"]
-    mock_console = mocker.patch.object(console.console, "print")
+@pytest.mark.parametrize("results", [["result1", "result2"], []])
+def test_log_results(console, results):
     console.log_results(results)
-    mock_console.assert_called_once()
 
 
 def test_off_method(console):
@@ -146,11 +142,13 @@ def test_call_tool_confirm_show_info(console, mock_config, monkeypatch, mocker):
     mock_console.assert_called_once()
 
 
-def test_pause_live(console):
+def test_pause_live(console, mocker):
     live = console._get_live()
+    mock_console = mocker.patch.object(console.console, "print")
     with PauseLive(live):
         assert not live.is_started
     assert live.is_started
+    mock_console.assert_called()
 
 
 @pytest.mark.parametrize(

@@ -27,8 +27,8 @@ def mock_generate(model, messages, **kwargs):
 
 
 @pytest.fixture
-def setup_client(monkeypatch):
-    monkeypatch.setattr("uglychain.client.Client.generate", mock_generate)
+def setup_client(mocker):
+    mocker.patch("uglychain.client.Client.generate", mock_generate)
 
 
 def test_llm_decorator(setup_client):
@@ -40,23 +40,23 @@ def test_llm_decorator(setup_client):
     assert result == "Test response"
 
 
-def test_llm_decorator_with_zero_result(monkeypatch):
+def test_llm_decorator_with_zero_result(mocker):
     @llm
     def sample_prompt() -> str:
         return "Hello, world!"
 
-    monkeypatch.setattr("uglychain.client.Client.generate", lambda *args, **kwargs: [])
+    mocker.patch("uglychain.client.Client.generate", lambda *args, **kwargs: [])
 
     with pytest.raises(ValueError, match="模型未返回任何选择"):
         sample_prompt()
 
 
-def test_llm_decorator_with_basemodel(monkeypatch):
+def test_llm_decorator_with_basemodel(mocker):
     @llm(model="test:model")  # type: ignore
     def sample_prompt() -> SampleModel:
         return "Hello, world!"  # type: ignore
 
-    monkeypatch.setattr(
+    mocker.patch(
         "uglychain.client.Client.generate", lambda *args, **kwargs: [create_mock_choice('{"content": "Test response"}')]
     )
 
@@ -75,12 +75,12 @@ def test_llm_decorator_with_list_str(setup_client, n):
 
 
 @pytest.mark.parametrize("n", [1, 2])
-def test_llm_decorator_with_list_basemodel(monkeypatch, n):
+def test_llm_decorator_with_list_basemodel(mocker, n):
     @llm(model="test:model", n=n)  # type: ignore
     def sample_prompt() -> SampleModel:
         return "Hello, world!"  # type: ignore
 
-    monkeypatch.setattr(
+    mocker.patch(
         "uglychain.client.Client.generate",
         lambda *args, **kwargs: [create_mock_choice('{"content": "Test response"}')] * n,
     )
@@ -89,12 +89,12 @@ def test_llm_decorator_with_list_basemodel(monkeypatch, n):
     assert result == [SampleModel(content="Test response")] * n
 
 
-def test_llm_decorator_with_response_format(monkeypatch):
+def test_llm_decorator_with_response_format(mocker):
     @llm(model="test:model", response_format=SampleModel)
     def sample_prompt() -> str:
         return "Hello, world!"  # type: ignore
 
-    monkeypatch.setattr(
+    mocker.patch(
         "uglychain.client.Client.generate", lambda *args, **kwargs: [create_mock_choice('{"content": "Test response"}')]
     )
 
@@ -120,56 +120,61 @@ def test_llm_decorator_with_need_retry(setup_client):
     assert result == "Test response"
 
 
-def test_llm_decorator_with_invalid_return_type(setup_client):
+@pytest.mark.parametrize("return_value", [123, 456])
+def test_llm_decorator_with_invalid_return_type(setup_client, return_value):
     @llm(model="test:model")  # type: ignore
     def sample_prompt() -> int:
-        return 123  # type: ignore
+        return return_value  # type: ignore
 
     with pytest.raises(TypeError):
         sample_prompt()
 
 
-def test_llm_decorator_with_empty_api_params(setup_client):
+@pytest.mark.parametrize("api_params", [{}, {"param1": "value1"}])
+def test_llm_decorator_with_empty_api_params(setup_client, api_params):
     @llm(model="test:model")
     def sample_prompt():
         return "Hello, world!"
 
-    result = sample_prompt(api_params={})  # type: ignore
+    result = sample_prompt(api_params=api_params)  # type: ignore
     assert result == "Test response"
 
 
-def test_llm_decorator_with_inconsistent_list_lengths():
+@pytest.mark.parametrize("arg1, arg2", [(["a", "b"], ["c"]), (["x"], ["y", "z"])])
+def test_llm_decorator_with_inconsistent_list_lengths(arg1, arg2):
     @llm(model="test:model", map_keys=["arg1", "arg2"])
     def sample_prompt(arg1: list[str], arg2: list[str]) -> str:
         return "Hello, world!"
 
     with pytest.raises(ValueError, match="prompt_args 和 prompt_kwargs 中的 map_key 列表必须具有相同的长度"):
-        sample_prompt(["a", "b"], ["c"])
+        sample_prompt(arg1, arg2)
 
 
-def test_llm_decorator_with_n_and_list_length_conflict():
+@pytest.mark.parametrize("arg1", [["a", "b"], ["x", "y", "z"]])
+def test_llm_decorator_with_n_and_list_length_conflict(arg1):
     @llm(model="test:model", map_keys=["arg1"], n=2)
     def sample_prompt(arg1: list[str]) -> str:
         return "Hello, world!"
 
     with pytest.raises(ValueError, match="n > 1 和列表长度 > 1 不能同时成立"):
-        sample_prompt(["a", "b"])
+        sample_prompt(arg1)
 
 
-def test_llm_decorator_with_parallel_processing(monkeypatch):
+@pytest.mark.parametrize("arg1", [["a", "b", "c"], ["x", "y", "z"]])
+def test_llm_decorator_with_parallel_processing(mocker, arg1):
     @llm(model="test:model", map_keys=["arg1"])
     def sample_prompt(arg1: list[str]) -> str:
         "System prompt"
         return arg1  # type: ignore
 
-    monkeypatch.setattr(
+    mocker.patch(
         "uglychain.client.Client.generate",
         lambda model, messages, **kwargs: [create_mock_choice(messages[1]["content"])],
     )
 
     config.use_parallel_processing = True
-    results = sample_prompt(["a", "b", "c"])
-    assert set(results) == {"a", "b", "c"}
+    results = sample_prompt(arg1)
+    assert set(results) == set(arg1)
 
 
 def test_llm_decorator_with_tools(mocker):

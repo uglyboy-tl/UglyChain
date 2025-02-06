@@ -7,43 +7,63 @@ import pytest
 from uglychain.tools.coder import _convert_path, _convert_to_unified_diff, read_file, replace_in_file, write_to_file
 
 
-def test_read_file(mocker):
-    mocker.patch("uglychain.tools.coder._convert_path", return_value=Path("/fake/path"))
-    mocker.patch("pathlib.Path.read_text", return_value="file content")
+@pytest.mark.parametrize(
+    "path, read_text_return, expected",
+    [("/fake/path", "file content", "file content"), ("/fake/path", Exception("read error"), "Error reading file")],
+)
+def test_read_file(mocker, path, read_text_return, expected):
+    mocker.patch("uglychain.tools.coder._convert_path", return_value=Path(path))
+    mocker.patch(
+        "pathlib.Path.read_text",
+        side_effect=read_text_return if isinstance(read_text_return, Exception) else None,
+        return_value=None if isinstance(read_text_return, Exception) else read_text_return,
+    )
 
-    result = read_file(path="/fake/path")
-    assert result == "file content"
+    result = read_file(path=path)
+    assert expected in result
 
 
-def test_read_file_error(mocker):
-    mocker.patch("uglychain.tools.coder._convert_path", return_value=Path("/fake/path"))
-    mocker.patch("pathlib.Path.read_text", side_effect=Exception("read error"))
-
-    result = read_file(path="/fake/path")
-    assert "Error reading file" in result
-
-
-def test_write_file(mocker):
-    mocker.patch("uglychain.tools.coder._convert_path", return_value=Path("/fake/path"))
-    mocker.patch("pathlib.Path.write_text", return_value=None)
+@pytest.mark.parametrize(
+    "path, content, write_text_side_effect, expected",
+    [
+        ("/fake/path", "new content", None, "Successfully wrote to file: /fake/path"),
+        ("/fake/path", "new content", Exception("write error"), "Error writing to file"),
+    ],
+)
+def test_write_file(mocker, path, content, write_text_side_effect, expected):
+    mocker.patch("uglychain.tools.coder._convert_path", return_value=Path(path))
+    mocker.patch("pathlib.Path.write_text", side_effect=write_text_side_effect)
     mocker.patch("pathlib.Path.mkdir", return_value=None)
 
-    result = write_to_file(path="/fake/path", content="new content")
-    assert result == "Successfully wrote to file: /fake/path"
+    result = write_to_file(path=path, content=content)
+    assert expected in result
 
 
-def test_write_file_error(mocker):
-    mocker.patch("uglychain.tools.coder._convert_path", return_value=Path("/fake/path"))
-    mocker.patch("pathlib.Path.write_text", side_effect=Exception("write error"))
-    mocker.patch("pathlib.Path.mkdir", return_value=None)
-
-    result = write_to_file(path="/fake/path", content="new content")
-    assert "Error writing to file" in result
-
-
-def test_replace_file(mocker):
-    mocker.patch("uglychain.tools.coder._convert_path", return_value=Path("/fake/path"))
-    mocker.patch("pathlib.Path.read_text", return_value="original content")
+@pytest.mark.parametrize(
+    "path, read_text_return, diff, expected",
+    [
+        (
+            "/fake/path",
+            "original content",
+            "<<<<<<< SEARCH\noriginal content\n=======\nnew content\n>>>>>>> REPLACE",
+            "Successfully replaced content in file: /fake/path",
+        ),
+        (
+            "/fake/path",
+            Exception("read error"),
+            "<<<<<<< SEARCH\noriginal content\n=======\nnew content\n>>>>>>> REPLACE",
+            "Error replacing content in file",
+        ),
+    ],
+)
+def test_replace_file(mocker, path, read_text_return, diff, expected):
+    mocker.patch("uglychain.tools.coder._convert_path", return_value=Path(path))
+    mocker.patch(
+        "pathlib.Path.read_text",
+        return_value=read_text_return
+        if not isinstance(read_text_return, Exception)
+        else mocker.Mock(side_effect=read_text_return),
+    )
     mocker.patch("pathlib.Path.write_text", return_value=None)
     mocker.patch("pathlib.Path.mkdir", return_value=None)
     mocker.patch(
@@ -51,10 +71,8 @@ def test_replace_file(mocker):
         return_value="--- a/file\n+++ b/file\n@@ -1,1 +1,1 @@\n-original content\n+new content\n",
     )
 
-    result = replace_in_file(
-        path="/fake/path", diff="<<<<<<< SEARCH\noriginal content\n=======\nnew content\n>>>>>>> REPLACE"
-    )
-    assert result == "Successfully replaced content in file: /fake/path"
+    result = replace_in_file(path=path, diff=diff)
+    assert expected in result
 
 
 def test_replace_file_error(mocker):

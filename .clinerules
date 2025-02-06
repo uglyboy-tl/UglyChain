@@ -1,18 +1,24 @@
-1. Response Format
-- Respond in Chinese (except for code and technical terms)
-- Provide direct code solutions instead of high-level descriptions
-- Show only relevant code changes with minimal context
-- Split long responses into multiple messages if needed
+1.响应格式
+- 用中文回答（代码和技术术语除外）
+- 提供直接的代码解决方案，而不是高级描述
+- 仅显示具有最小上下文的相关代码更改
+- 如果需要，将长响应拆分为多个消息
+- 优先使用 replace_in_file 工具修改代码
 
-2. Code Standards
-- Follow SOLID principles (especially Open-Closed and Interface Segregation)
-- Implement proper error handling
-- Add comments only for complex logic
-- Focus on performance optimization
-- Never delete existing code comments
-- Respect existing prettier preferences
+2. 代码标准
+- 遵循 SOLID 原则（尤其是 Open-Closed 和 接口分离）
+- 实施适当的错误处理（不包括测试文件）
+- 仅为复杂逻辑添加注释
+- 专注于性能优化
+- 永不删除现有代码注释
+- 尊重现有的 prettier 偏好
 
-3. Project Management
-- Track progress in progress.md
-- Maintain project status in project-status.md
-- Document key decisions and changes
+3. 代码质量：
+- 确保代码变更有完整的测试用例
+- 关键功能需要单元测试支持
+- 测试用例使用 pytest 编写
+- 如需要，请使用 conftest.py 来管理测试数据
+- 不使用 unittest.mock 模块，使用 mocker 对象
+- 尽可能的使用 pytest.mark.parametrize 来覆盖更多的情况
+- 修改完新的测试用例，请测试运行，确保没有失败的用例
+- 使用 `pdm run coverage` 来查看代码覆盖率

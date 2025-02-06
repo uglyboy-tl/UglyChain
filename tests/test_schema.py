@@ -7,29 +7,74 @@ import pytest
 from uglychain.schema import ToolResponse
 
 
-def test_tool_response_parse():
-    response = type("Response", (object,), {"name": "test_tool", "arguments": '{"arg1": "value1"}'})()
+@pytest.mark.parametrize(
+    "response, expected_name, expected_parameters",
+    [
+        (
+            type("Response", (object,), {"name": "test_tool", "arguments": '{"arg1": "value1"}'})(),
+            "test_tool",
+            {"arg1": "value1"},
+        ),
+        (
+            type("Response", (object,), {"name": "another_tool", "arguments": '{"arg2": "value2"}'})(),
+            "another_tool",
+            {"arg2": "value2"},
+        ),
+    ],
+)
+def test_tool_response_parse(response, expected_name, expected_parameters):
     tool_response = ToolResponse.parse(response)
-    assert tool_response.name == "test_tool"
-    assert tool_response.parameters == {"arg1": "value1"}
+    assert tool_response.name == expected_name
+    assert tool_response.parameters == expected_parameters
 
 
-def test_tool_response_parse_invalid():
-    response = type("Response", (object,), {"name": "test_tool", "arguments": "invalid_json"})()
+@pytest.mark.parametrize(
+    "response",
+    [
+        type("Response", (object,), {"name": "test_tool", "arguments": "invalid_json"})(),
+        type("Response", (object,), {"name": "another_tool", "arguments": "not_a_json"})(),
+    ],
+)
+def test_tool_response_parse_invalid(response):
     with pytest.raises(json.JSONDecodeError):
         ToolResponse.parse(response)
 
 
-def test_tool_response_run_function():
-    def test_tool(arg1):
-        return f"arg1: {arg1}"
+@pytest.mark.parametrize(
+    "tool_response, tools, expected_result",
+    [
+        (ToolResponse(name="test_tool", parameters={"arg1": "value1"}), [lambda arg1: f"arg1: {arg1}"], "arg1: value1"),
+        (
+            ToolResponse(name="another_tool", parameters={"arg2": "value2"}),
+            [lambda arg2: f"arg2: {arg2}"],
+            "arg2: value2",
+        ),
+    ],
+)
+def test_tool_response_run_function(tool_response, tools, expected_result):
+    tools[0].__name__ = tool_response.name
 
-    tool_response = ToolResponse(name="test_tool", parameters={"arg1": "value1"})
-    result = tool_response.run_function([test_tool])
-    assert result == "arg1: value1"
+    result = tool_response.run_function(tools)
+    assert result == expected_result
 
 
-def test_tool_response_run_function_tool_not_found():
-    tool_response = ToolResponse(name="non_existent_tool", parameters={"arg1": "value1"})
-    with pytest.raises(ValueError, match="Can't find tool non_existent_tool"):
-        tool_response.run_function([])
+@pytest.mark.parametrize(
+    "tool_response, tools, expected_exception, match",
+    [
+        (
+            ToolResponse(name="non_existent_tool", parameters={"arg1": "value1"}),
+            [],
+            ValueError,
+            "Can't find tool non_existent_tool",
+        ),
+        (
+            ToolResponse(name="another_non_existent_tool", parameters={"arg2": "value2"}),
+            [],
+            ValueError,
+            "Can't find tool another_non_existent_tool",
+        ),
+    ],
+)
+def test_tool_response_run_function_tool_not_found(tool_response, tools, expected_exception, match):
+    with pytest.raises(expected_exception, match=match):
+        tool_response.run_function(tools)

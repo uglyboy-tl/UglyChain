@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import re
-
 import pytest
 from pydantic import BaseModel
 
@@ -16,17 +14,23 @@ def create_mock_func() -> MockModel:
     return MockModel(foo="test")
 
 
-def test_response_formatter_init():
+@pytest.mark.parametrize(
+    "response_type, mode",
+    [
+        (MockModel, Mode.MD_JSON),
+    ],
+)
+def test_response_formatter_init(response_type, mode):
     formatter = ResponseModel(create_mock_func)
+    assert formatter.response_type == response_type
+    assert formatter.mode == mode
 
-    assert formatter.response_type == MockModel
-    assert formatter.mode == Mode.MD_JSON
 
-
-def test_response_formatter_validate_response_type():
+@pytest.mark.parametrize("invalid_type", [int])
+def test_response_formatter_validate_response_type(invalid_type):
     formatter = ResponseModel(create_mock_func)
     with pytest.raises(TypeError):
-        formatter.response_type = int
+        formatter.response_type = invalid_type
         formatter._validate_response_type()
 
 
@@ -37,7 +41,20 @@ def test_response_formatter_get_response_format_prompt():
     assert "foo" in str(prompt.values())
 
 
-def test_response_formatter_parse_from_response():
+@pytest.mark.parametrize(
+    "content, expected, exception, match",
+    [
+        ('{"foo": "bar"}', "bar", None, None),
+        (
+            '{"bar": "foo"}',
+            None,
+            ValueError,
+            r"Failed to parse MockModel from completion \{\"bar\": \"foo\"\}\. Got: .*",
+        ),
+        ("Invalid JSON", None, ValueError, "Failed to find JSON object in response for MockModel: Invalid JSON"),
+    ],
+)
+def test_response_formatter_parse_from_response(content, expected, exception, match):
     formatter = ResponseModel(create_mock_func)
 
     class Choice:
@@ -49,56 +66,57 @@ def test_response_formatter_parse_from_response():
             self.message = self.Message("")
 
     choice = Choice()
-    choice.message.content = '{"foo": "bar"}'
-    result = formatter.parse_from_response(choice)
-    assert result.foo == "bar"  # type: ignore
+    choice.message.content = content
 
-    invalid_response = Choice()
-    invalid_response.message.content = '{"bar": "foo"}'
-    with pytest.raises(
-        ValueError, match=re.compile(r"Failed to parse MockModel from completion \{\"bar\": \"foo\"\}\. Got: .*")
-    ):
-        formatter.parse_from_response(invalid_response)
-
-    response = Choice()
-    response.message.content = "Invalid JSON"
-    with pytest.raises(ValueError, match="Failed to find JSON object in response for MockModel: Invalid JSON"):
-        formatter.parse_from_response(response)
+    if exception:
+        with pytest.raises(exception, match=match):
+            formatter.parse_from_response(choice)
+    else:
+        result = formatter.parse_from_response(choice)
+        assert result.foo == expected  # type: ignore
 
     formatter.mode = 101  # type: ignore
     with pytest.raises(ValueError, match="Unsupported mode: 101"):
         formatter.parse_from_response(choice)
 
 
-def test_response_formatter_update_markdown_json_schema_from_system_prompt():
+@pytest.mark.parametrize(
+    "messages, exception, match",
+    [
+        ([{"role": "system", "content": "Initial content"}], None, None),
+        ([], ValueError, "Messages is empty"),
+    ],
+)
+def test_response_formatter_update_markdown_json_schema_from_system_prompt(messages, exception, match):
     formatter = ResponseModel(create_mock_func)
-    messages = [{"role": "system", "content": "Initial content"}]
-    formatter._update_markdown_json_schema_from_system_prompt(messages)
-    assert "properties" in messages[0]["content"]
+    if exception:
+        with pytest.raises(exception, match=match):
+            formatter._update_markdown_json_schema_from_system_prompt(messages)
+    else:
+        formatter._update_markdown_json_schema_from_system_prompt(messages)
+        assert "properties" in messages[0]["content"]
 
-    with pytest.raises(ValueError, match="Messages is empty"):
-        formatter._update_markdown_json_schema_from_system_prompt([])
 
-
-def test_response_formatter_set_tools_from_params():
+@pytest.mark.parametrize("api_params", [({})])
+def test_response_formatter_set_tools_from_params(api_params):
     formatter = ResponseModel(create_mock_func)
-    api_params = {}
     formatter._set_tools_from_params(api_params)
     assert "tools" in api_params
     assert "tool_choice" in api_params
 
 
-def test_response_formatter_process_parameters():
+@pytest.mark.parametrize(
+    "model, messages, merged_api_params", [("openai:gpt-4o", [{"role": "system", "content": "Initial content"}], {})]
+)
+def test_response_formatter_process_parameters(model, messages, merged_api_params):
     formatter = ResponseModel(create_mock_func)
-    messages = [{"role": "system", "content": "Initial content"}]
-    merged_api_params = {}
-    formatter.process_parameters("openai:gpt-4o", messages, merged_api_params)
+    formatter.process_parameters(model, messages, merged_api_params)
     assert "tools" in merged_api_params or "response_format" in merged_api_params
 
 
-def test_response_formatter_set_response_format_from_params():
+@pytest.mark.parametrize("api_params", [({})])
+def test_response_formatter_set_response_format_from_params(api_params):
     formatter = ResponseModel(create_mock_func)
-    api_params = {}
     formatter._set_response_format_from_params(api_params)
     assert "response_format" in api_params
     assert api_params["response_format"]["type"] == "json_schema"

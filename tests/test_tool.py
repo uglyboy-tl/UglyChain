@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import os
 from contextlib import contextmanager
-from time import sleep
 from unittest.mock import MagicMock
 
 import pytest
@@ -22,27 +21,29 @@ class SampleMCP:
     env = {"key": "value"}
 
 
-def test_initialization(tools_manager):
-    assert isinstance(tools_manager, ToolsManager)
-
-
-def test_start(tools_manager):
-    tools_manager.start()
-    assert tools_manager._executor is not None
-
-
-def test_start_and_stop(tools_manager, mocker):
-    try:
+@pytest.mark.parametrize(
+    "method, expected",
+    [
+        ("start", "_executor"),
+        ("stop", None),
+    ],
+)
+def test_tools_manager_methods(tools_manager, method, expected, mocker):
+    if method == "start":
         tools_manager.start()
         assert tools_manager._executor is not None
-        mock_executor = mocker.patch.object(tools_manager, "_executor", wraps=tools_manager._executor)
-        mock_loop = mocker.patch.object(tools_manager, "_loop")
-        tools_manager.mcp_tools.clear()
-        tools_manager.stop()
-        mock_executor.__exit__.assert_called_once()
-        mock_loop.stop.assert_called_once()
-    finally:
-        tools_manager.start()  # Ensure start is called again in case of failure
+    elif method == "stop":
+        try:
+            tools_manager.start()
+            assert tools_manager._executor is not None
+            mock_executor = mocker.patch.object(tools_manager, "_executor", wraps=tools_manager._executor)
+            mock_loop = mocker.patch.object(tools_manager, "_loop")
+            tools_manager.mcp_tools.clear()
+            tools_manager.stop()
+            mock_executor.__exit__.assert_called_once()
+            mock_loop.stop.assert_called_once()
+        finally:
+            tools_manager.start()  # Ensure start is called again in case of failure
 
 
 @contextmanager
@@ -58,23 +59,30 @@ def temporary_env_var(key, value):
             os.environ[key] = original_value
 
 
-def test_call_tool(tools_manager):
-    mock_tool = MagicMock(return_value="result")
-    tools_manager.tools["test_tool"] = mock_tool
-    result = tools_manager.call_tool("test_tool", {"arg1": "value1"})
-    assert result == "result"
-    mock_tool.assert_called_once_with(arg1="value1")
+@pytest.mark.parametrize(
+    "tool_name, tool_func, args, expected",
+    [
+        ("test_tool", MagicMock(return_value="result"), {"arg1": "value1"}, "result"),
+    ],
+)
+def test_call_tool(tools_manager, tool_name, tool_func, args, expected):
+    tools_manager.tools[tool_name] = tool_func
+    result = tools_manager.call_tool(tool_name, args)
+    assert result == expected
+    tool_func.assert_called_once_with(**args)
 
 
-def test_regedit_tool(tools_manager):
-    def sample_tool():
-        pass
-
-    tools_manager.regedit_tool("sample_tool", sample_tool)
-    assert "sample_tool" in tools_manager.tools
-
+@pytest.mark.parametrize(
+    "tool_name, tool_func",
+    [
+        ("sample_tool", lambda: None),
+    ],
+)
+def test_regedit_tool(tools_manager, tool_name, tool_func):
+    tools_manager.regedit_tool(tool_name, tool_func)
+    assert tool_name in tools_manager.tools
     with pytest.raises(ValueError):
-        tools_manager.regedit_tool("sample_tool", sample_tool)
+        tools_manager.regedit_tool(tool_name, tool_func)
 
 
 def test_call_tool_with_console(mocker):

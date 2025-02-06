@@ -28,7 +28,7 @@ def execute_command(command: str) -> str:
     """
 
     if not command:
-        raise ValueError("Command cannot be empty")
+        return "Error: Command cannot be empty."
 
     working_directory = Path.cwd()
     try:
