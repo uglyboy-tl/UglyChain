@@ -6,8 +6,9 @@ from contextlib import contextmanager
 from unittest.mock import MagicMock
 
 import pytest
+from mcp import StdioServerParameters
 
-from uglychain.tool import MCP, McpClient, McpTool, Tool, ToolsManager
+from uglychain.tool import MCP, McpClient, McpTool, Tool, ToolsManager, cleanup
 
 
 @pytest.fixture
@@ -72,6 +73,11 @@ def test_call_tool(tools_manager, tool_name, tool_func, args, expected):
     tool_func.assert_called_once_with(**args)
 
 
+def test_call_tool_with_wrong_tool_name(tools_manager):
+    with pytest.raises(ValueError, match="Can't find tool non_existent_tool"):
+        tools_manager.call_tool("non_existent_tool", None)
+
+
 @pytest.mark.parametrize(
     "tool_name, tool_func",
     [
@@ -81,7 +87,10 @@ def test_call_tool(tools_manager, tool_name, tool_func, args, expected):
 def test_regedit_tool(tools_manager, tool_name, tool_func):
     tools_manager.regedit_tool(tool_name, tool_func)
     assert tool_name in tools_manager.tools
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Tool sample_tool already exists"):
+        tool_func.__name__ = "sample_tool"
+        Tool.tool(tool_func)
+    with pytest.raises(ValueError, match="Tool sample_tool already exists"):
         tools_manager.regedit_tool(tool_name, tool_func)
 
 
@@ -94,7 +103,17 @@ def test_call_tool_with_console(mocker):
     assert result == "result"
 
 
-def test_tool_decorator():
+def test_tools_manager_singleton():
+    instance1 = ToolsManager.get()
+    instance2 = ToolsManager.get()
+    assert instance1 is instance2
+
+
+def test_cleanup(mocker):
+    mock_stop = mocker.patch.object(ToolsManager, "stop")
+    cleanup()
+    mock_stop.assert_called_once()
+
     Tool._manager = ToolsManager()
 
     @Tool.tool
@@ -118,6 +137,9 @@ def test_tool_call_tool(tools_manager, mocker):
 def test_tool_validate_call_tool():
     with pytest.raises(ValueError, match="Can't find tool non_existent_tool"):
         Tool.call_tool("non_existent_tool", None)
+    tool = Tool("test", "test", {})
+    with pytest.raises(ValueError, match="Tool test not registered"):
+        tool()
 
 
 def test_tool_mcp(tools_manager):
@@ -138,12 +160,42 @@ def test_tool_mcp(tools_manager):
     tools_manager.mcp_tools.clear()
 
 
+@pytest.mark.parametrize(
+    "mcp_config, exception",
+    [
+        (
+            """"obsidian": {
+    "command": "command",
+    "args": ["arg1"],
+    "disabled": true
+}""",
+            None,
+        ),
+        ('{"}', ValueError("Invalid JSON format")),
+    ],
+)
+def test_tool_load_mcp_config(mcp_config, exception, tools_manager):
+    if exception:
+        with pytest.raises(type(exception), match=str(exception)):
+            Tool.load_mcp_config(mcp_config)
+    else:
+        mcp = Tool.load_mcp_config(mcp_config)
+        assert isinstance(mcp, MCP)
+        assert mcp.command == "command"
+        assert mcp.args == ["arg1"]
+        assert not mcp.tools
+
+    tools_manager.mcp_tools.clear()
+
+
 def test_tool_activate_mcp_client(tools_manager, mocker):
     mcp = Tool.mcp(SampleMCP)
     assert isinstance(mcp._client, McpClient)
     mock_initialize = mocker.patch.object(mcp._client, "initialize")
+    mocker.patch.object(tools_manager, "start")
     mocker.patch.object(mcp._client, "_tools", return_value=[])
     tools_manager.activate_mcp_client(mcp._client)
+    tools_manager.start.assert_called_once()
     mock_initialize.assert_called_once()
     assert mcp.tools is not None
 

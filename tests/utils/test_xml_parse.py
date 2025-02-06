@@ -10,6 +10,7 @@ from uglychain.utils.xml_parse import _parse_json, parse_to_dict
     [
         ("<param1>value1</param1><param2>value2</param2>", {"param1": "value1", "param2": "value2"}),
         ('{"param1": "value1", "param2": "value2"}', {"param1": "value1", "param2": "value2"}),
+        ("   ", {}),
     ],
 )
 def test_parse_to_dict(response, expected, mocker):

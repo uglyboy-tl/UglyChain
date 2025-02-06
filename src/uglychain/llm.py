@@ -343,11 +343,11 @@ def llm(
 
             default_console.log_progress_end()
 
-            if len(results) == 0:
+            if not results:
                 raise ValueError("模型未返回任何选择")
-            elif "n" in merged_api_params and merged_api_params["n"] is not None or map_keys:
-                return results
-            return results[0]
+            return (
+                results if "n" in merged_api_params and merged_api_params["n"] is not None or map_keys else results[0]
+            )
 
         model_call.__api_params__ = default_api_params_from_decorator  # type: ignore
         model_call.__func__ = prompt  # type: ignore

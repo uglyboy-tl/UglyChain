@@ -19,29 +19,35 @@ class RetryError(Exception):
         return f"{self.args[0]}\nPrevious errors:\n{error_messages}"
 
 
-def retry(n: int, timeout: float, wait: float) -> Callable[[Callable[P, Any]], Callable[P, Any]]:
+def retry(
+    n: int, timeout: float, wait: float, executor: ThreadPoolExecutor | None = None
+) -> Callable[[Callable[P, Any]], Callable[P, Any]]:
     def decorator_retry(func: Callable[P, Any]) -> Callable[P, Any]:
         max_retries = n
         llm_timeout = timeout
 
         @wraps(func)
-        def wrapper_retry(*args: P.args, **kwargs: P.kwargs) -> Callable[P, Any]:
+        def wrapper_retry(*args: P.args, **kwargs: P.kwargs) -> Any:
             attempts = 0
             errors: list[Exception] = []
+            nonlocal executor
+            if executor is None:
+                executor = ThreadPoolExecutor()
             while attempts < max_retries:
-                with ThreadPoolExecutor() as executor:
-                    future = executor.submit(func, *args, **kwargs)
-                    try:
-                        result = future.result(timeout=llm_timeout)
-                        return result
-                    except TimeoutError as e:
-                        print(f"Function execution exceeded {llm_timeout} seconds, retrying...")
-                        errors.append(e)
-                        attempts += 1
-                    except Exception as e:
-                        print(f"Function failed with error: {e}, retrying...")
-                        errors.append(e)
-                        attempts += 1
+                future = executor.submit(func, *args, **kwargs)
+                try:
+                    result = future.result(timeout=llm_timeout)
+                    return result
+                except TimeoutError as e:
+                    print(
+                        f"Function execution exceeded {llm_timeout} seconds, retrying... (attempt {attempts + 1}/{max_retries})"
+                    )
+                    errors.append(e)
+                    attempts += 1
+                except Exception as e:
+                    print(f"Function failed with error: {e}, retrying... (attempt {attempts + 1}/{max_retries})")
+                    errors.append(e)
+                    attempts += 1
                 if wait > 0:
                     time.sleep(wait)
             raise RetryError(f"Function failed after {n} attempts", errors)

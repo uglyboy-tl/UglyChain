@@ -18,7 +18,7 @@ from .utils import function_schema
 
 
 def cleanup() -> None:
-    ToolsManager._manager.stop()
+    ToolsManager.get().stop()
 
 
 atexit.register(cleanup)
@@ -30,19 +30,20 @@ class ToolsManager:
     mcp_tools: dict[str, McpTool] = field(default_factory=dict)
     _loop: asyncio.AbstractEventLoop = field(init=False)
     _executor: ThreadPoolExecutor = field(init=False)
-    _manager: ClassVar[ToolsManager]
+    _instance: ClassVar[ToolsManager]
 
     def __post_init__(self) -> None:
         self.start()
 
     @classmethod
     def get(cls) -> ToolsManager:
-        if not hasattr(cls, "_manager"):
-            cls._manager = cls()
-        return cls._manager
+        if not hasattr(cls, "_instance"):
+            cls._instance = cls()
+        return cls._instance
 
     def start(self) -> None:
-        self._loop = asyncio.get_event_loop()
+        self._loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self._loop)
         self._executor = ThreadPoolExecutor().__enter__()
 
     def stop(self) -> None:
@@ -80,16 +81,15 @@ class ToolsManager:
         mcp_client_name = set([name.split(":")[0] for name in self.mcp_tools.keys()])
         if name in mcp_client_name:
             raise ValueError(f"MCP client {name} already exists")
-        client = McpClient(name, StdioServerParameters(command=mcp.command, args=mcp.args, env=mcp.env))
+        client = McpClient(name, StdioServerParameters(command=mcp.command, args=mcp.args, env=mcp.env or {}))
         self.mcp_tools[name] = McpTool(client_name=name, name=name, description="", args_schema={}, client=client)
         return client
 
     def activate_mcp_client(self, client: McpClient) -> None:
-        if self._loop.is_closed():
+        if not self._loop.is_running():
             self.start()
         future = self._executor.submit(self._loop.run_until_complete, client.initialize())
         future.result()
-        # print(f"{client.name} client is active")
         for tool in client.tools:
             self.mcp_tools[f"{client.name}:{tool.name}"] = tool
 
@@ -205,7 +205,6 @@ class McpTool:
 class McpClient:
     name: str
     server_param: StdioServerParameters
-    exclude_tools: list[str] = field(default_factory=list)
     _session: ClientSession | None = None
     _tools: list[McpTool] = field(default_factory=list)
     _init_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
@@ -228,8 +227,6 @@ class McpClient:
             await self._start_session()
             tools: types.ListToolsResult = await self._session.list_tools()  # type: ignore
             for tool in tools.tools:
-                if tool.name in self.exclude_tools:
-                    continue
                 self._tools.append(
                     McpTool(
                         self.name,

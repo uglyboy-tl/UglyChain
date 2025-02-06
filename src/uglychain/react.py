@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from functools import wraps
 from typing import Any, Literal, overload
 
@@ -52,12 +52,11 @@ def react(
 ) -> Callable[[Callable[P, str | Messages | None]], Callable[P, str | T]]:
     default_model_from_decorator = model if model else config.default_model
     default_tools: list[Tool] = [final_answer]
-    if tools:
-        for tool in tools:
-            if isinstance(tool, MCP):
-                default_tools.extend(tool.tools)
-            else:
-                default_tools.append(tool)
+    for tool in tools or []:
+        if isinstance(tool, MCP):
+            default_tools.extend(tool.tools)
+        else:
+            default_tools.append(tool)
     default_response_format = response_format  # noqa: F841
     default_api_params_from_decorator = api_params.copy()
     default_console = console or Console(True, False, False, False, False, True)
@@ -73,7 +72,7 @@ def react(
             default_console.init()
             tool_names = [f"`{tool.name}`" for tool in default_tools]
 
-            def react_once(*prompt_args: P.args, acts: list[Action], **prompt_kwargs: P.kwargs):  # type: ignore
+            def react_once(*prompt_args: P.args, acts: Sequence[Action], **prompt_kwargs: P.kwargs):  # type: ignore
                 message = gen_prompt(prompt, *prompt_args, **prompt_kwargs)
                 if isinstance(message, list):
                     if acts:
@@ -105,33 +104,29 @@ def react(
                 act = Action.from_response(result, default_console)
                 return act
 
-            def final_call(  # type: ignore
+            def final_call(
                 *prompt_args: P.args,
-                acts: list[Action],  # type: ignore
+                acts: Sequence[Action],  # type: ignore
                 call_type: Literal["failed", "trans"],  # type: ignore
                 **prompt_kwargs: P.kwargs,
-            ):
-                if call_type == "failed":
-                    system_prompt = "An agent attempted to solve the user's task but encountered difficulties and failed. Your task is to provide the final answer instead.\n"
-                else:
-                    system_prompt = "An agent has completed the user's task and now needs to convert the final answer into a new output format.\n"
+            ) -> str | Messages:
+                system_prompt = (
+                    "An agent attempted to solve the user's task but encountered difficulties and failed. Your task is to provide the final answer instead.\n"
+                    if call_type == "failed"
+                    else "An agent has completed the user's task and now needs to convert the final answer into a new output format.\n"
+                )
                 message = gen_prompt(prompt, *prompt_args, **prompt_kwargs)
                 memory = "\n".join(str(a) for a in acts)
                 if isinstance(message, list):
-                    message.insert(0, {"role": "system", "content": system_prompt})
-                    message.append(
-                        {
-                            "role": "assistant",
-                            "content": str(acts[-1]),
-                        }
-                    )
-                    message.append(
+                    return [
+                        {"role": "system", "content": system_prompt},
+                        *message,
+                        {"role": "assistant", "content": str(acts[-1])},
                         {
                             "role": "user",
                             "content": "Based on the information above, please provide a response to the user's request.",
-                        }
-                    )
-                    return message
+                        },
+                    ]
                 elif isinstance(message, str):
                     return f"{system_prompt}\nHere is the agent's memory:\n-----{message}\n{memory}\n-----\n Based on the information above, please provide a response to the user's request."
                 else:

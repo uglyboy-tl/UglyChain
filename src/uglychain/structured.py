@@ -36,12 +36,13 @@ provider_model_to_mode = {
 class ResponseModel(Generic[T]):
     def __init__(self, func: Callable, response_model: type[T] | None = None) -> None:
         # 获取被修饰函数的返回类型
-        response_type = get_type_hints(func).get("return", str) if response_model is None else response_model
-        self.response_type: type[str] | type[T] = (
-            str if get_origin(response_type) is list or response_type is type(None) else response_type
-        )
-        self.mode: Mode = Mode.MD_JSON
+        self.response_type = self._determine_response_type(func, response_model)
+        self.mode = Mode.MD_JSON
         self._validate_response_type()
+
+    def _determine_response_type(self, func: Callable, response_model: type[T] | None) -> type[str] | type[T]:
+        response_type = get_type_hints(func).get("return", str) if response_model is None else response_model
+        return str if get_origin(response_type) is list or response_type is type(None) else response_type
 
     def _validate_response_type(self) -> None:
         if self.response_type is not str and not issubclass(self.response_type, BaseModel):
