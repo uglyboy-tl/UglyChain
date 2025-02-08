@@ -11,7 +11,7 @@ from .console import Console
 from .llm import gen_prompt, llm
 from .prompt import REACT_SYSTEM_PROMPT
 from .schema import Messages, P, T
-from .tool import MCP, Tool
+from .tool import MCP, Tool, convert_to_tools
 from .utils import retry
 
 
@@ -51,12 +51,8 @@ def react(
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages | None]], Callable[P, str | T]]:
     default_model_from_decorator = model if model else config.default_model
-    default_tools: list[Tool] = [final_answer]
-    for tool in tools or []:
-        if isinstance(tool, MCP):
-            default_tools.extend(tool.tools)
-        else:
-            default_tools.append(tool)
+    default_tools = convert_to_tools(tools)
+    default_tools.append(final_answer)
     default_response_format = response_format  # noqa: F841
     default_api_params_from_decorator = api_params.copy()
     default_console = console or Console(True, False, False, False, False, True)

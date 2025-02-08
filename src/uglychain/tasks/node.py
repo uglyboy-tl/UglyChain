@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import deque
 from dataclasses import dataclass, field
+from typing import Any, TypeVar
 
 
 @dataclass
@@ -16,7 +17,7 @@ class BaseNode:
         other.add_dependency(self)
         return other
 
-    def run(self) -> None:
+    def run(self) -> Any:
         if not all(dependency.completed for dependency in self.dependencies):
             raise ValueError("Cannot run task with uncompleted dependencies.")
         self.completed = True

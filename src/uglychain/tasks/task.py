@@ -59,7 +59,7 @@ class Task(BaseNode, Generic[T]):
             self._context.update(context)
 
     def __hash__(self) -> int:
-        return hash((self.description, self.tools, self.reflection))
+        return hash((self.description, "".join([tool.name for tool in self.tools]), self.reflection))
 
     @classmethod
     def set_context(cls, context: dict[str, Any]) -> None:
@@ -94,8 +94,10 @@ class Task(BaseNode, Generic[T]):
 
     def _post(self, response: T) -> None:
         self.update(response.context)
+        self[self.description] = response.result
 
-    def process(self) -> str:
+    def run(self) -> str:
+        super().run()
         self._prep()
         response = self._exec()
         self._post(response)

@@ -23,9 +23,7 @@ def _format_std(stdout: str, stderr: str) -> str:
 
 @Tool.tool
 def execute_command(command: str) -> str:
-    """
-    Request to execute a CLI command on the system. Use this when you need to perform system operations or run specific commands to accomplish any step in the user's task. You must tailor your command to the user's system and provide a clear explanation of what the command does. Prefer to execute complex CLI commands over creating executable scripts, as they are more flexible and easier to run. Commands will be executed in the specified working directory.
-    """
+    """Request to execute a CLI command on the system. Use this when you need to perform system operations or run specific commands to accomplish any step in the user's task. You must tailor your command to the user's system and provide a clear explanation of what the command does. Prefer to execute complex CLI commands over creating executable scripts, as they are more flexible and easier to run. Commands will not be executed in the specified working directory."""
 
     if not command:
         return "Error: Command cannot be empty."

@@ -175,7 +175,8 @@ class MCP:
         tools: list[Tool] = []
         if self.disabled:
             return tools
-        Tool.activate_mcp_client(self._client)
+        if not hasattr(self, "_client"):
+            Tool.activate_mcp_client(self._client)
         for tool in self._client.tools:
             tools.append(
                 Tool(
@@ -185,6 +186,12 @@ class MCP:
                 )
             )
         return tools
+
+    @cached_property
+    def name(self) -> str:
+        if not hasattr(self, "_client"):
+            Tool.activate_mcp_client(self._client)
+        return self._client.name
 
 
 @dataclass
@@ -262,3 +269,13 @@ class McpClient:
     @property
     def tools(self) -> list[McpTool]:
         return self._tools
+
+
+def convert_to_tools(tools: list[Tool | MCP] | None) -> list[Tool]:
+    _tools: list[Tool] = []
+    for tool in tools or []:
+        if isinstance(tool, MCP):
+            _tools.extend(tool.tools)
+        else:
+            _tools.append(tool)
+    return _tools

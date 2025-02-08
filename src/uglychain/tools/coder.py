@@ -84,7 +84,7 @@ def write_to_file(path: str, content: str) -> str:
 @Tool.tool
 def replace_in_file(path: str, diff: str) -> str:
     """
-    Description: Request to replace sections of content in an existing file using SEARCH/REPLACE blocks that define exact changes to specific parts of the file.
+    Description: Request to replace sections of content in an existing file using SEARCH/REPLACE blocks that define exact changes to specific parts of the file. This tool should be used when you need to make targeted changes to specific parts of a file.
 
     Parameters:
     - path: (required) The path of the file to modify
