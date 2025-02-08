@@ -83,6 +83,7 @@ def react(
                 tool_names=", ".join(tool_names),
                 tool_descriptions=_tool_descriptions(default_tools),
                 extra_instructions=prompt.__doc__ if prompt.__doc__ else "",
+                language=config.default_language,
             )
 
             @retry(n=config.llm_max_retry, timeout=config.llm_timeout, wait=config.llm_wait_time)

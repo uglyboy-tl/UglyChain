@@ -1,5 +1,10 @@
 from __future__ import annotations
 
+from dataclasses import dataclass, field
+from functools import cached_property
+
+from .config import config
+
 # ReAct 的系统提示模板
 REACT_SYSTEM_PROMPT = """You are an expert assistant who can solve any task using tools. You will be given a task to solve as best you can.
 To do so, you have been given access to the following tools: [{tool_names}].
@@ -40,6 +45,7 @@ Action Input: <answer>final answer</answer>
 
 ## Extra instructions
 {extra_instructions}
+You should response in {language}.
 """
 
 # 定义输出格式的提示模板，包含对JSON schema的描述和示例
@@ -69,3 +75,32 @@ Only Response Your Final YAML, according to the following schema:
 Answer:
 ```yaml\
 """
+
+
+@dataclass
+class SystemPrompt:
+    role: str
+    objective: str
+    description: str = ""
+    instructions: list[str] = field(default_factory=list)
+    language: str = ""
+
+    def __post_init__(self) -> None:
+        self.language = self.language or config.default_language
+        language_instruction = f"The response must be in {self.language}."
+        self.instructions.append(language_instruction)
+
+    @cached_property
+    def prompt(self) -> str:
+        prompt = f"You are {self.role} to solve the task: {self.objective}"
+        if self.description:
+            prompt += f"\n\n{self.description}"
+        if self.instructions:
+            _prompt = """\n## Instructions"""
+            for i, instruction in enumerate(self.instructions):
+                _prompt += f"\n{i + 1}. {instruction}"
+            prompt += _prompt
+        return prompt
+
+    def __repr__(self) -> str:
+        return self.prompt

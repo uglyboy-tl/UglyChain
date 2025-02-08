@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 class Config(BaseModel):
     default_model: str = Field(default="openai:gpt-4o-mini", description="默认语言模型。")
     default_api_params: dict[str, Any] = Field(default_factory=dict, description="语言模型的默认参数。")
+    default_language: str = Field(default="Chinese", description="默认语言。")
     llm_max_retry: int = Field(default=3, description="语言模型的最大重试次数。")
     llm_timeout: int = Field(default=30, description="语言模型的最大运行时间（秒）。")
     llm_wait_time: int = Field(default=0, description="语言模型的每次重试等待时间（秒）。")

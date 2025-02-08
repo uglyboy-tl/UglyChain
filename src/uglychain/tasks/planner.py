@@ -14,7 +14,7 @@ class SubTask(BaseModel):
     dependencies: list[str] = Field(
         description="The name of tasks that must be completed before this task can be performed."
     )
-    tools: list[str] = Field(description="Tools that may be used to perform this task")
+    tools: list[str] = Field(description="Tools that may be used to perform this task, at least two for user choice.")
 
 
 class Plan(BaseModel):
