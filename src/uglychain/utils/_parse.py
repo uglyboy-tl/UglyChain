@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import re
 
-xml_not_json_regex = re.compile(r"(?<!\{)<(\w+)>.*?</\w+>(?!\})", re.DOTALL)
+xml_not_json_regex = re.compile(r"(?<!\{)<\w+>.*?</\w+>(?!\})", re.DOTALL)
 xml_param_regex = re.compile(r"<(\w+)>(.*?)</\1>", re.DOTALL)
 json_regex = re.compile(r"(\{.*\})", re.MULTILINE | re.IGNORECASE | re.DOTALL)
 

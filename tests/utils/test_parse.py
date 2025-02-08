@@ -20,16 +20,17 @@ def test_parse_to_dict(response, expected, mocker):
 
 
 @pytest.mark.parametrize(
-    "response, exception, match",
+    "response, exception",
     [
-        ("invalid response", ValueError, "No parameters found in response"),
-        ('{"param1": "value1", "param2": "value2"', ValueError, "No parameters found in response"),
+        ("invalid response", ValueError),
+        ("<a>invalid response</b>", ValueError),
+        ('{"param1": "value1", "param2": "value2"', ValueError),
     ],
 )
-def test_parse_to_dict_exceptions(response, exception, match, mocker):
+def test_parse_to_dict_exceptions(response, exception, mocker):
     if response.startswith("{"):
         mocker.patch("uglychain.utils._parse._parse_json", side_effect=ValueError("Invalid JSON format"))
-    with pytest.raises(exception, match=match):
+    with pytest.raises(exception, match="No parameters found in response"):
         parse_to_dict(response)
 
 

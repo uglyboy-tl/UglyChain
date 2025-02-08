@@ -175,7 +175,7 @@ class MCP:
         tools: list[Tool] = []
         if self.disabled:
             return tools
-        if not hasattr(self, "_client"):
+        if self._client._session is None:
             Tool.activate_mcp_client(self._client)
         for tool in self._client.tools:
             tools.append(
@@ -189,7 +189,7 @@ class MCP:
 
     @cached_property
     def name(self) -> str:
-        if not hasattr(self, "_client"):
+        if self._client._session is None:
             Tool.activate_mcp_client(self._client)
         return self._client.name
 
