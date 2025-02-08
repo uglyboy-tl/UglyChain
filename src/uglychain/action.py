@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from functools import cached_property
 from typing import Any
 
 from .console import Console
@@ -26,22 +27,20 @@ class Action:
             return error_message
 
     def _format_args(self) -> str:
-        return "".join([f"<{k}>{v!r}</{k}>" for k, v in self.args.items()])
+        return "".join([f"<{k}>{v}</{k}>" for k, v in self.args.items()])
 
-    @property
+    @cached_property
     def obs(self) -> str:
-        if not hasattr(self, "_obs"):
-            self._obs = self._call_tool_with_logging()
-        return self._obs
+        return self._call_tool_with_logging()
 
-    @property
+    @cached_property
     def done(self) -> bool:
         return self.tool == "final_answer"
 
     def __repr__(self) -> str:
         return self.info
 
-    @property
+    @cached_property
     def info(self) -> str:
         return (
             f"\nThought: {self.thought}\nAction: Finish\nObservation: {self.obs}"

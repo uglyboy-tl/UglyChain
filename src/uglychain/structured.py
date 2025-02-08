@@ -5,6 +5,7 @@ import json
 import re
 from collections.abc import Callable
 from enum import Enum, unique
+from functools import cached_property
 from typing import Any, Generic, get_origin, get_type_hints
 
 from openai.lib import _pydantic
@@ -152,20 +153,17 @@ class ResponseModel(Generic[T]):
             "function": {"name": self.tool_schema["name"]},
         }
 
-    @property
+    @cached_property
     def parameters(self) -> dict[str, Any]:
-        if not hasattr(self, "_parameters"):
-            assert inspect.isclass(self.response_type) and issubclass(self.response_type, BaseModel)
-            self._parameters: dict[str, Any] = _pydantic.to_strict_json_schema(self.response_type)
-        return self._parameters
+        if not issubclass(self.response_type, BaseModel):
+            return {}
+        return _pydantic.to_strict_json_schema(self.response_type)
 
-    @property
+    @cached_property
     def tool_schema(self) -> dict[str, Any]:
-        if not hasattr(self, "_tool_schema"):
-            self._tool_schema: dict[str, Any] = {
-                "name": self.response_type.__name__,
-                "description": self.response_type.__doc__ or "The final response which ends this conversation",
-                "parameters": self.parameters,
-                "strict": True,
-            }
-        return self._tool_schema
+        return {
+            "name": self.response_type.__name__,
+            "description": self.response_type.__doc__ or "The final response which ends this conversation",
+            "parameters": self.parameters,
+            "strict": True,
+        }

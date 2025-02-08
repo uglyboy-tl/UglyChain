@@ -106,7 +106,7 @@ def test_response_formatter_set_tools_from_params(api_params):
 
 
 @pytest.mark.parametrize(
-    "model, messages, merged_api_params", [("openai:gpt-4o", [{"role": "system", "content": "Initial content"}], {})]
+    "model, messages, merged_api_params", [("deepseek:test", [{"role": "system", "content": "Initial content"}], {})]
 )
 def test_response_formatter_process_parameters(model, messages, merged_api_params):
     formatter = ResponseModel(create_mock_func)

@@ -40,7 +40,7 @@ def test_obs(mocker, console, mock_return, expected_obs, log_style):
 def test_done(console):
     action = Action(tool="final_answer", console=console)
     assert action.done
-    action.tool = "not_final"
+    action = Action(tool="not_final", console=console)
     assert not action.done
 
 

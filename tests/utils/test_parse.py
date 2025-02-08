@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from uglychain.utils.xml_parse import _parse_json, parse_to_dict
+from uglychain.utils._parse import _parse_json, parse_to_dict
 
 
 @pytest.mark.parametrize(
@@ -15,7 +15,7 @@ from uglychain.utils.xml_parse import _parse_json, parse_to_dict
 )
 def test_parse_to_dict(response, expected, mocker):
     if response.startswith("{"):
-        mocker.patch("uglychain.utils.xml_parse._parse_json", return_value=expected)
+        mocker.patch("uglychain.utils._parse._parse_json", return_value=expected)
     assert parse_to_dict(response) == expected
 
 
@@ -28,7 +28,7 @@ def test_parse_to_dict(response, expected, mocker):
 )
 def test_parse_to_dict_exceptions(response, exception, match, mocker):
     if response.startswith("{"):
-        mocker.patch("uglychain.utils.xml_parse._parse_json", side_effect=ValueError("Invalid JSON format"))
+        mocker.patch("uglychain.utils._parse._parse_json", side_effect=ValueError("Invalid JSON format"))
     with pytest.raises(exception, match=match):
         parse_to_dict(response)
 

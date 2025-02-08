@@ -1,37 +1,10 @@
 from __future__ import annotations
 
+import os
+
 import pytest
 
-from uglychain.client import Client
-
-
-@pytest.fixture
-def mock_client(monkeypatch):
-    class MockClient:
-        def __init__(self):
-            self.name = "MockClient"
-
-        class chat:  # noqa: N801
-            class completions:  # noqa: N801
-                @staticmethod
-                def create(model, messages, **kwargs):
-                    return type(
-                        "Response",
-                        (object,),
-                        {
-                            "choices": [
-                                type(
-                                    "Choice",
-                                    (object,),
-                                    {"message": type("Message", (object,), {"content": "Test response"})},
-                                )
-                            ]
-                        },
-                    )
-
-    Client.reset()
-    monkeypatch.setattr("aisuite.Client", MockClient)
-    return MockClient
+from uglychain.client import Client, _router
 
 
 @pytest.mark.parametrize("reset", [False, True])
@@ -80,3 +53,24 @@ def test_client_generate(monkeypatch, mock_client, expected_response, exception)
     else:
         response = Client.generate(model=model, messages=messages)
         assert response[0].message.content == expected_response
+
+
+def test_router_openrouter(mock_client, mocker):
+    mock_client.configure = mocker.MagicMock()
+    model = "openrouter:model_name"
+    expected_model = "openai:model_name"
+
+    # Mock环境变量
+    os.environ["OPENROUTER_API_KEY"] = "test_key"
+
+    result = _router(model, mock_client)
+    assert result == expected_model
+    assert mock_client.configure.called_once_with(
+        {"openai": {"api_key": "test_key", "base_url": "https://openrouter.ai/api/v1"}}
+    )
+
+
+def test_router_other(mock_client):
+    model = "provider:model_name"
+    result = _router(model, mock_client)
+    assert result == model

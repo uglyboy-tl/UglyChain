@@ -7,6 +7,7 @@ import os
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
+from functools import cached_property
 from typing import Any, ClassVar
 
 from mcp import ClientSession, StdioServerParameters, types
@@ -163,28 +164,27 @@ class MCP:
     disabled: bool = False
     autoApprove: list[str] = field(default_factory=list)  # noqa: N815
     _client: McpClient = field(init=False)
-    _tools: list[Tool] = field(init=False, default_factory=list)
 
     def __post_init__(self) -> None:
         for key in self.env:
             self.env[key] = os.getenv(key) or self.env[key]
         self.env["PATH"] = os.getenv("PATH") or ""
 
-    @property
+    @cached_property
     def tools(self) -> list[Tool]:
+        tools: list[Tool] = []
         if self.disabled:
-            return []
-        if not self._tools:
-            Tool.activate_mcp_client(self._client)
-            for tool in self._client.tools:
-                self._tools.append(
-                    Tool(
-                        name=f"{self._client.name}:{tool.name}",
-                        description=tool.description,
-                        args_schema=tool.args_schema,
-                    )
+            return tools
+        Tool.activate_mcp_client(self._client)
+        for tool in self._client.tools:
+            tools.append(
+                Tool(
+                    name=f"{self._client.name}:{tool.name}",
+                    description=tool.description,
+                    args_schema=tool.args_schema,
                 )
-        return self._tools
+            )
+        return tools
 
 
 @dataclass

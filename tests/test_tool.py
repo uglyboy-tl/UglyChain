@@ -200,7 +200,9 @@ def test_tool_activate_mcp_client(tools_manager, mocker):
     assert mcp.tools is not None
 
 
-def test_mcp(tools_manager):
+def test_mcp(tools_manager, mocker):
+    mock_call_tool = mocker.patch("mcp.ClientSession.call_tool")
+
     class Fetch:  # noqa: N801
         command = "uvx"
         args = ["mcp-server-fetch"]
@@ -208,6 +210,7 @@ def test_mcp(tools_manager):
     fetch = Tool.mcp(Fetch)
     assert fetch.tools[0].name == "Fetch:fetch"
     assert Tool.call_tool("Fetch:fetch", None, url="https://jsonplaceholder.typicode.com/posts")
+    mock_call_tool.assert_called_once()
     tools_manager.stop()
 
 
