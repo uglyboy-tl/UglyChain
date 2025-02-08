@@ -1,26 +1,73 @@
 from __future__ import annotations
 
+import threading
 from dataclasses import dataclass, field
-from typing import Any, Generic
+from typing import Any, ClassVar, Generic, TypeVar
 
 from pydantic import BaseModel, Field
 
 from uglychain import llm, react
-from uglychain.schema import T
+
+# from uglychain.schema import T
 from uglychain.tool import MCP, Tool
+from uglychain.utils import convert_to_variable_name
+
+from .node import BaseNode
 
 
-class TaskResult(BaseModel):
-    response: str = Field(description="The final response of the task.")
-    steps: list[str] = Field(description="Key steps to solve the task.")
+class TaskResponse(BaseModel):
+    result: str = Field(description="The final response of the task.")
+    context: dict[str, Any] = Field(
+        description="Extract the core information and express it concisely using the k:v format."
+    )
+
+
+T = TypeVar("T", bound=TaskResponse)
 
 
 @dataclass
-class BasicTask:
-    _context: dict[str, Any] = field(init=False, default_factory=dict)
+class Task(BaseNode, Generic[T]):
+    description: str
+    tools: list[MCP | Tool] = field(default_factory=list)
+    reflection: bool = False
+    response_format: type[T] = field(default=TaskResponse)  # type: ignore
+    _context: dict[str, Any] = field(init=False)
+    _class_context: ClassVar[dict[str, Any]]
+    _lock: ClassVar[threading.Lock] = field(default=threading.Lock())
+
+    def __post_init__(self) -> None:
+        if hasattr(self, "_class_context"):
+            self._context = self._class_context
+        else:
+            self._context = {}
 
     def __setitem__(self, key: str, value: Any) -> None:
-        self._context[key] = value
+        if hasattr(self, "_class_context") and self._context is self._class_context:
+            with self._lock:
+                self._context[convert_to_variable_name(key)] = value
+        else:
+            self._context[convert_to_variable_name(key)] = value
+
+    def __getitem__(self, key: str) -> Any:
+        return self._context[convert_to_variable_name(key)]
+
+    def update(self, context: dict[str, Any]) -> None:
+        if hasattr(self, "_class_context") and self._context is self._class_context:
+            with self._lock:
+                self._context.update(context)
+        else:
+            self._context.update(context)
+
+    def __hash__(self) -> int:
+        return hash((self.description, self.tools, self.reflection))
+
+    @classmethod
+    def set_context(cls, context: dict[str, Any]) -> None:
+        cls._class_context = context
+
+    @classmethod
+    def delete_context(cls) -> None:
+        del cls._class_context
 
     @property
     def context(self) -> str:
@@ -29,69 +76,34 @@ class BasicTask:
             str += f"<{key}>\n{self._context[key]!r}\n</{key}>\n"
         return str
 
-
-@dataclass
-class Task(BasicTask, Generic[T]):
-    description: str
-    response_format: type[T] = TaskResult  # type: ignore
-    tools: list[MCP | Tool] | None = None
-    reflection: bool = False
-    _context: dict[str, Any] = field(init=False, default_factory=dict)
-
-    def __hash__(self) -> int:
-        return hash((self.description, self.response_format, self.tools, self.reflection))
-
     @staticmethod
     @llm(need_retry=True)
     def _reflect(context: str, task: str, result: Any) -> None:
         """Reflect on the result of the task. Give advice on how to improve the task."""
         pass
 
-    def process(self) -> str | T:
-        # print(self.tools)
-        # print(self.response_format)
+    def _prep(self) -> None:
+        pass
 
-        @react(tools=self.tools, response_format=self.response_format)  # type: ignore
-        def task(context: str, task: str) -> None:
+    def _exec(self) -> T:
+        @react(tools=self.tools, response_format=self.response_format)
+        def execute_task(context: str, task: str) -> None:
             return
 
-        result = task(self.context, self.description)
+        return execute_task(self.context, self.description)
+
+    def _post(self, response: T) -> None:
+        self.update(response.context)
+
+    def process(self) -> str:
+        self._prep()
+        response = self._exec()
+        self._post(response)
 
         if self.reflection:
-            advice = self._reflect(self.context, self.description, result)
+            advice = self._reflect(self.context, self.description, response.result)
             self["Improvement Advice"] = advice
-            self["Result"] = result
+            response = self._exec()
+            self._post(response)
 
-            result = task(self.context, self.description)
-
-        return result
-
-
-class Condition(BaseModel):
-    value: bool = Field(description="condition judgment results.")
-
-
-@dataclass
-class LogicTask(BasicTask):
-    condition: str = ""
-    repeat: bool = False
-
-    @staticmethod
-    @llm("openai:gpt-4o", response_format=Condition, need_retry=True)
-    def _judge(context: str, condition: str) -> None:
-        """Determine whether the conditions are met. Return a boolean value."""
-        pass
-
-    def _run(self) -> Any:
-        pass
-
-    def process(self) -> Any:
-        if not self.condition:
-            return self.context
-        repeat = True
-        result = self.context  # 如果不满足条件，返回的结果是context
-        while self._judge(self.context, self.condition).value and repeat:
-            repeat = self.repeat
-            result = self._run()
-            self._context.update({"result": result})
-        return result
+        return response.result
