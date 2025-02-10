@@ -1,5 +1,30 @@
 # Changelog
 
+## [1.3.0] - 2025-02-10
+### Features
+- feat(core): 添加多语言支持并优化任务规划 (Uglyboy)
+- feat(uglychain): 添加 prompt 文件加载功能并更新相关模块 (Uglyboy)
+- feat(examples): 添加基于 RAG 的问答系统示例 (Uglyboy)
+
+### Refactor
+- refactor(uglychain): MCP XML (Uglyboy)
+- refactor(task): 重构任务处理逻辑 (Uglyboy)
+- refactor(task): 重构任务模块以支持流程控制和并发处理 (Uglyboy)
+- refactor(uglychain): 优化代码结构和性能 (Uglyboy)
+- refactor(novel): 重构小说生成代码 (Uglyboy)
+- refactor(uglychain): 重构并支持 OpenRouter 模型路由 (Uglyboy)
+- refactor(uglychain): 重构代码并优化功能 (Uglyboy)
+- refactor/examples: 更新示例代码并调整默认语言模型 (Uglyboy)
+- refactor(tools): 重构 coder 工具集 (Uglyboy)
+- refactor(uglychain): 重构 Action 类并优化代码组织 (Uglyboy)
+- refactor(uglychain): 重构并优化代码 (Uglyboy)
+
+### Tests
+- test: 重构测试用例并添加新测试 (Uglyboy)
+
+### Fixes
+- fix(task): 优化任务流控制并添加循环依赖检测 (Uglyboy)
+
 ## [1.2.0] - 2025-01-25
 ### Features
 - feat(core): 新增任务执行框架 (Uglyboy)
