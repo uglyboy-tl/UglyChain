@@ -144,3 +144,40 @@ def test_action_args(console, thought, tool, args):
     assert action.tool == tool
     assert action.args == args
     assert action.console == console
+
+
+@pytest.mark.parametrize(
+    "func_name, expected_name",
+    [
+        ("normal_name", "normal_name"),
+        ("`single_backtick`", "single_backtick"),
+        ("```triple_backtick```", "triple_backtick"),
+        ("  spaced_name  ", "spaced_name"),
+        ("```mixed`backticks```", "mixed`backticks"),
+        ("```nested`backticks```", "nested`backticks"),
+    ],
+)
+def test_fix_func_name(func_name, expected_name):
+    from uglychain.action import _fix_func_name
+
+    assert _fix_func_name(func_name) == expected_name
+
+
+def test_from_response_with_comments(console):
+    response_text = """Thought: Test with comments
+Action: test_tool # this is a comment
+Action Input: <arg1>value1</arg1>"""
+    action = Action.from_response(response_text, console)
+    assert action.tool == "test_tool"
+    assert action.args == {"arg1": "value1"}
+
+
+def test_format_args_multiple_params(console):
+    action = Action(
+        thought="Test multiple params",
+        tool="test_tool",
+        args={"arg1": "value1", "arg2": "value2", "arg3": "value3"},
+        console=console,
+    )
+    expected_format = "<arg1>value1</arg1><arg2>value2</arg2><arg3>value3</arg3>"
+    assert action._format_args() == expected_format

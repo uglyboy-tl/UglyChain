@@ -269,6 +269,7 @@ def llm(
         @wraps(prompt)
         def model_call(
             *prompt_args: P.args,
+            image: str | None = None,  # type: ignore
             api_params: dict[str, Any] | None = None,  # type: ignore
             **prompt_kwargs: P.kwargs,
         ) -> str | ToolResponse | T | list[str] | list[ToolResponse] | list[T]:
@@ -314,7 +315,7 @@ def llm(
                 assert (
                     isinstance(res, str) or isinstance(res, list) and all(isinstance(item, dict) for item in res)
                 ), ValueError("被修饰的函数返回值必须是 str 或 `messages`(list[dict[str, str]]) 类型")
-                messages = _gen_messages(res, prompt)
+                messages = _gen_messages(res, prompt, image)
                 response_model.process_parameters(model, messages, merged_api_params)
 
                 default_console.log_api_params(merged_api_params)
@@ -393,20 +394,31 @@ def _get_map_keys(
     return list_lengths[0], map_num_set, map_key_set
 
 
-def _gen_messages(prompt_ret: str | Messages, prompt: Callable) -> Messages:
+def _gen_messages(prompt_ret: str | Messages, prompt: Callable, image: str | None) -> Messages:
     if isinstance(prompt_ret, str) and prompt_ret:
-        messages = []
+        messages: Messages = []
         if prompt.__doc__ and prompt.__doc__.strip():
             messages.append({"role": "system", "content": prompt.__doc__})
-        messages.append({"role": "user", "content": prompt_ret})
+
+        content = _gen_content(prompt_ret)
+        if image:
+            if image.startswith("http://") or image.startswith("https://"):
+                content.append({"type": "image_url", "image_url": {"url": image}})
+            else:
+                content.append({"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image}"}})
+        messages.append({"role": "user", "content": content})
         return messages
-    elif isinstance(prompt_ret, list) and prompt_ret:
+    if isinstance(prompt_ret, list) and prompt_ret:
         messages = prompt_ret
         if (not messages or messages[0]["role"] != "system") and prompt.__doc__ and prompt.__doc__.strip():
             messages.insert(0, {"role": "system", "content": prompt.__doc__})
         return messages
     else:
         raise TypeError("Expected prompt_ret to be a str or list of Messages and not empty")
+
+
+def _gen_content(text: str) -> list[dict[str, Any]]:
+    return [{"type": "text", "text": text}]
 
 
 def gen_prompt(prompt: Callable[P, str | Messages | None], *args: Any, **kwargs: Any) -> str | Messages:
