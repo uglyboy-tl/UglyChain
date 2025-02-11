@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from uglychain.tools.coder import _convert_path, _convert_to_unified_diff, read_file, replace_in_file, write_to_file
+from uglychain.tools.coder import Coder, _convert_path, _convert_to_unified_diff
 
 
 @pytest.mark.parametrize(
@@ -19,7 +19,7 @@ def test_read_file(mocker, path, read_text_return, expected):
         return_value=None if isinstance(read_text_return, Exception) else read_text_return,
     )
 
-    result = read_file(path=path)
+    result = Coder.read_file(path=path)  # type: ignore
     assert expected in result
 
 
@@ -35,7 +35,7 @@ def test_write_file(mocker, path, content, write_text_side_effect, expected):
     mocker.patch("pathlib.Path.write_text", side_effect=write_text_side_effect)
     mocker.patch("pathlib.Path.mkdir", return_value=None)
 
-    result = write_to_file(path=path, content=content)
+    result = Coder.write_to_file(path=path, content=content)  # type: ignore
     assert expected in result
 
 
@@ -71,7 +71,7 @@ def test_replace_file(mocker, path, read_text_return, diff, expected):
         return_value="--- a/file\n+++ b/file\n@@ -1,1 +1,1 @@\n-original content\n+new content\n",
     )
 
-    result = replace_in_file(path=path, diff=diff)
+    result = Coder.replace_in_file(path=path, diff=diff)  # type: ignore
     assert expected in result
 
 
@@ -81,7 +81,7 @@ def test_replace_file_error(mocker):
     mocker.patch("pathlib.Path.write_text", return_value=None)
     mocker.patch("pathlib.Path.mkdir", return_value=None)
 
-    result = replace_in_file(
+    result = Coder.replace_in_file(  # type: ignore
         path="/fake/path", diff="<<<<<<< SEARCH\noriginal content\n=======\nnew content\n>>>>>>> REPLACE"
     )
     assert "Error replacing content in file" in result

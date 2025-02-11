@@ -4,16 +4,16 @@ import time
 
 import pytest
 
-from uglychain.utils import retry
+from uglychain.utils.retry import RetryError, retry
 
 
 @pytest.mark.parametrize(
     "n, timeout, wait, exception, match",
     [
-        (1, 0.1, 0, Exception, "Function failed after 1 attempts"),
-        (2, 0.1, 0, Exception, "Function failed after 2 attempts"),
-        (1, 1, 0.1, Exception, "Function failed after 1 attempts"),
-        (3, 1, 0.1, Exception, "Function failed after 3 attempts"),
+        (1, 0.1, 0, RetryError, "Function sample_function failed after 1 attempts"),
+        (2, 0.1, 0, RetryError, "Function sample_function failed after 2 attempts"),
+        (1, 1, 0.1, RetryError, "Function sample_function failed after 1 attempts"),
+        (3, 1, 0.1, RetryError, "Function sample_function failed after 3 attempts"),
     ],
 )
 def test_retry(n, timeout, wait, exception, match):

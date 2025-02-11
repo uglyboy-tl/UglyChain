@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 from uglychain import llm, react
 
 # from uglychain.schema import T
-from uglychain.tool import MCP, Tool
+from uglychain.tool import MCP, Tool, Tools
 from uglychain.utils import convert_to_variable_name
 
 from .node import BaseNode
@@ -28,7 +28,7 @@ T = TypeVar("T", bound=TaskResponse)
 @dataclass
 class Task(BaseNode, Generic[T]):
     description: str
-    tools: list[MCP | Tool] = field(default_factory=list)
+    tools: list[MCP | Tool | Tools] = field(default_factory=list)
     reflection: bool = False
     response_format: type[T] = field(default=TaskResponse)  # type: ignore
     _context: dict[str, Any] = field(init=False)

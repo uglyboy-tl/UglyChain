@@ -6,7 +6,6 @@ from contextlib import contextmanager
 from unittest.mock import MagicMock
 
 import pytest
-from mcp import StdioServerParameters
 
 from uglychain.tool import MCP, McpClient, McpTool, Tool, ToolsManager, cleanup
 
@@ -84,14 +83,14 @@ def test_call_tool_with_wrong_tool_name(tools_manager):
         ("sample_tool", lambda: None),
     ],
 )
-def test_regedit_tool(tools_manager, tool_name, tool_func):
-    tools_manager.regedit_tool(tool_name, tool_func)
+def test_register_tool(tools_manager, tool_name, tool_func):
+    tools_manager.register_tool(tool_name, tool_func)
     assert tool_name in tools_manager.tools
     with pytest.raises(ValueError, match="Tool sample_tool already exists"):
         tool_func.__name__ = "sample_tool"
         Tool.tool(tool_func)
     with pytest.raises(ValueError, match="Tool sample_tool already exists"):
-        tools_manager.regedit_tool(tool_name, tool_func)
+        tools_manager.register_tool(tool_name, tool_func)
 
 
 def test_call_tool_with_console(mocker):
@@ -234,11 +233,11 @@ async def test_mcp_tool_arun(mocker, tools_manager):
     tools_manager.mcp_tools.clear()
 
 
-def test_regedit_mcp(tools_manager):
+def test_register_mcp(tools_manager):
     mcp = SampleMCP()
-    client = tools_manager.regedit_mcp("sample_mcp", mcp)
+    client = tools_manager.register_mcp("sample_mcp", mcp)
     assert "sample_mcp" in tools_manager.mcp_tools
     assert isinstance(client, McpClient)
 
     with pytest.raises(ValueError):
-        tools_manager.regedit_mcp("sample_mcp", mcp)
+        tools_manager.register_mcp("sample_mcp", mcp)

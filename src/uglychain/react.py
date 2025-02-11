@@ -11,7 +11,7 @@ from .console import Console
 from .llm import gen_prompt, llm
 from .prompt import REACT_SYSTEM_PROMPT
 from .schema import Messages, P, T
-from .tool import MCP, Tool, convert_to_tools
+from .tool import MCP, Tool, Tools, convert_to_tools
 from .utils import retry
 
 
@@ -24,7 +24,7 @@ def final_answer(answer: str) -> str:
 @overload
 def react(
     model: str = "",
-    tools: list[Tool | MCP] | None = None,
+    tools: list[Tool | MCP | Tools] | None = None,
     *,
     response_format: None = None,
     **api_params: Any,
@@ -34,7 +34,7 @@ def react(
 @overload
 def react(
     model: str = "",
-    tools: list[Tool | MCP] | None = None,
+    tools: list[Tool | MCP | Tools] | None = None,
     *,
     response_format: type[T],
     **api_params: Any,
@@ -43,7 +43,7 @@ def react(
 
 def react(
     model: str = "",
-    tools: list[Tool | MCP] | None = None,
+    tools: list[Tool | MCP | Tools] | None = None,
     *,
     response_format: type[T] | None = None,
     max_steps: int = -1,

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from functools import cached_property
 from typing import Any
@@ -66,8 +67,20 @@ class Action:
             console.log(text, console.show_react, style="yellow")
             return cls(
                 thought=text,
-                tool=func_name,
+                tool=_fix_func_name(func_name),
                 args=func_args,
                 console=console,
             )
         raise ValueError("Can't parse the response, No `Action` or `Action Input`")
+
+
+def _fix_func_name(func_name: str) -> str:
+    name = func_name.strip()
+
+    # 如果函数名是 ```name``` 或 `name` 形式
+    pattern = r"(`{1,3})(.*?)(\1)"
+    search = re.search(pattern, name)
+    if search:
+        name = search.group(2)
+        print(f"fix {func_name} to {name}")
+    return name

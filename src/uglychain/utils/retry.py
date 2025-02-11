@@ -45,12 +45,14 @@ def retry(
                     errors.append(e)
                     attempts += 1
                 except Exception as e:
-                    print(f"Function failed with error: {e}, retrying... (attempt {attempts + 1}/{max_retries})")
+                    print(
+                        f"Function {func.__name__} failed with error: {e}, retrying... (attempt {attempts + 1}/{max_retries})"
+                    )
                     errors.append(e)
                     attempts += 1
                 if wait > 0:
                     time.sleep(wait)
-            raise RetryError(f"Function failed after {n} attempts", errors)
+            raise RetryError(f"Function {func.__name__} failed after {n} attempts", errors)
 
         return wrapper_retry
 

@@ -7,8 +7,8 @@ import os
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from functools import cached_property
-from typing import Any, ClassVar
+from functools import cached_property, singledispatch
+from typing import Any, ClassVar, Union, cast, overload
 
 from mcp import ClientSession, StdioServerParameters, types
 from mcp.client.stdio import stdio_client
@@ -31,14 +31,14 @@ class ToolsManager:
     mcp_tools: dict[str, McpTool] = field(default_factory=dict)
     _loop: asyncio.AbstractEventLoop = field(init=False)
     _executor: ThreadPoolExecutor = field(init=False)
-    _instance: ClassVar[ToolsManager]
+    _instance: ClassVar[ToolsManager | None] = None
 
     def __post_init__(self) -> None:
         self.start()
 
     @classmethod
     def get(cls) -> ToolsManager:
-        if not hasattr(cls, "_instance"):
+        if cls._instance is None:
             cls._instance = cls()
         return cls._instance
 
@@ -48,22 +48,19 @@ class ToolsManager:
         self._executor = ThreadPoolExecutor().__enter__()
 
     def stop(self) -> None:
-        clients = []
-        client_names = []
+        client_names, clients = set(), []
         for tool in self.mcp_tools.values():
-            if tool.client.name in client_names:
-                continue
-            clients.append(tool.client)
-            client_names.append(tool.client.name)
+            if tool.client.name not in client_names:
+                clients.append(tool.client)
+                client_names.add(tool.client.name)
         for client in clients:
             asyncio.run(client.close())
         if self._executor:
             self._executor.__exit__(None, None, None)
-        if self._loop:
-            self._loop.stop()
+        self._loop.stop()
 
     def call_tool(self, tool_name: str, arguments: dict[str, Any]) -> str:
-        tool = self.tools.get(tool_name, None)
+        tool = self.tools.get(tool_name)
         if tool:
             return tool(**arguments)
         else:
@@ -73,14 +70,13 @@ class ToolsManager:
             future = self._executor.submit(self._loop.run_until_complete, mcp_tool._arun(**arguments))
             return future.result()
 
-    def regedit_tool(self, name: str, func: Callable) -> None:
+    def register_tool(self, name: str, func: Callable) -> None:
         if name in self.tools:
             raise ValueError(f"Tool {name} already exists")
         self.tools[name] = func
 
-    def regedit_mcp(self, name: str, mcp: MCP) -> McpClient:
-        mcp_client_name = set([name.split(":")[0] for name in self.mcp_tools.keys()])
-        if name in mcp_client_name:
+    def register_mcp(self, name: str, mcp: MCP) -> McpClient:
+        if name in {name.split(":")[0] for name in self.mcp_tools.keys()}:
             raise ValueError(f"MCP client {name} already exists")
         client = McpClient(name, StdioServerParameters(command=mcp.command, args=mcp.args, env=mcp.env or {}))
         self.mcp_tools[name] = McpTool(client_name=name, name=name, description="", args_schema={}, client=client)
@@ -110,31 +106,27 @@ class Tool:
 
     @classmethod
     def call_tool(cls, tool_name: str, console: Console | None = None, **arguments: Any) -> str:
-        if console is None:
-            console = Console()
+        console = console or Console()
         if tool_name not in cls._manager.tools and tool_name not in cls._manager.mcp_tools:
             raise ValueError(f"Can't find tool {tool_name}")
         if not console.call_tool_confirm(tool_name, arguments):
             return "User cancelled. Please find other ways to solve this problem."
         return cls._manager.call_tool(tool_name, arguments)
 
+    @overload
     @classmethod
-    def tool(cls, func: Callable) -> Tool:
-        name = func.__name__
-        if name in cls._manager.tools:
-            raise ValueError(f"Tool {name} already exists")
-        cls._manager.regedit_tool(name, func)
-        schema = function_schema(func)
-        return cls(name=func.__name__, description=schema["description"], args_schema=schema["parameters"])
+    def tool(cls, obj: type[Any]) -> Tools: ...  # type: ignore
+    @overload
+    @classmethod
+    def tool(cls, obj: object) -> Tool: ...
+    @classmethod
+    def tool(cls, obj: type[Any] | object) -> Tool | Tools:
+        return tool_wrapper(obj, cls)
 
     @classmethod
     def mcp(cls, obj: type) -> MCP:
-        command: str = getattr(obj, "command", "")
-        args: list[str] = getattr(obj, "args", [])
-        env: dict[str, str] = getattr(obj, "env", {})
-
-        mcp = MCP(command, args, env)
-        mcp._client = cls._manager.regedit_mcp(obj.__name__, mcp)
+        mcp = MCP(command=getattr(obj, "command", ""), args=getattr(obj, "args", []), env=getattr(obj, "env", {}))
+        mcp._client = cls._manager.register_mcp(obj.__name__, mcp)
         return mcp
 
     @classmethod
@@ -146,14 +138,55 @@ class Tool:
         assert len(config_origin) == 1
         name, config_dict = list(config_origin.items())[0]
         assert isinstance(config_dict, dict)
-        config = {k: v for k, v in config_dict.items() if k in ["command", "args", "env", "disabled", "autoApprove"]}
+        config = {k: v for k, v in config_dict.items() if k in {"command", "args", "env", "disabled", "autoApprove"}}
         mcp = MCP(**config)
-        mcp._client = cls._manager.regedit_mcp(name, mcp)
+        mcp._client = cls._manager.register_mcp(name, mcp)
         return mcp
 
     @classmethod
     def activate_mcp_client(cls, client: McpClient) -> None:
         cls._manager.activate_mcp_client(client)
+
+
+@singledispatch
+def tool_wrapper(obj: Any, cls: type[Tool]) -> Tool | Tools:
+    raise NotImplementedError("Method not implemented for this type")
+
+
+@tool_wrapper.register(object)
+def _(func: Callable, cls: type[Tool]) -> Tool:
+    name = func.__name__
+    if name in cls._manager.tools:
+        raise ValueError(f"Tool {name} already exists")
+    cls._manager.register_tool(name, func)
+    schema = function_schema(func)
+    return cls(name=name, description=schema["description"], args_schema=schema["parameters"])
+
+
+class Tools:
+    name: str
+    tools: list[Tool]
+
+
+@tool_wrapper.register(type)
+def _(obj: type, cls: type[Tool]) -> Tools:
+    if hasattr(obj, "tools"):
+        delattr(obj, "tools")
+    new_obj = cast(Tools, obj)
+    new_obj.tools = []
+    new_obj.name = obj.__name__
+    for _name in dir(obj):
+        method = getattr(obj, _name)
+        if _name.startswith("_") or not callable(method):
+            continue
+        name = f"{new_obj.name}:{_name}"
+        if name in cls._manager.tools:
+            raise ValueError(f"Tool {name} already exists")
+        # method.__name__ = name
+        cls._manager.register_tool(name, method)
+        schema = function_schema(method)
+        new_obj.tools.append(cls(name=name, description=schema["description"], args_schema=schema["parameters"]))  # type: ignore
+    return new_obj
 
 
 @dataclass
@@ -167,25 +200,19 @@ class MCP:
 
     def __post_init__(self) -> None:
         for key in self.env:
-            self.env[key] = os.getenv(key) or self.env[key]
-        self.env["PATH"] = os.getenv("PATH") or ""
+            self.env[key] = os.getenv(key, self.env[key])
+        self.env["PATH"] = os.getenv("PATH", "")
 
     @cached_property
     def tools(self) -> list[Tool]:
-        tools: list[Tool] = []
         if self.disabled:
-            return tools
+            return []
         if self._client._session is None:
             Tool.activate_mcp_client(self._client)
-        for tool in self._client.tools:
-            tools.append(
-                Tool(
-                    name=f"{self._client.name}:{tool.name}",
-                    description=tool.description,
-                    args_schema=tool.args_schema,
-                )
-            )
-        return tools
+        return [
+            Tool(name=f"{self._client.name}:{tool.name}", description=tool.description, args_schema=tool.args_schema)
+            for tool in self._client.tools
+        ]
 
     @cached_property
     def name(self) -> str:
@@ -204,8 +231,7 @@ class McpTool:
 
     async def _arun(self, **kwargs: Any) -> str:
         result = await self.client._session.call_tool(self.name, arguments=kwargs)  # type: ignore
-        content = to_json(result.content).decode()
-        return content
+        return to_json(result.content).decode()
 
 
 @dataclass
@@ -233,19 +259,12 @@ class McpClient:
         try:
             await self._start_session()
             tools: types.ListToolsResult = await self._session.list_tools()  # type: ignore
-            for tool in tools.tools:
-                self._tools.append(
-                    McpTool(
-                        self.name,
-                        tool.name,
-                        tool.description if tool.description else "",
-                        tool.inputSchema,
-                        self,
-                    )
-                )
+            self._tools.extend(
+                McpTool(self.name, tool.name, tool.description or "", tool.inputSchema, self) for tool in tools.tools
+            )
         except Exception as e:
             print(f"Error gathering tools for {self.server_param.command} {' '.join(self.server_param.args)}: {e}")
-            raise e
+            raise
 
     async def close(self) -> None:
         pass
@@ -271,11 +290,5 @@ class McpClient:
         return self._tools
 
 
-def convert_to_tools(tools: list[Tool | MCP] | None) -> list[Tool]:
-    _tools: list[Tool] = []
-    for tool in tools or []:
-        if isinstance(tool, MCP):
-            _tools.extend(tool.tools)
-        else:
-            _tools.append(tool)
-    return _tools
+def convert_to_tools(tools: list[Tool | MCP | Tools] | None) -> list[Tool]:
+    return [tool for t in tools or [] for tool in ([t] if isinstance(t, Tool) else t.tools)]
