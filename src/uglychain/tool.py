@@ -167,6 +167,9 @@ class Tools:
     name: str
     tools: list[Tool]
 
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self, name)
+
 
 @tool_wrapper.register(type)
 def _(obj: type, cls: type[Tool]) -> Tools:
