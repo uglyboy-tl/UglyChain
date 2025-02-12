@@ -16,10 +16,13 @@ class Action:
     tool: str = ""
     args: dict[str, Any] = field(default_factory=dict)
     console: Console = field(default_factory=Console)
+    image: str | None = field(init=False, default=None)
 
     def _call_tool_with_logging(self) -> str:
         try:
             result = Tool.call_tool(self.tool, self.console, **self.args)
+            if "\u0001image:" in result:
+                result, self.image = result.split("\u0001image:")  # 使用 "\u0001" + "image:" 作为分隔符，分割结果和图片
             self.console.log(result, self.console.show_react, style="bold green")
             return result
         except Exception as e:

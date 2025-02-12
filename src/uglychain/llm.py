@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import wraps
 from typing import Any, overload
 
-from .client import Client
+from .client import SUPPORT_MULTIMODAL_MODELS, Client
 from .config import config
 from .console import Console
 from .schema import Messages, P, T, ToolResponse
@@ -294,6 +294,8 @@ def llm(
                 n = 1
             # 获取模型名称
             model = merged_api_params.pop("model", default_model_from_decorator)
+            if model not in SUPPORT_MULTIMODAL_MODELS:
+                image = None
 
             default_console.log_model_usage_pre(model, prompt, prompt_args, prompt_kwargs)
 

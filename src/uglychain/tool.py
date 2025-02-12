@@ -8,7 +8,7 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from functools import cached_property, singledispatch
-from typing import Any, ClassVar, Union, cast, overload
+from typing import Any, ClassVar, cast, overload
 
 from mcp import ClientSession, StdioServerParameters, types
 from mcp.client.stdio import stdio_client

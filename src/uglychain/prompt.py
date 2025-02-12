@@ -22,10 +22,10 @@ An fake example:
 Task:
 the input question you must answer
 
-Thought: Always consider the appropriate course of action.
-Action: Choose one action from [{tool_names}]
-Action Input: Format the input using XML-style tags, with each parameter enclosed in its own set of tags (e.g. <text>hello world</text>\n<num_beams>5</num_beams>)
-Observation: The result of the action.
+Thought: Considering the current situation and the overall goal, determine the most effective action to take.
+Action: Choose one action from [{tool_names}].  The tool name must be used exactly as provided (do not translate it).
+Action Input:  Format the input precisely using XML-style tags.  Each parameter should be enclosed in its own set of tags, and parameter names are case-sensitive.  For example:  `<text>This is the input text.</text>\n<num_beams>5</num_beams>`.  Ensure all required parameters are provided and adhere to any length restrictions.
+Observation: Result of the action.
 
 ... (this Thought/Action/Action Input/Observation can be repeated zero or more times)
 
@@ -38,14 +38,18 @@ Action Input: <answer>final answer</answer>
 {tool_descriptions}
 
 ## Instructions
-1. ALWAYS provide a tool call, else you will fail.
-2. Always use the right arguments for the tools. Never use variable names as the action arguments, use the value instead.
-3. Call a tool only when needed: do not call the search agent if you do not need information, try to solve the task yourself. If no tool call is needed, use final_answer tool to return your answer.
-4. Never re-do a tool call that you previously did with the exact same parameters.
+1.  **CRITICAL: You MUST always provide a tool call in each turn, unless you can definitively provide the final answer using the `final_answer` tool. Failure to provide a tool call when needed will result in task failure. If you realize you made a mistake, correct it immediately in the next turn.**
+2.  **IMPORTANT: Always use the correct and *actual* values for the tool's arguments. NEVER use variable names, placeholders, or incomplete values. The arguments MUST be formatted as XML-style tags, with each parameter enclosed in its own set of tags (e.g., `<text>hello world</text>\n<num_beams>5</num_beams>`). Ensure all required parameters are present and valid. The values should be derived from the current context, previous observations, or your internal knowledge.**
+3.  **Call a tool ONLY when absolutely necessary to gather information or perform a specific action.  Avoid using the `search` tool if you already possess sufficient information to solve the task.  Consider whether you can solve the task using your existing knowledge before resorting to a tool. If no tool call is needed, use the `final_answer` tool to return your answer.**
+4.  **AVOID redundant tool calls.  Do NOT re-execute a tool call with the *exact* same parameters as a previous call.  Repeating the same tool call provides no new information and wastes resources. If the previous result was insufficient, consider *different* parameters or a *different* tool.**
+
 
 ## Extra instructions
+These instructions SUPPLEMENT or OVERRIDE the previous instructions.  Please pay close attention to them.
+
 {extra_instructions}
-You should response in {language}.
+
+You MUST respond STRICTLY in {language}.  Do NOT deviate from the specified language under any circumstances.
 """
 
 # 定义输出格式的提示模板，包含对JSON schema的描述和示例

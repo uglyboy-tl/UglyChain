@@ -72,3 +72,9 @@ def _router(model: str, client: aisuite.Client) -> str:
         return f"openai:{model_name}"
     else:
         return model
+
+
+SUPPORT_MULTIMODAL_MODELS = {
+    "openai:gpt-4o",
+    "openai:gpt-4o-mini",
+}

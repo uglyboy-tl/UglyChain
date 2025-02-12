@@ -149,7 +149,8 @@ def react(
             while react_times == 0 or not act.done and (max_steps == -1 or react_times < max_steps):
                 react_times += 1
                 default_console.rule(f"Step {react_times}", default_console.show_react, align="left")
-                act = react_response_action_with_retry(*prompt_args, acts=acts, **prompt_kwargs)
+                image = act.image  # 如果上次的结果中有图片
+                act = react_response_action_with_retry(*prompt_args, image=image, acts=acts, **prompt_kwargs)
                 act.obs  # noqa: B018 单独执行一次函数调用，以生成结果，且不影响 retry 中的时长控制
                 acts.append(act)
 

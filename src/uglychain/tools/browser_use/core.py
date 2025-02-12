@@ -19,12 +19,16 @@ def chat(prompt: str) -> str:
 def add_context(func: Callable[..., str]) -> Callable[..., str]:
     @wraps(func)
     def wrapper(*args: Any, **kwargs: Any) -> str:
-        result = func(*args, **kwargs)
-        return f"""
+        action_result = func(*args, **kwargs)
+        state = BrowserUse.browser.state
+        result = f"""
 [Action Result]
-{result}
-{BrowserUse.browser.state}
+{action_result}
+{state}
 """
+        if state.screenshot:
+            result += f"\u0001image:{state.screenshot}"  # 如果有截图，添加到结果中
+        return result
 
     return wrapper
 
@@ -44,7 +48,7 @@ class BrowserUse:
     @staticmethod
     @add_context
     def go_to_url(url: str) -> str:
-        "Navigate to URL in the current tab"
+        "Navigate to URL in the current tab in the browser"
         BrowserUse.browser.navigate_to(url)
         msg = f"🔗  Navigated to {url}"
         return msg
@@ -60,7 +64,7 @@ class BrowserUse:
     @staticmethod
     @add_context
     def click_element(index: int) -> str:
-        "Click element"
+        "Click element in the browser"
         index = int(index)
         state = BrowserUse.browser.cached_state
 
@@ -68,7 +72,6 @@ class BrowserUse:
             raise Exception(f"Element with index {index} does not exist - retry or use alternative actions")
 
         element_node = state.selector_map[index]
-        initial_pages = len(BrowserUse.browser.context.pages)
 
         # if element has file uploader then dont click
         if BrowserUse.browser.is_file_uploader(element_node):
@@ -78,14 +81,20 @@ class BrowserUse:
         msg = ""
 
         try:
-            download_path = BrowserUse.browser._click_element_node(element_node)
+            try:
+                with BrowserUse.browser.context.expect_page(timeout=2000):
+                    download_path = BrowserUse.browser._click_element_node(element_node)
+                new_tab_msg = "New tab opened - switching to it"
+            except TimeoutError:
+                download_path = ""
+                new_tab_msg = ""
+
             if download_path:
                 msg = f"💾  Downloaded file to {download_path}"
             else:
                 msg = f"🖱️  Clicked button with index {index}: {element_node.get_all_text_till_next_clickable_element(max_depth=2)}"
 
-            if len(BrowserUse.browser.context.pages) > initial_pages:
-                new_tab_msg = "New tab opened - switching to it"
+            if new_tab_msg:
                 msg += f" - {new_tab_msg}"
                 BrowserUse.browser.switch_to_tab(-1)
             return msg
@@ -119,7 +128,7 @@ class BrowserUse:
     @staticmethod
     @add_context
     def open_tab(url: str) -> str:
-        "Open url in new tab"
+        "Open url in new tab in the browser"
         BrowserUse.browser.create_new_tab(url)
         msg = f"🔗  Opened new tab with {url}"
         return msg
