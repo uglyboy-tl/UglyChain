@@ -396,7 +396,7 @@ def _get_map_keys(
     return list_lengths[0], map_num_set, map_key_set
 
 
-def _gen_messages(prompt_ret: str | Messages, prompt: Callable, image: str | None) -> Messages:
+def _gen_messages(prompt_ret: str | Messages, prompt: Callable, image: str | None = None) -> Messages:
     if isinstance(prompt_ret, str) and prompt_ret:
         messages: Messages = []
         if prompt.__doc__ and prompt.__doc__.strip():

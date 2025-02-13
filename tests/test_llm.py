@@ -8,7 +8,7 @@ from pydantic import BaseModel
 
 from uglychain.client import Client
 from uglychain.config import config
-from uglychain.llm import _gen_messages, _get_map_keys, gen_prompt, llm
+from uglychain.llm import _gen_content, _gen_messages, _get_map_keys, gen_prompt, llm
 
 
 class SampleModel(BaseModel):
@@ -169,7 +169,7 @@ def test_llm_decorator_with_parallel_processing(mocker, arg1):
 
     mocker.patch(
         "uglychain.client.Client.generate",
-        lambda model, messages, **kwargs: [create_mock_choice(messages[1]["content"])],
+        lambda model, messages, **kwargs: [create_mock_choice(messages[1]["content"][0]["text"])],
     )
 
     config.use_parallel_processing = True
@@ -187,7 +187,9 @@ def test_llm_decorator_with_tools(mocker):
 
     mock_generate = mocker.patch.object(Client, "generate", return_value=[create_mock_choice("Test response")])
     sample_prompt()
-    mock_generate.assert_called_once_with("test:model", [{"role": "user", "content": "Hello, world!"}], tools=ANY)
+    mock_generate.assert_called_once_with(
+        "test:model", [{"role": "user", "content": _gen_content("Hello, world!")}], tools=ANY
+    )
     # assert result == "Test response"
 
 
@@ -200,7 +202,7 @@ def test_llm_decorator_with_invalid_tools_params(mocker):
 
     mock_generate = mocker.patch.object(Client, "generate", return_value=[create_mock_choice("Test response")])
     sample_prompt(api_params={"tools": "test"})  # type: ignore
-    mock_generate.assert_called_once_with("test:model", [{"role": "user", "content": "Hello, world!"}])
+    mock_generate.assert_called_once_with("test:model", [{"role": "user", "content": _gen_content("Hello, world!")}])
     # assert result == "Test response"
 
 
@@ -212,7 +214,7 @@ def test_gen_messages_with_string():
     result = _gen_messages("User message", sample_prompt)
     expected = [
         {"role": "system", "content": "System message"},
-        {"role": "user", "content": "User message"},
+        {"role": "user", "content": _gen_content("User message")},
     ]
     assert result == expected
 
@@ -223,7 +225,7 @@ def test_gen_messages_without_docstring():
 
     result = _gen_messages("User message", sample_prompt)
     expected = [
-        {"role": "user", "content": "User message"},
+        {"role": "user", "content": _gen_content("User message")},
     ]
     assert result == expected
 
@@ -301,3 +303,40 @@ def test_gen_prompt(args, expected):
 
     result = gen_prompt(sample_prompt, *args)
     assert result == expected
+
+
+@pytest.mark.parametrize(
+    "model,image_input, expected_url",
+    [
+        (
+            "openai:gpt-4o",
+            "https://example.com/image.jpg",
+            {"type": "image_url", "image_url": {"url": "https://example.com/image.jpg"}},
+        ),
+        (
+            "openai:gpt-4o-mini",
+            "base64encodedstring",
+            {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64,base64encodedstring"}},
+        ),
+        ("test:model", "https://example.com/image.jpg", None),
+    ],
+)
+def test_llm_decorator_with_image(mocker, model, image_input, expected_url):
+    @llm(model=model)
+    def sample_prompt() -> str:
+        return "Hello, world!"
+
+    mock_generate = mocker.patch.object(Client, "generate", return_value=[create_mock_choice("Test response")])
+
+    result = sample_prompt(image=image_input)  # type: ignore
+    content = _gen_content("Hello, world!")
+    if expected_url:
+        content.append(expected_url)
+    expected_message = [
+        {
+            "role": "user",
+            "content": content,
+        },
+    ]
+    mock_generate.assert_called_with(model, expected_message)
+    assert result == "Test response"
