@@ -23,11 +23,7 @@ class _SingletonWrapper(Generic[T]):
         if self._instance is None:
             with self._lock:
                 if self._instance is None:
-                    try:
-                        self._instance = self.__wrapped__(*args, **kwargs)
-                    except Exception as e:
-                        print(f"Failed to create instance of {self.__wrapped__.__name__}: {e}")
-                        raise
+                    self._instance = self.__wrapped__(*args, **kwargs)
         return self._instance
 
 

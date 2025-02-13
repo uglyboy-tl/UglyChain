@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+from examples.schema import UserDetail
+
 from uglychain import config, llm
 
 
-@llm
+@llm(response_format=UserDetail)
 def test(prompt: str):
-    return str(prompt)
+    return prompt
 
 
 if __name__ == "__main__":
     config.verbose = True
-    test("图片里有几个人？", image="https://imagepphcloud.thepaper.cn/pph/image/332/567/397.jpg")  # type: ignore
+    test("Extract Jason is a boy")

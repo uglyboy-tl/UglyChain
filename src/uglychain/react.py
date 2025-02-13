@@ -5,11 +5,11 @@ from collections.abc import Callable, Sequence
 from functools import wraps
 from typing import Any, Literal, overload
 
-from .action import Action
 from .config import config
 from .console import Console
 from .llm import gen_prompt, llm
 from .prompt import REACT_SYSTEM_PROMPT
+from .react_action import Action
 from .schema import Messages, P, T
 from .tool import MCP, Tool, Tools, convert_to_tools
 from .utils import retry

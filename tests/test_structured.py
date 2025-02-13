@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 from pydantic import BaseModel
 
+from uglychain import config
 from uglychain.structured import Mode, ResponseModel
 
 
@@ -17,7 +18,7 @@ def create_mock_func() -> MockModel:
 @pytest.mark.parametrize(
     "response_type, mode",
     [
-        (MockModel, Mode.MD_JSON),
+        (MockModel, Mode.MARKDOWN),
     ],
 )
 def test_response_formatter_init(response_type, mode):
@@ -42,19 +43,42 @@ def test_response_formatter_get_response_format_prompt():
 
 
 @pytest.mark.parametrize(
-    "content, expected, exception, match",
+    "type, content, expected, exception, match",
     [
-        ('{"foo": "bar"}', "bar", None, None),
+        ("json", '{"foo": "bar"}', "bar", None, None),
         (
+            "json",
             '{"bar": "foo"}',
             None,
             ValueError,
             r"Failed to parse MockModel from completion \{\"bar\": \"foo\"\}\. Got: .*",
         ),
-        ("Invalid JSON", None, ValueError, "Failed to find JSON object in response for MockModel: Invalid JSON"),
+        (
+            "json",
+            "Invalid JSON",
+            None,
+            ValueError,
+            "Failed to find JSON object in response for MockModel: Invalid JSON",
+        ),
+        ("yaml", "```yaml\nfoo: bar```", "bar", None, None),
+        (
+            "yaml",
+            "```yaml\nbar:foo```",
+            None,
+            ValueError,
+            r"Failed to parse MockModel from completion ```yaml\nbar:foo```. Got: .*",
+        ),
+        (
+            "yaml",
+            "Invalid YAML",
+            None,
+            ValueError,
+            "Failed to parse MockModel from completion Invalid YAML. Got: .*",
+        ),
     ],
 )
-def test_response_formatter_parse_from_response(content, expected, exception, match):
+def test_response_formatter_parse_from_response(type, content, expected, exception, match):
+    config.response_markdown_type = type
     formatter = ResponseModel(create_mock_func)
 
     class Choice:

@@ -66,14 +66,16 @@ Here is the output schema:
 
 Make sure to return an instance of the JSON which can be parsed by Python json.loads, not the schema itself."""
 
+# YAML格式的输出格式提示模板
 RESPONSE_YAML_PROMPT = """## Output Format
 **The output must be a YAML object**.
 
-For example, for the schema ```yaml\n$defs:\n  Gender:\n    enum:\n    - FEMALE\n    - MALE\n    title: Gender\n    type: string\nproperties:\n  gender:\n    $ref: '#/$defs/Gender'\n  name:\n    title: Name\n    type: string\nrequired:\n- name\n- gender\n\n```, the object ```yaml\nname: Jason\ngender: MALE\n``` is a well-formatted instance of the schema.
+As an example, for the schema {{"properties": {{"foo": {{"title": "Foo", "description": "a list of strings", "type": "array", "items": {{"type": "string"}}}}}}, "required": ["foo"]}}
+the object\n```yaml\nfoo:\n  - bar\n  - baz\n```\nis a well-formatted instance of the schema. The object\n```yaml\nproperties:\n  foo:\n    - bar\n    - baz\n```\nis not well-formatted.
 
 Only Response Your Final YAML, according to the following schema:
-```yaml
-{schema}
+```
+{output_schema}
 ```
 
 Answer:

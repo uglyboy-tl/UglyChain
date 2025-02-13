@@ -2,18 +2,9 @@ from __future__ import annotations
 
 import pytest
 
-from uglychain.action import Action
+from uglychain.react_action import Action
 
 
-@pytest.mark.parametrize(
-    "mock_return, expected_obs, log_style",
-    [
-        ("Tool output", "Tool output", "bold green"),
-        (Exception("Tool error"), "Error: Tool error", "bold red"),
-        ("Another output", "Another output", "bold blue"),
-        (Exception("Another error"), "Error: Another error", "bold yellow"),
-    ],
-)
 def mock_tool_call(mocker, mock_return):
     if isinstance(mock_return, Exception):
         mocker.patch("uglychain.tool.Tool.call_tool", side_effect=mock_return)
@@ -22,18 +13,20 @@ def mock_tool_call(mocker, mock_return):
 
 
 @pytest.mark.parametrize(
-    "mock_return, expected_obs, log_style",
+    "mock_return, expected_obs, log_style, image",
     [
-        ("Tool output", "Tool output", "bold green"),
-        (Exception("Tool error"), "Error: Tool error", "bold red"),
-        ("Another output", "Another output", "bold green"),
-        (Exception("Another error"), "Error: Another error", "bold red"),
+        ("Tool output", "Tool output", "bold green", None),
+        ("Tool output\u0001image:aaa", "Tool output", "bold green", "aaa"),
+        (Exception("Tool error"), "Error: Tool error", "bold red", None),
+        ("Another output", "Another output", "bold green", None),
+        (Exception("Another error"), "Error: Another error", "bold red", None),
     ],
 )
-def test_obs(mocker, console, mock_return, expected_obs, log_style):
+def test_obs(mocker, console, mock_return, expected_obs, log_style, image):
     mock_tool_call(mocker, mock_return)
     action = Action(tool="mock_tool", console=console)
     assert action.obs == expected_obs
+    assert action.image == image
     console.log.assert_called_with(expected_obs, console.show_react, style=log_style)
 
 
@@ -158,7 +151,7 @@ def test_action_args(console, thought, tool, args):
     ],
 )
 def test_fix_func_name(func_name, expected_name):
-    from uglychain.action import _fix_func_name
+    from uglychain.react_action import _fix_func_name
 
     assert _fix_func_name(func_name) == expected_name
 
@@ -181,3 +174,18 @@ def test_format_args_multiple_params(console):
     )
     expected_format = "<arg1>value1</arg1><arg2>value2</arg2><arg3>value3</arg3>"
     assert action._format_args() == expected_format
+
+
+def test_short_result():
+    from uglychain.react_action import _short_result
+
+    input_data = "Line1\nLine2\nLine3\nLine4\nLine5\nLine6\nLine7\nLine8\nLine9\nLine10\nLine11\nLine12"
+    expected_output = "Line1\nLine2\nLine3\nLine4\nLine5\nLine6\nLine7\nLine8\nLine9\nLine10\n..."
+    assert _short_result(input_data) == expected_output
+
+    long_text = "a" * 201
+    expected_long_output = "a" * 200 + "..."
+    assert _short_result(long_text) == expected_long_output
+
+    short_text = "Short text"
+    assert _short_result(short_text) == short_text
