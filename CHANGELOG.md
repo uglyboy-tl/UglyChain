@@ -1,4 +1,17 @@
-# Changelog
+## [1.3.1] - 2025-02-13
+### Features
+- feat(structured): YAML JSON (Uglyboy)
+- feat(browser-use): 支持返回图片并优化浏览器操作 (Uglyboy)
+- feat(llm): 支持图像输入并优化Prompt生成逻辑 (Uglyboy)
+- feat: 添加浏览器使用示例 (Uglyboy)
+- feat(工具): 添加工具类的动态属性获取方法 (Uglyboy)
+- feat(tools): 添加浏览器自动化工具 (Uglyboy)
+
+### Refactor
+- refactor(代码重构): 优化配置使用和错误处理 (Uglyboy)
+- refactor(llm): 重构 prompt 工具函数以支持图像输入 (Uglyboy)
+- refactor(uglychain): 优化 XML 和 JSON 解析逻辑 (Uglyboy)
+- refactor(tool): 重构工具注册和调用逻辑 (Uglyboy)
 
 ## [1.3.0] - 2025-02-10
 ### Features
