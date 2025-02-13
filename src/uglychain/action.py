@@ -23,7 +23,7 @@ class Action:
             result = Tool.call_tool(self.tool, self.console, **self.args)
             if "\u0001image:" in result:
                 result, self.image = result.split("\u0001image:")  # 使用 "\u0001" + "image:" 作为分隔符，分割结果和图片
-            self.console.log(result, self.console.show_react, style="bold green")
+            self.console.log(_short_result(result), self.console.show_react, style="bold green")
             return result
         except Exception as e:
             error_message = f"Error: {e}"
@@ -87,3 +87,13 @@ def _fix_func_name(func_name: str) -> str:
         name = search.group(2)
         print(f"fix {func_name} to {name}")
     return name
+
+
+def _short_result(result: str) -> str:
+    lines = result.split("\n")
+    if len(lines) > 10:
+        return "\n".join(lines[:10]) + "\n..."
+    elif len(result) > 200:
+        return result[:200] + "..."
+    else:
+        return result

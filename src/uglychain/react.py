@@ -50,7 +50,7 @@ def react(
     console: Console | None = None,
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages | None]], Callable[P, str | T]]:
-    default_model_from_decorator = model if model else config.default_model
+    default_model_from_decorator = model
     default_tools = convert_to_tools(tools)
     default_tools.append(final_answer)
     default_response_format = response_format  # noqa: F841
@@ -140,7 +140,9 @@ def react(
                 **default_api_params_from_decorator,
             )(final_call)
 
-            default_console.log_model_usage_pre(default_model_from_decorator, prompt, prompt_args, prompt_kwargs)
+            default_console.log_model_usage_pre(
+                default_model_from_decorator or config.default_model, prompt, prompt_args, prompt_kwargs
+            )
             default_console.show_base_info = False
 
             react_times = 0

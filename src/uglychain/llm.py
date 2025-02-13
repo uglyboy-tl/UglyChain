@@ -259,7 +259,7 @@ def llm(
         func = func_or_model
     else:
         func = None
-    default_model_from_decorator = model if model else config.default_model
+    default_model_from_decorator = model
     default_console = console or Console()
     default_api_params_from_decorator = api_params.copy()
 
@@ -293,7 +293,7 @@ def llm(
             if n is None:
                 n = 1
             # 获取模型名称
-            model = merged_api_params.pop("model", default_model_from_decorator)
+            model = merged_api_params.pop("model", default_model_from_decorator) or config.default_model
             if model not in SUPPORT_MULTIMODAL_MODELS:
                 image = None
 

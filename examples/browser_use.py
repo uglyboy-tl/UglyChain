@@ -3,9 +3,6 @@ from __future__ import annotations
 from uglychain import config, react
 from uglychain.tools.browser_use import BrowserUse
 
-config.verbose = True
-config.default_model = "openrouter:deepseek/deepseek-chat"
-
 
 @react(tools=[BrowserUse])
 def ask():
@@ -14,4 +11,6 @@ def ask():
     )
 
 
-ask()
+if __name__ == "__main__":
+    config.verbose = True
+    ask()
