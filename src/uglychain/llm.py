@@ -269,7 +269,7 @@ def llm(
         @wraps(prompt)
         def model_call(
             *prompt_args: P.args,
-            image: str | None = None,  # type: ignore
+            image: str | list[str] | None = None,  # type: ignore
             api_params: dict[str, Any] | None = None,  # type: ignore
             **prompt_kwargs: P.kwargs,
         ) -> str | ToolResponse | T | list[str] | list[ToolResponse] | list[T]:
@@ -396,7 +396,7 @@ def _get_map_keys(
     return list_lengths[0], map_num_set, map_key_set
 
 
-def _gen_messages(prompt_ret: str | Messages, prompt: Callable, image: str | None = None) -> Messages:
+def _gen_messages(prompt_ret: str | Messages, prompt: Callable, image: str | list[str] | None = None) -> Messages:
     if isinstance(prompt_ret, str) and prompt_ret:
         messages: Messages = []
         if prompt.__doc__ and prompt.__doc__.strip():
@@ -404,10 +404,12 @@ def _gen_messages(prompt_ret: str | Messages, prompt: Callable, image: str | Non
 
         content = _gen_content(prompt_ret)
         if image:
-            if image.startswith("http://") or image.startswith("https://"):
-                content.append({"type": "image_url", "image_url": {"url": image}})
-            else:
-                content.append({"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image}"}})
+            images = image if isinstance(image, list) else [image]
+            for _image in images:
+                if _image.startswith("http://") or _image.startswith("https://"):
+                    content.append({"type": "image_url", "image_url": {"url": _image}})
+                else:
+                    content.append({"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{_image}"}})
         messages.append({"role": "user", "content": content})
         return messages
     if isinstance(prompt_ret, list) and prompt_ret:
