@@ -52,7 +52,58 @@ def test_client_generate(monkeypatch, mock_client, expected_response, exception)
         assert str(exception) in str(exc_info.value)
     else:
         response = Client.generate(model=model, messages=messages)
+        assert isinstance(response, list)
         assert response[0].message.content == expected_response
+
+
+@pytest.mark.parametrize(
+    "api_params,messages,expected_response,exception",
+    [
+        (
+            {"stream": True},
+            [{"role": "user", "content": "Hello"}],
+            [type("Choice", (object,), {"message": type("Message", (object,), {"content": "Test response"})})],
+            None,
+        ),
+        (
+            {},
+            [{"role": "user", "content": "Hello"}],
+            None,
+            RuntimeError("生成响应失败: No choices returned from the model"),
+        ),
+        (
+            {"stream": False},
+            [{"role": "user", "content": "Hello"}],
+            [type("Choice", (object,), {"message": type("Message", (object,), {"content": "Test response"})})],
+            None,
+        ),
+        ({}, None, None, RuntimeError("生成响应失败: Messages must be provided")),
+    ],
+)
+def test_client_generate_extended(monkeypatch, mock_client, api_params, messages, expected_response, exception):
+    model = "test:model"
+    if exception:
+
+        class MockClientWithException(mock_client):
+            class chat:  # noqa: N801
+                class completions:  # noqa: N801
+                    @staticmethod
+                    def create(model, messages, **kwargs):
+                        if expected_response is not None:
+                            return type("Response", (object,), {"choices": expected_response})
+                        else:
+                            raise exception
+
+        Client.reset()
+        monkeypatch.setattr("aisuite.Client", MockClientWithException)
+
+        with pytest.raises(type(exception)) as exc_info:
+            Client.generate(model=model, messages=messages, **api_params)
+        assert str(exception) in str(exc_info.value)
+    else:
+        response = Client.generate(model=model, messages=messages, **api_params)
+        assert isinstance(response, list)
+        assert response[0].message.content == expected_response[0].message.content
 
 
 def test_router_openrouter(mock_client, mocker):
@@ -65,7 +116,7 @@ def test_router_openrouter(mock_client, mocker):
 
     result = _router(model, mock_client)
     assert result == expected_model
-    assert mock_client.configure.called_once_with(
+    mock_client.configure.assert_called_once_with(
         {"openai": {"api_key": "test_key", "base_url": "https://openrouter.ai/api/v1"}}
     )
 

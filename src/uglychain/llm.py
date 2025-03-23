@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import inspect
-from collections.abc import Callable
+from collections.abc import Callable, Iterable, Iterator
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import wraps
-from typing import Any, overload
+from typing import Any, cast, overload
 
 from .client import SUPPORT_MULTIMODAL_MODELS, Client
 from .config import config
@@ -31,7 +31,7 @@ def llm(
     n: None = None,
     tools: None = None,
     **api_params: Any,
-) -> Callable[[Callable[P, str | Messages | None]], Callable[P, str]]: ...
+) -> Callable[[Callable[P, str | Messages | None]], Callable[P, str | Iterator[str]]]: ...
 
 
 @overload
@@ -43,7 +43,7 @@ def llm(
     response_format: None = None,
     n: None = None,
     **api_params: Any,
-) -> Callable[[Callable[P, str | Messages | None]], Callable[P, str | ToolResponse]]: ...
+) -> Callable[[Callable[P, str | Messages | None]], Callable[P, str | Iterator[str] | ToolResponse]]: ...
 
 
 @overload
@@ -104,7 +104,7 @@ def llm(
     n: None = None,
     tools: None = None,
     **api_params: Any,
-) -> Callable[[Callable[P, str | Messages | None]], Callable[P, str]]: ...
+) -> Callable[[Callable[P, str | Messages | None]], Callable[P, str | Iterator[str]]]: ...
 
 
 @overload
@@ -115,7 +115,7 @@ def llm(
     response_format: None = None,
     n: None = None,
     **api_params: Any,
-) -> Callable[[Callable[P, str | Messages | None]], Callable[P, str | ToolResponse]]: ...
+) -> Callable[[Callable[P, str | Messages | None]], Callable[P, str | Iterator[str] | ToolResponse]]: ...
 
 
 @overload
@@ -242,7 +242,7 @@ def llm(
     Callable[P, str]
     | Callable[
         [Callable[P, str | Messages | None]],
-        Callable[P, str | ToolResponse | T | list[str] | list[ToolResponse] | list[T]],
+        Callable[P, str | Iterator[str] | ToolResponse | T | list[str] | list[ToolResponse] | list[T]],
     ]
 ):
     """
@@ -272,7 +272,7 @@ def llm(
             image: str | list[str] | None = None,  # type: ignore
             api_params: dict[str, Any] | None = None,  # type: ignore
             **prompt_kwargs: P.kwargs,
-        ) -> str | ToolResponse | T | list[str] | list[ToolResponse] | list[T]:
+        ) -> str | Iterator[str] | ToolResponse | T | list[str] | list[ToolResponse] | list[T]:
             default_console.init()
             # 获取被修饰函数的返回类型
             response_model = ResponseModel[T](prompt, response_format)
@@ -302,12 +302,14 @@ def llm(
             m, map_args_index_set, map_kwargs_keys_set = _get_map_keys(prompt, prompt_args, prompt_kwargs, map_keys)
             if m > 1 and n > 1:
                 raise ValueError("n > 1 和列表长度 > 1 不能同时成立")
+            if (m > 1 or n > 1) and merged_api_params.get("stream", False):
+                raise ValueError("stream 不能与列表长度 > 1 同时成立")
             if m > 1 or n > 1:
                 default_console.show_result = False
             else:
                 default_console.progress.disable = True
 
-            def process_single_prompt(i: int) -> list[Any]:
+            def process_single_prompt(i: int) -> Iterable[Any]:
                 args = [arg[i] if j in map_args_index_set else arg for j, arg in enumerate(prompt_args)]  # type: ignore
                 kwargs = {
                     key: value[i] if key in map_kwargs_keys_set else value  # type: ignore
@@ -325,15 +327,22 @@ def llm(
 
                 response = Client.generate(model, messages, **merged_api_params)
 
-                # 从响应中解析结果
+                if merged_api_params.get("stream", False):
+                    return (
+                        chunk.choices[0].delta.content
+                        for chunk in response
+                        if isinstance(chunk.choices, list) and len(chunk.choices) > 0
+                    )
                 result = [response_model.parse_from_response(choice) for choice in response]
                 default_console.log_progress_intermediate()
                 default_console.log_results(result)
                 return result
 
-            results = []
+            results: list[str] | list[ToolResponse] | list[T] = []
             default_console.log_progress_start(m if m > 1 else n)
 
+            if merged_api_params.get("stream", False):
+                return (item for item in process_single_prompt(0) if isinstance(item, str) and item)
             if config.use_parallel_processing:
                 with ThreadPoolExecutor() as executor:
                     futures = [executor.submit(process_single_prompt, i) for i in range(m)]

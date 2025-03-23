@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Iterator, Sequence
 from functools import wraps
 from typing import Any, Literal, overload
 
@@ -98,6 +98,8 @@ def react(
                     stop=["Observation:"],
                     **default_api_params_from_decorator,
                 )(react_once)(*args, **kwargs)
+                if isinstance(result, Iterator):
+                    result = "".join(result)
                 act = Action.from_response(result, default_console)
                 return act
 
@@ -156,11 +158,13 @@ def react(
                 act.obs  # noqa: B018 单独执行一次函数调用，以生成结果，且不影响 retry 中的时长控制
                 acts.append(act)
 
-            response: str | T = act.obs
+            response: str | Iterator[str] | T = act.obs
             if not act.done and react_times == max_steps:
                 response = llm_final_call(*prompt_args, acts=acts, call_type="failed", **prompt_kwargs)
             elif default_response_format is not None:
                 response = llm_final_call(*prompt_args, acts=acts, call_type="trans", **prompt_kwargs)
+            if isinstance(response, Iterator):
+                response = "".join(response)
             default_console.stop()
             return response
 

@@ -200,6 +200,9 @@ def test_tool_activate_mcp_client(tools_manager, mocker):
 
 
 def test_mcp(tools_manager, mocker):
+    # Skip this test if uvx is not installed
+    pytest.importorskip("uvx", reason="uvx not installed")
+
     mock_call_tool = mocker.patch("mcp.ClientSession.call_tool")
 
     class Fetch:  # noqa: N801

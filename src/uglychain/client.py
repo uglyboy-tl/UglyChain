@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import threading
+from collections.abc import Iterator
 from typing import Any
 
 import aisuite
@@ -47,7 +48,7 @@ class Client:
         model: str,
         messages: Messages,
         **api_params: Any,
-    ) -> list[Any]:
+    ) -> Iterator[Any] | list[Any]:
         client_model = _router(model, cls.get())
         try:
             response = cls.get().chat.completions.create(
@@ -57,9 +58,13 @@ class Client:
             )
         except Exception as e:
             raise RuntimeError(f"生成响应失败: {e}") from e
-        if not hasattr(response, "choices") or not response.choices:
+        if api_params.get("stream", False) and isinstance(response, Iterator):
+            return (item for item in response)
+        elif not hasattr(response, "choices") or not response.choices:
             raise ValueError("No choices returned from the model")
-        return response.choices
+        else:
+            assert isinstance(response.choices, list)
+            return response.choices
 
 
 def _router(model: str, client: aisuite.Client) -> str:
