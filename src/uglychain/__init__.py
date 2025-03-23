@@ -7,4 +7,4 @@ from .react import react
 from .tool import MCP, Tool
 
 __all__ = ["config", "llm", "react", "load", "MCP", "Tool"]
-__version__ = "1.3.1"
+__version__ = "1.4.0"
