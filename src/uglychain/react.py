@@ -6,11 +6,11 @@ from functools import wraps
 from typing import Any, Literal, overload
 
 from .config import config
-from .console import Console
 from .llm import gen_prompt, llm
 from .prompt import REACT_SYSTEM_PROMPT
 from .react_action import Action
 from .schema import Messages, P, T
+from .session import Session
 from .tool import MCP, Tool, Tools, convert_to_tools
 from .utils import retry
 
@@ -47,15 +47,16 @@ def react(
     *,
     response_format: type[T] | None = None,
     max_steps: int = -1,
-    console: Console | None = None,
+    session: Session | None = None,
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages | None]], Callable[P, str | T]]:
-    default_model_from_decorator = model
+    default_model_from_decorator = model or config.default_model
     default_tools = convert_to_tools(tools)
     default_tools.append(final_answer)
     default_response_format = response_format  # noqa: F841
     default_api_params_from_decorator = api_params.copy()
-    default_console = console or Console(True, False, False, False, False, True)
+    default_session = session or Session("react")
+    default_session.model = default_model_from_decorator
 
     def parameterized_lm_decorator(
         prompt: Callable[P, str | Messages | None],
@@ -65,7 +66,8 @@ def react(
             *prompt_args: P.args,
             **prompt_kwargs: P.kwargs,
         ) -> str | T:
-            default_console.init()
+            default_session.func = Session.format_func_call(prompt, *prompt_args, **prompt_kwargs)
+            default_session.console.init()
             tool_names = [f"`{tool.name}`" for tool in default_tools]
 
             def react_once(*prompt_args: P.args, acts: Sequence[Action], **prompt_kwargs: P.kwargs):  # type: ignore
@@ -90,7 +92,7 @@ def react(
             def react_response_action_with_retry(*args: Any, **kwargs: Any) -> Action:
                 result = llm(
                     model=default_model_from_decorator,
-                    console=default_console,
+                    session=default_session,
                     map_keys=None,
                     response_format=None,
                     n=None,
@@ -100,7 +102,8 @@ def react(
                 )(react_once)(*args, **kwargs)
                 if isinstance(result, Iterator):
                     result = "".join(result)
-                act = Action.from_response(result, default_console)
+                act = Action.from_response(result)
+                default_session.log("action", act.thought, style="yellow")
                 return act
 
             def final_call(
@@ -134,7 +137,7 @@ def react(
             llm_final_call = llm(
                 default_model_from_decorator,
                 response_format=default_response_format,
-                console=default_console,
+                session=default_session,
                 map_keys=None,
                 need_retry=True,
                 n=None,
@@ -142,20 +145,17 @@ def react(
                 **default_api_params_from_decorator,
             )(final_call)
 
-            default_console.log_model_usage_pre(
-                default_model_from_decorator or config.default_model, prompt, prompt_args, prompt_kwargs
-            )
-            default_console.show_base_info = False
+            default_session.show_base_info()
 
             react_times = 0
             acts: list[Action] = []
             act = Action()
             while react_times == 0 or not act.done and (max_steps == -1 or react_times < max_steps):
                 react_times += 1
-                default_console.rule(f"Step {react_times}", default_console.show_react, align="left")
+                default_session.log("rule", f"Step {react_times}", align="left")
                 image = act.image  # 如果上次的结果中有图片
                 act = react_response_action_with_retry(*prompt_args, image=image, acts=acts, **prompt_kwargs)
-                act.obs  # noqa: B018 单独执行一次函数调用，以生成结果，且不影响 retry 中的时长控制
+                default_session.process(act)  # 工具执行
                 acts.append(act)
 
             response: str | Iterator[str] | T = act.obs
@@ -165,7 +165,6 @@ def react(
                 response = llm_final_call(*prompt_args, acts=acts, call_type="trans", **prompt_kwargs)
             if isinstance(response, Iterator):
                 response = "".join(response)
-            default_console.stop()
             return response
 
         model_call.__api_params__ = default_api_params_from_decorator  # type: ignore

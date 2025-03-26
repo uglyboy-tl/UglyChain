@@ -14,7 +14,6 @@ from mcp import ClientSession, StdioServerParameters, types
 from mcp.client.stdio import stdio_client
 from pydantic_core import to_json
 
-from .console import Console
 from .utils import function_schema
 
 
@@ -105,12 +104,9 @@ class Tool:
         return self._manager.call_tool(self.name, arguments)
 
     @classmethod
-    def call_tool(cls, tool_name: str, console: Console | None = None, **arguments: Any) -> str:
-        console = console or Console()
+    def call_tool(cls, tool_name: str, **arguments: Any) -> str:
         if tool_name not in cls._manager.tools and tool_name not in cls._manager.mcp_tools:
             raise ValueError(f"Can't find tool {tool_name}")
-        if not console.call_tool_confirm(tool_name, arguments):
-            return "User cancelled. Please find other ways to solve this problem."
         return cls._manager.call_tool(tool_name, arguments)
 
     @overload

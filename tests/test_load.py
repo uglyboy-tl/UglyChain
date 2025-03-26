@@ -33,17 +33,17 @@ def test_load_valid_file(prompt_file, mock_client):
 
 
 @pytest.mark.parametrize(
-    "invalid_content, match",
+    "invalid_content, exception, match",
     [
-        ("invalid content", "Illegal formatting of prompt file."),
-        ("---\n['q','w']\n---\n", "YAML frontmatter must be a dictionary."),
-        ("---\nmodel: openai:test\n---\n{today}", "already defined in the prompt template."),
+        ("invalid content", ValueError, "Illegal formatting of prompt file."),
+        ("---\n['q','w']\n---\n", ValueError, "YAML frontmatter must be a dictionary."),
+        ("---\nmodel: openai:test\n---\n{today}", TypeError, "multiple values for argument 'today'"),
     ],
 )
-def test_load_invalid_file(tmp_path, invalid_content, match):
+def test_load_invalid_file(tmp_path, invalid_content, exception, match):
     invalid_file = tmp_path / "invalid.md"
     invalid_file.write_text(invalid_content)
-    with pytest.raises(ValueError, match=match):
+    with pytest.raises(exception, match=match):
         func = load(str(invalid_file))
         func("a", today="today")
 

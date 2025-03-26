@@ -71,8 +71,6 @@ def load(path_str: str, **kwargs: Any) -> Callable[..., str | ToolResponse | lis
 
     def func(*args: P.args, **kwargs: P.kwargs) -> str:
         for i, arg in enumerate(args):
-            if inputs[i] in kwargs:
-                raise ValueError(f"Input '{inputs[i]}' is already defined in the prompt template.")
             kwargs[inputs[i]] = arg
         _replace = partial(_replace_placeholder, kwargs=kwargs)
 

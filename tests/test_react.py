@@ -62,6 +62,8 @@ def test_react_with_console(mock_tool, mock_prompt, mocker):
 
     # 模拟 Action 对象
     mock_action = mocker.MagicMock(spec=Action)
+    mock_action.tool = "final_answer"
+    mock_action.args = {"answer": "Final Answer"}
     mock_action.done = True
     mock_action.obs = "Final Answer"
     mock_action.image = None
@@ -355,6 +357,7 @@ def test_tool_descriptions():
 
 def test_react_with_max_steps(mock_tool, mock_prompt, mocker):
     """测试 react 函数的 max_steps 参数"""
+    mocker.patch("uglychain.session.Session.process")
     # 模拟 Action 对象，前两次 done 为 False，第三次为 True
     mock_action1 = mocker.MagicMock(spec=Action)
     mock_action1.done = False
@@ -403,6 +406,8 @@ def test_react_with_max_steps_exceeded(mock_tool, mock_prompt, mocker):
     """测试超过 max_steps 的情况"""
     # 模拟 Action 对象，所有 done 为 False
     mock_action = mocker.MagicMock(spec=Action)
+    mock_action.tool = "test_action"
+    mock_action.args = {"param": "value"}
     mock_action.done = False
     mock_action.obs = "Observation"
     mock_action.image = None
@@ -455,6 +460,8 @@ def test_react_with_response_format(mock_tool, mock_prompt, mocker, response_mod
     """测试 react 函数的 response_format 参数"""
     # 模拟 Action 对象
     mock_action = mocker.MagicMock(spec=Action)
+    mock_action.tool = "final_answer"
+    mock_action.args = {"answer": "Test Answer"}
     mock_action.done = True
     mock_action.obs = '{"result": "Formatted result"}'
     mock_action.image = None

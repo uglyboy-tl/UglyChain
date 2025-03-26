@@ -94,11 +94,9 @@ def test_register_tool(tools_manager, tool_name, tool_func):
 
 
 def test_call_tool_with_console(mocker):
-    mock_console = mocker.patch("uglychain.tool.Console")
-    mock_console.call_tool_confirm.return_value = True
     Tool._manager = ToolsManager()
     Tool._manager.tools["test_tool"] = MagicMock(return_value="result")
-    result = Tool.call_tool("test_tool", mock_console, arg1="value1")
+    result = Tool.call_tool("test_tool", arg1="value1")
     assert result == "result"
 
 
@@ -123,19 +121,16 @@ def test_cleanup(mocker):
 
 
 def test_tool_call_tool(tools_manager, mocker):
-    mock_console = mocker.patch("uglychain.tool.Console")
-    mock_console.call_tool_confirm.side_effect = [True, False]  # Test both confirm and deny
     Tool._manager = tools_manager
     Tool._manager.tools["test_tool"] = MagicMock(return_value="result")
-    result = Tool.call_tool("test_tool", mock_console, arg1="value1")
+    result = Tool.call_tool("test_tool", arg1="value1")
     assert result == "result"
-    mock_console.call_tool_confirm.assert_called_once_with("test_tool", {"arg1": "value1"})
     tools_manager.mcp_tools.clear()
 
 
 def test_tool_validate_call_tool():
     with pytest.raises(ValueError, match="Can't find tool non_existent_tool"):
-        Tool.call_tool("non_existent_tool", None)
+        Tool.call_tool("non_existent_tool")
     tool = Tool("test", "test", {})
     with pytest.raises(ValueError, match="Tool test not registered"):
         tool()
@@ -211,7 +206,7 @@ def test_mcp(tools_manager, mocker):
 
     fetch = Tool.mcp(Fetch)
     assert fetch.tools[0].name == "Fetch:fetch"
-    assert Tool.call_tool("Fetch:fetch", None, url="https://jsonplaceholder.typicode.com/posts")
+    assert Tool.call_tool("Fetch:fetch", url="https://jsonplaceholder.typicode.com/posts")
     mock_call_tool.assert_called_once()
     tools_manager.stop()
 

@@ -4,12 +4,12 @@ import inspect
 from collections.abc import Callable, Iterable, Iterator
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import wraps
-from typing import Any, cast, overload
+from typing import Any, overload
 
 from .client import SUPPORT_MULTIMODAL_MODELS, Client
 from .config import config
-from .console import Console
 from .schema import Messages, P, T, ToolResponse
+from .session import Session
 from .structured import ResponseModel
 from .utils import retry
 
@@ -235,7 +235,7 @@ def llm(
     model: str = "",
     map_keys: list[str] | None = None,
     response_format: type[T] | None = None,
-    console: Console | None = None,
+    session: Session | None = None,
     need_retry: bool = False,
     **api_params: Any,
 ) -> (
@@ -260,7 +260,7 @@ def llm(
     else:
         func = None
     default_model_from_decorator = model
-    default_console = console or Console()
+    default_session = session or Session()
     default_api_params_from_decorator = api_params.copy()
 
     def parameterized_lm_decorator(
@@ -273,7 +273,8 @@ def llm(
             api_params: dict[str, Any] | None = None,  # type: ignore
             **prompt_kwargs: P.kwargs,
         ) -> str | Iterator[str] | ToolResponse | T | list[str] | list[ToolResponse] | list[T]:
-            default_console.init()
+            default_session.func = Session.format_func_call(prompt, *prompt_args, **prompt_kwargs)
+            default_session.console.init()
             # 获取被修饰函数的返回类型
             response_model = ResponseModel[T](prompt, response_format)
 
@@ -296,8 +297,8 @@ def llm(
             model = merged_api_params.pop("model", default_model_from_decorator) or config.default_model
             if model not in SUPPORT_MULTIMODAL_MODELS:
                 image = None
-
-            default_console.log_model_usage_pre(model, prompt, prompt_args, prompt_kwargs)
+            default_session.model = model
+            default_session.show_base_info()
 
             m, map_args_index_set, map_kwargs_keys_set = _get_map_keys(prompt, prompt_args, prompt_kwargs, map_keys)
             if m > 1 and n > 1:
@@ -305,9 +306,9 @@ def llm(
             if (m > 1 or n > 1) and merged_api_params.get("stream", False):
                 raise ValueError("stream 不能与列表长度 > 1 同时成立")
             if m > 1 or n > 1:
-                default_console.show_result = False
+                default_session.console.show_result = False
             else:
-                default_console.progress.disable = True
+                default_session.console.progress.disable = True
 
             def process_single_prompt(i: int) -> Iterable[Any]:
                 args = [arg[i] if j in map_args_index_set else arg for j, arg in enumerate(prompt_args)]  # type: ignore
@@ -322,8 +323,8 @@ def llm(
                 messages = _gen_messages(res, prompt, image)
                 response_model.process_parameters(model, messages, merged_api_params)
 
-                default_console.log_api_params(merged_api_params)
-                default_console.log_messages(messages)
+                default_session.log("api_params", api_params=merged_api_params)
+                default_session.log("messages", messages=messages)
 
                 response = Client.generate(model, messages, **merged_api_params)
 
@@ -334,12 +335,13 @@ def llm(
                         if isinstance(chunk.choices, list) and len(chunk.choices) > 0
                     )
                 result = [response_model.parse_from_response(choice) for choice in response]
-                default_console.log_progress_intermediate()
-                default_console.log_results(result)
+                default_session.log("progress_intermediate")
+                default_session.log("results", result=result)
                 return result
 
             results: list[str] | list[ToolResponse] | list[T] = []
-            default_console.log_progress_start(m if m > 1 else n)
+
+            default_session.log("progress_start", n=m if m > 1 else n)
 
             if merged_api_params.get("stream", False):
                 return (item for item in process_single_prompt(0) if isinstance(item, str) and item)
@@ -353,7 +355,7 @@ def llm(
                 for i in range(m):
                     results.extend(process_single_prompt(i))
 
-            default_console.log_progress_end()
+            default_session.log("progress_end")
 
             if not results:
                 raise ValueError("模型未返回任何选择")

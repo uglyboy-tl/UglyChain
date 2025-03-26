@@ -4,14 +4,27 @@ import pytest
 
 from uglychain.client import Client
 from uglychain.console import Console
+from uglychain.session import Session
 
 
 @pytest.fixture
 def console(mocker):
     console = Console()
-    console.log = mocker.MagicMock()
+    console.action_message = mocker.MagicMock()
     console._live = mocker.MagicMock()  # Initialize _live attribute
     return console
+
+
+@pytest.fixture
+def session(mocker, console):
+    session = Session(console=console)
+    return session
+
+
+@pytest.fixture
+def react_session(mocker, console):
+    session = Session("react", console=console)
+    return session
 
 
 @pytest.fixture

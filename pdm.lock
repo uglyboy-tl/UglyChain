@@ -5,7 +5,7 @@
 groups = ["default", "browser", "code", "dev"]
 strategy = []
 lock_version = "4.5.0"
-content_hash = "sha256:a45938729af572bd1b4beadf8326dcae5d932d96ee38619414a5eb99ad000763"
+content_hash = "sha256:3eb6fc0841f62a12e31d2c99180f581fcb660e8be2582c431688dd8d4516a40d"
 
 [[metadata.targets]]
 requires_python = ">=3.10"
@@ -80,6 +80,15 @@ files = [
     {file = "backrefs-5.8-py313-none-any.whl", hash = "sha256:e3a63b073867dbefd0536425f43db618578528e3896fb77be7141328642a1585"},
     {file = "backrefs-5.8-py39-none-any.whl", hash = "sha256:a66851e4533fb5b371aa0628e1fee1af05135616b86140c9d787a2ffdf4b8fdc"},
     {file = "backrefs-5.8.tar.gz", hash = "sha256:2cab642a205ce966af3dd4b38ee36009b31fa9502a35fd61d59ccc116e40a6bd"},
+]
+
+[[package]]
+name = "blinker"
+version = "1.9.0"
+summary = ""
+files = [
+    {file = "blinker-1.9.0-py3-none-any.whl", hash = "sha256:ba0efaa9080b619ff2f3459d1d500c57bddea4a6b424b60a91141db6fd2f08bc"},
+    {file = "blinker-1.9.0.tar.gz", hash = "sha256:b4ce2265a7abece45e7cc896e98dbebe6cead56bcf805a3d23136d145f5445bf"},
 ]
 
 [[package]]
