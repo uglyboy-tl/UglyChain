@@ -59,15 +59,6 @@ class Console:
             _group.append(self.messages_table)
         return Group(*_group)
 
-    def init(self) -> None:
-        self.show_base_info = self.show_base_info and config.verbose
-        self.show_progress = self.show_progress and not config.verbose
-        self.progress.disable = not self.show_progress
-
-        self.show_message = self.show_message and config.verbose
-        self.show_api_params = self.show_api_params and config.verbose
-        self.show_result = self.show_result and config.verbose
-
     def _init_messages_table(self) -> None:
         self.messages_table = Table(title="Prompt", box=box.SIMPLE, show_header=False, expand=True)
         self.messages_table.add_column("角色", justify="right", no_wrap=True)
@@ -94,8 +85,6 @@ class Console:
         self.console.print(Panel(message, box=box.SIMPLE), **kwargs)
 
     def tool_message(self, message: str = "", arguments: dict[str, Any] | None = None) -> None:
-        if arguments is None:
-            arguments = {}
         if (
             config.need_confirm
             and message in ["final_answer", "user_input"]
@@ -110,7 +99,7 @@ class Console:
         )
 
     def api_params(self, api_params: dict[str, Any]) -> None:
-        if not self.show_api_params:
+        if not config.verbose or not self.show_api_params:
             return
         if api_params:
             if "tools" in api_params and api_params["tools"]:
@@ -124,13 +113,18 @@ class Console:
                 self.console.print(params_table)
 
     def results(self, result: list) -> None:
-        if not self.show_result:
+        if not config.verbose or not self.show_result:
             return
         self.console.print(
             Columns([i.model_dump_json(indent=2) if not isinstance(i, str) else i for i in result]), no_wrap=False
         )
 
     def progress_start(self, n: int) -> None:
+        self.progress.disable = not self.show_progress or config.verbose
+        if n > 1:
+            self.show_result = False
+        else:
+            self.progress.disable = True
         self._task_id = self.progress.add_task("模型进度", total=n)
         self.progress.start()
 
@@ -141,7 +135,7 @@ class Console:
         self.progress.stop()
 
     def log_messages(self, messages: Messages) -> None:
-        if not self.show_message:
+        if not config.verbose or not self.show_message:
             return
         self._init_messages_table()
         for message in messages:

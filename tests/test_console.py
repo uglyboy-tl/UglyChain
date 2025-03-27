@@ -29,13 +29,6 @@ def test_console_initialization(console):
     assert isinstance(console.progress, Progress)
 
 
-def test_init_method(console, mock_config):
-    console.init()
-    assert console.show_base_info == (console.show_base_info and mock_config.verbose)
-    assert console.show_progress == (console.show_progress and not mock_config.verbose)
-    assert console.progress.disable == (not console.show_progress)
-
-
 @pytest.mark.parametrize("verbose, expected_call_count", [(True, 1), (False, 0)])
 def test_log(console, mock_config, mocker, verbose, expected_call_count):
     mock_config.verbose = verbose

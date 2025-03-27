@@ -59,7 +59,7 @@ class Client:
         except Exception as e:
             raise RuntimeError(f"生成响应失败: {e}") from e
         if api_params.get("stream", False) and isinstance(response, Iterator):
-            return (item for item in response)
+            return (item.choices[0] for item in response if isinstance(item.choices, list) and len(item.choices) > 0)
         elif not hasattr(response, "choices") or not response.choices:
             raise ValueError("No choices returned from the model")
         else:

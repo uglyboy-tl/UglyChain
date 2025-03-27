@@ -85,12 +85,18 @@ class ResponseModel(Generic[T]):
             self._update_markdown_json_schema_from_system_prompt(messages)
 
     def parse_from_response(self, choice: Any) -> str | T | ToolResponse:
+        reasoning_content: str = ""
+        # Reasoner
+        if hasattr(choice.message, "reasoning_content"):
+            reasoning_content = choice.message.reasoning_content
         # USE TOOLS
         if hasattr(choice.message, "tool_calls") and choice.message.tool_calls and self.mode != Mode.TOOLS:
             return ToolResponse.parse(choice.message.tool_calls[0].function)
         # Other modes
         if self.response_type is str:
-            return choice.message.content.strip()
+            response = f"<think>\n{reasoning_content}\n</think>\n" if reasoning_content else ""
+            response += choice.message.content.strip()
+            return response
         assert issubclass(self.response_type, BaseModel) and not inspect.isabstract(self.response_type)
         if self.mode == Mode.MARKDOWN or self.mode == Mode.JSON_SCHEMA:
             response = choice.message.content.strip()

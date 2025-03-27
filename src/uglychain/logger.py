@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import functools
-import inspect
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any, ClassVar
 
 from blinker import NamedSignal, signal
+
+from .schema import P
 
 
 @dataclass
@@ -21,12 +22,13 @@ class Logger:
             kwargs.update(message=message)
         self.signal.send(f"{self.name}_{self.module}", **kwargs)
 
-    def regedit(self, func: Callable) -> Callable:
+    def regedit(self, func: Callable[P, None]) -> Callable[P, None]:
         @functools.wraps(func)
-        def warper(_: Any, *args: Any, **kwargs: Any) -> Callable:
+        def warper(sender: Any, *args: P.args, **kwargs: P.kwargs) -> None:
             return func(*args, **kwargs)
 
-        return self.signal.connect_via(f"{self.name}_{self.module}")(warper)
+        self.signal.connect_via(f"{self.name}_{self.module}")(warper)
+        return func
 
     @classmethod
     def get(cls, name: str, module: str = "") -> Logger:

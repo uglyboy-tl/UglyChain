@@ -274,7 +274,6 @@ def llm(
             **prompt_kwargs: P.kwargs,
         ) -> str | Iterator[str] | ToolResponse | T | list[str] | list[ToolResponse] | list[T]:
             default_session.func = Session.format_func_call(prompt, *prompt_args, **prompt_kwargs)
-            default_session.console.init()
             # 获取被修饰函数的返回类型
             response_model = ResponseModel[T](prompt, response_format)
 
@@ -305,10 +304,6 @@ def llm(
                 raise ValueError("n > 1 和列表长度 > 1 不能同时成立")
             if (m > 1 or n > 1) and merged_api_params.get("stream", False):
                 raise ValueError("stream 不能与列表长度 > 1 同时成立")
-            if m > 1 or n > 1:
-                default_session.console.show_result = False
-            else:
-                default_session.console.progress.disable = True
 
             def process_single_prompt(i: int) -> Iterable[Any]:
                 args = [arg[i] if j in map_args_index_set else arg for j, arg in enumerate(prompt_args)]  # type: ignore
@@ -329,15 +324,12 @@ def llm(
                 response = Client.generate(model, messages, **merged_api_params)
 
                 if merged_api_params.get("stream", False):
-                    return (
-                        chunk.choices[0].delta.content
-                        for chunk in response
-                        if isinstance(chunk.choices, list) and len(chunk.choices) > 0
-                    )
-                result = [response_model.parse_from_response(choice) for choice in response]
-                default_session.log("progress_intermediate")
-                default_session.log("results", result=result)
-                return result
+                    return process_stream_resopnse(response)
+                else:
+                    result = [response_model.parse_from_response(choice) for choice in response]
+                    default_session.log("progress_intermediate")
+                    default_session.log("results", result=result)
+                    return result
 
             results: list[str] | list[ToolResponse] | list[T] = []
 
@@ -452,3 +444,27 @@ def gen_prompt(prompt: Callable[P, str | Messages | None], *args: Any, **kwargs:
         else:
             segments.append(f"<{name}>\n{value!r}\n</{name}>")
     return "\n".join(segments)
+
+
+def process_stream_resopnse(response: Iterable) -> Iterator[str]:
+    in_thinking = False
+    for chunk in response:
+        # 检查当前chunk是否有reasoning_content
+        has_reasoning = hasattr(chunk.delta, "reasoning_content") and chunk.delta.reasoning_content
+        content = chunk.delta.reasoning_content if has_reasoning else chunk.delta.content
+
+        # 处理标签逻辑
+        if has_reasoning:
+            if not in_thinking:  # 进入thinking块
+                yield "<thinking>\n"
+                in_thinking = True
+            yield content  # 输出内容
+        else:
+            if in_thinking:  # 离开thinking块
+                yield "\n</thinking>\n"
+                in_thinking = False
+            yield content  # 输出普通内容
+
+    # 流结束后闭合未关闭的标签
+    if in_thinking:
+        yield "\n</thinking>\n"

@@ -16,9 +16,9 @@ def chat(prompt: str) -> str:
     return f"{prompt}"
 
 
-def add_context(func: Callable[..., str]) -> Callable[..., str]:
+def add_context(func: Callable[..., str]) -> Callable[..., str | tuple[str, str]]:
     @wraps(func)
-    def wrapper(*args: Any, **kwargs: Any) -> str:
+    def wrapper(*args: Any, **kwargs: Any) -> str | tuple[str, str]:
         action_result = func(*args, **kwargs)
         state = BrowserUse.browser.state
         result = f"""
@@ -27,7 +27,8 @@ def add_context(func: Callable[..., str]) -> Callable[..., str]:
 {state}
 """
         if state.screenshot:
-            result += f"\u0001image:{state.screenshot}"  # 如果有截图，添加到结果中
+            return result, state.screenshot
+            # result += f"\u0001image:{state.screenshot}"  # 如果有截图，添加到结果中
         return result
 
     return wrapper

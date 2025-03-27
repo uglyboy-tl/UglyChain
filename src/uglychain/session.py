@@ -72,10 +72,7 @@ class Session:
             return
         try:
             result = Tool.call_tool(act.tool, **act.args)
-            if "\u0001image:" in result:
-                act.obs, act.image = result.split("\u0001image:")  # 使用 "\u0001" + "image:" 作为分隔符，分割结果和图片
-            else:
-                act.obs = result
+            act.obs, act.image = result if isinstance(result, tuple) else (result, None)
             self.log("action", _short_result(act.obs), style="bold green")
         except Exception as e:
             act.obs = f"Error: {e}"
@@ -134,7 +131,6 @@ def _format_arg_str(arg_str: Any, max_len: int = MAX_ARGS_LEN) -> str:
 
 
 def _short_result(result: str) -> str:
-    result = result.split("\u0001image:")[0]
     lines = result.split("\n")
     if len(lines) > 10:
         return "\n".join(lines[:10]) + "\n..."

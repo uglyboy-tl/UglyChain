@@ -58,7 +58,7 @@ class ToolsManager:
             self._executor.__exit__(None, None, None)
         self._loop.stop()
 
-    def call_tool(self, tool_name: str, arguments: dict[str, Any]) -> str:
+    def call_tool(self, tool_name: str, arguments: dict[str, Any]) -> str | tuple[str, str]:
         tool = self.tools.get(tool_name)
         if tool:
             return tool(**arguments)
@@ -98,13 +98,13 @@ class Tool:
 
     _manager: ClassVar[ToolsManager] = ToolsManager.get()
 
-    def __call__(self, **arguments: Any) -> str:
+    def __call__(self, **arguments: Any) -> str | tuple[str, ...]:
         if self.name not in self._manager.tools:
             raise ValueError(f"Tool {self.name} not registered")
         return self._manager.call_tool(self.name, arguments)
 
     @classmethod
-    def call_tool(cls, tool_name: str, **arguments: Any) -> str:
+    def call_tool(cls, tool_name: str, **arguments: Any) -> str | tuple[str, str]:
         if tool_name not in cls._manager.tools and tool_name not in cls._manager.mcp_tools:
             raise ValueError(f"Can't find tool {tool_name}")
         return cls._manager.call_tool(tool_name, arguments)

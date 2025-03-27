@@ -16,7 +16,7 @@ def mock_tool_call(mocker, mock_return):
     "mock_return, expected_obs, log_style, image",
     [
         ("Tool output", "Tool output", "bold green", None),
-        ("Tool output\u0001image:aaa", "Tool output", "bold green", "aaa"),
+        (("Tool output", "aaa"), "Tool output", "bold green", "aaa"),
         (Exception("Tool error"), "Error: Tool error", "bold red", None),
         ("Another output", "Another output", "bold green", None),
         (Exception("Another error"), "Error: Another error", "bold red", None),

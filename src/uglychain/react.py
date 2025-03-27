@@ -67,7 +67,6 @@ def react(
             **prompt_kwargs: P.kwargs,
         ) -> str | T:
             default_session.func = Session.format_func_call(prompt, *prompt_args, **prompt_kwargs)
-            default_session.console.init()
             tool_names = [f"`{tool.name}`" for tool in default_tools]
 
             def react_once(*prompt_args: P.args, acts: Sequence[Action], **prompt_kwargs: P.kwargs):  # type: ignore
