@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 from typing import Any
-from unittest.mock import ANY
+from unittest.mock import ANY, MagicMock
 
 import pytest
 from pydantic import BaseModel
 
 from uglychain.client import Client
 from uglychain.config import config
-from uglychain.llm import _gen_content, _gen_messages, _get_map_keys, gen_prompt, llm
+from uglychain.llm import _gen_content, _gen_messages, _get_map_keys, gen_prompt, llm, process_stream_resopnse
 
 
 class SampleModel(BaseModel):
@@ -29,6 +29,42 @@ def mock_generate(model, messages, **kwargs):
 @pytest.fixture
 def setup_client(mocker):
     mocker.patch("uglychain.client.Client.generate", mock_generate)
+
+
+def test_process_stream_response_normal_content():
+    mock_response = [
+        MagicMock(delta=MagicMock(content="Hello", reasoning_content=None)),
+        MagicMock(delta=MagicMock(content=" World", reasoning_content=None)),
+    ]
+    result = list(process_stream_resopnse(mock_response))
+    assert result == ["Hello", " World"]
+
+
+def test_process_stream_response_with_thinking():
+    mock_response = [
+        MagicMock(delta=MagicMock(content=None, reasoning_content="Thinking")),
+        MagicMock(delta=MagicMock(content=None, reasoning_content=" deeply")),
+    ]
+    result = list(process_stream_resopnse(mock_response))
+    assert result == ["<thinking>\n", "Thinking", " deeply", "\n</thinking>\n"]
+
+
+def test_process_stream_response_mixed_content():
+    mock_response = [
+        MagicMock(delta=MagicMock(content="Hello", reasoning_content=None)),
+        MagicMock(delta=MagicMock(content=None, reasoning_content="Thinking")),
+        MagicMock(delta=MagicMock(content=" World", reasoning_content=None)),
+    ]
+    result = list(process_stream_resopnse(mock_response))
+    assert result == ["Hello", "<thinking>\n", "Thinking", "\n</thinking>\n", " World"]
+
+
+def test_process_stream_response_closes_unclosed_thinking():
+    mock_response = [
+        MagicMock(delta=MagicMock(content=None, reasoning_content="Thinking")),
+    ]
+    result = list(process_stream_resopnse(mock_response))
+    assert result == ["<thinking>\n", "Thinking", "\n</thinking>\n"]
 
 
 def test_llm_decorator(setup_client):
@@ -157,6 +193,16 @@ def test_llm_decorator_with_n_and_list_length_conflict(arg1):
         return "Hello, world!"
 
     with pytest.raises(ValueError, match="n > 1 和列表长度 > 1 不能同时成立"):
+        sample_prompt(arg1)
+
+
+@pytest.mark.parametrize("arg1,n", [(["a"], 2), (["x", "y", "z"], 1)])
+def test_llm_decorator_with_n_or_list_length_with_stream_conflict(arg1, n):
+    @llm(model="test:model", map_keys=["arg1"], n=n, stream=True)
+    def sample_prompt(arg1: list[str]) -> str:
+        return "Hello, world!"
+
+    with pytest.raises(ValueError, match="stream 不能与列表长度 > 1 同时成立"):
         sample_prompt(arg1)
 
 
@@ -340,3 +386,55 @@ def test_llm_decorator_with_image(mocker, model, image_input, expected_url):
     ]
     mock_generate.assert_called_with(model, expected_message)
     assert result == "Test response"
+
+
+@pytest.mark.parametrize(
+    "image,expected",
+    [
+        (
+            "https://example.com/image.jpg",
+            [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": "User message"},
+                        {"type": "image_url", "image_url": {"url": "https://example.com/image.jpg"}},
+                    ],
+                }
+            ],
+        ),
+        (
+            "base64encodedstring",
+            [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": "User message"},
+                        {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64,base64encodedstring"}},
+                    ],
+                }
+            ],
+        ),
+        (None, [{"role": "user", "content": [{"type": "text", "text": "User message"}]}]),
+        (
+            ["https://example.com/img1.jpg", "https://example.com/img2.jpg"],
+            [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": "User message"},
+                        {"type": "image_url", "image_url": {"url": "https://example.com/img1.jpg"}},
+                        {"type": "image_url", "image_url": {"url": "https://example.com/img2.jpg"}},
+                    ],
+                }
+            ],
+        ),
+    ],
+)
+def test_gen_messages_with_image(image, expected):
+    def sample_prompt():
+        return "User message"
+
+    # Test with single image URL
+    result = _gen_messages("User message", sample_prompt, image)
+    assert result == expected
