@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create release
+      - name: Update version files
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -31,7 +31,7 @@ jobs:
             echo "No changes to commit"
             exit 0
           fi
-          git commit -m "Bump version to ${{ steps.get_version.outputs.version }}"
+          git commit -m "Bump version to $tag"
           git push origin HEAD:main
       - name: Create release
         env:
@@ -39,5 +39,7 @@ jobs:
         run: |
           tag="${GITHUB_REF#refs/tags/}"
           gh release create "$tag" \
+            --target "$commit_sha" \
             --title="$tag" \
+            --generate-notes \
             --draft
