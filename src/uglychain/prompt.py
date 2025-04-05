@@ -7,7 +7,7 @@ from .config import config
 
 # ReAct 的系统提示模板
 REACT_SYSTEM_PROMPT = """You are an expert assistant who can solve any task using tools. You will be given a task to solve as best you can.
-To do so, you have been given access to the following tools: [{tool_names}].
+To do so, you have been given access to the following tools: [{tools_names}].
 
 To solve the task, you must plan forward to proceed in a series of steps, in a cycle of 'Thought:', 'Action:', 'Action Input:', and 'Observation:' sequences.
 
@@ -23,7 +23,7 @@ Task:
 the input question you must answer
 
 Thought: Considering the current situation and the overall goal, determine the most effective action to take.
-Action: Choose one action from [{tool_names}].  The tool name must be used exactly as provided (do not translate it).
+Action: Choose one action from [{tools_names}].  The tool name must be used exactly as provided (do not translate it).
 Action Input:  Format the input precisely using XML-style tags.  Each parameter should be enclosed in its own set of tags, and parameter names are case-sensitive.  For example:  `<text>This is the input text.</text>\n<num_beams>5</num_beams>`.  Ensure all required parameters are provided and adhere to any length restrictions.
 Observation: Result of the action.
 
@@ -35,7 +35,7 @@ Action Input: <answer>final answer</answer>
 ```
 
 ## Tools
-{tool_descriptions}
+{tools_descriptions}
 
 ## Instructions
 1.  **CRITICAL: You MUST always provide a tool call in each turn, unless you can definitively provide the final answer using the `final_answer` tool. Failure to provide a tool call when needed will result in task failure. If you realize you made a mistake, correct it immediately in the next turn.**

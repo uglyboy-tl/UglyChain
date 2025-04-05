@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import inspect
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from functools import partial
 from pathlib import Path
 from typing import Any
@@ -16,7 +16,9 @@ PROMPT_PATTERN = re.compile(r"-{3,}\n(.*)-{3,}\n(.*)", re.DOTALL)
 PLACEHOLDER_PATTERN = re.compile(r"(?<!{){([^{}\n]+)}(?!})")
 
 
-def load(path_str: str, **kwargs: Any) -> Callable[..., str | ToolResponse | list[str] | list[ToolResponse]]:
+def load(
+    path_str: str, **kwargs: Any
+) -> Callable[..., str | Iterator[str] | ToolResponse | list[str] | list[ToolResponse]]:
     """Load a prompt template from a file and return a function that generates prompts.
 
     The prompt file should be in markdown format with two parts:

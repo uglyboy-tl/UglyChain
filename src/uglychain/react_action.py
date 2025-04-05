@@ -65,5 +65,4 @@ def _fix_func_name(func_name: str) -> str:
     search = re.search(pattern, name)
     if search:
         name = search.group(2)
-        print(f"fix {func_name} to {name}")
     return name
