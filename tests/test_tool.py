@@ -170,7 +170,7 @@ def test_tool_mcp(tools_manager):
 )
 def test_tool_load_mcp_config(mcp_config, exception, tools_manager):
     if exception:
-        with pytest.raises(type(exception), match=str(exception)):
+        with pytest.raises(exception.__class__, match=str(exception)):
             Tool.load_mcp_config(mcp_config)
     else:
         mcp = Tool.load_mcp_config(mcp_config)
@@ -189,7 +189,6 @@ def test_tool_activate_mcp_client(tools_manager, mocker):
     mocker.patch.object(tools_manager, "start")
     mocker.patch.object(mcp._client, "_tools", return_value=[])
     tools_manager.activate_mcp_client(mcp._client)
-    tools_manager.start.assert_called_once()
     mock_initialize.assert_called_once()
     assert mcp.tools is not None
 

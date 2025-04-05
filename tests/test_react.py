@@ -6,7 +6,7 @@ import pytest
 from pydantic import BaseModel
 
 from uglychain.client import Client
-from uglychain.react import _tool_descriptions, final_answer, react
+from uglychain.react import ReActProcess, final_answer, react
 from uglychain.react_action import Action
 from uglychain.tool import Tool
 
@@ -344,7 +344,7 @@ def test_tool_descriptions():
     tool2.args_schema = {"arg2": "number"}
 
     # 调用 _tool_descriptions 函数
-    result = _tool_descriptions([tool1, tool2])
+    result = ReActProcess("", None, [tool1, tool2], None, {}).tools_descriptions  # type: ignore
 
     # 验证结果
     assert "### tool1" in result

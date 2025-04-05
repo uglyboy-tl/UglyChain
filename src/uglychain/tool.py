@@ -81,8 +81,6 @@ class ToolsManager:
         return client
 
     def activate_mcp_client(self, client: McpClient) -> None:
-        if not self._loop.is_running():
-            self.start()
         future = self._executor.submit(self._loop.run_until_complete, client.initialize())
         future.result()
         for tool in client.tools:
