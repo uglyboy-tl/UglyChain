@@ -39,7 +39,7 @@ jobs:
         run: |
           tag="${GITHUB_REF#refs/tags/}"
           gh release create "$tag" \
-            --target "$commit_sha" \
+            --target "$GITHUB_SHA" \
             --title="$tag" \
             --generate-notes \
             --draft
