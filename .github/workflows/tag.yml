@@ -10,7 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      tags: write  # 新增 tag 写权限
     steps:
       - name: Checkout with full history
         uses: actions/checkout@v4
