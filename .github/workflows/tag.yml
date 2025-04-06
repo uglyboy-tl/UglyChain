@@ -10,42 +10,43 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      tags: write  # 新增 tag 写权限
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout with full history
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0  # 获取完整提交历史
 
       - name: Update version files
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           tag="${GITHUB_REF#refs/tags/}"
-
           sed -i "s/^version = .*/version = \"$tag\"/" pyproject.toml
           sed -i "s/^__version__ = .*/__version__ = \"$tag\"/" src/uglychain/__init__.py
 
-      - name: Commit version updates
+      - name: Commit changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add pyproject.toml src/uglychain/__init__.py
-          if git diff-index --quiet HEAD --; then
-            echo "No changes to commit"
-            exit 0
-          fi
-          git commit -m "Bump version to ${GITHUB_REF#refs/tags/}"
+          git add -u
+          git commit -m "Update version to $tag" || echo "No changes to commit"
           git push origin HEAD:main
-      - name: Get latest commit
-        run: |
-          # 获取最新提交的 SHA
-          git fetch origin main
-          echo "NEW_SHA=$(git rev-parse origin/main)" >> $GITHUB_ENV
 
-      - name: Create release
+      - name: Reassign tag
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+          # 强制将 tag 移动到最新提交
+          git tag -f "$tag"
+          git push origin -f "$tag"
+
+      - name: Create Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           tag="${GITHUB_REF#refs/tags/}"
+          # 直接使用 main 分支的最新提交
           gh release create "$tag" \
-            --target "$NEW_SHA" \
-            --title="$tag" \
+            --target main \
+            --title "$tag" \
             --generate-notes \
             --draft
