@@ -45,7 +45,7 @@ jobs:
         run: |
           tag="${GITHUB_REF#refs/tags/}"
           gh release create "$tag" \
-            --target "$NEW_SHA" \  # 使用新提交的 SHA
+            --target "$NEW_SHA" \
             --title="$tag" \
             --generate-notes \
             --draft
