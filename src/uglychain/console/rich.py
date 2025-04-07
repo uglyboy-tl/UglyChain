@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from types import TracebackType
 from typing import Any
@@ -108,11 +109,16 @@ class RichConsole(BaseConsole):
                     )
                 self.console.print(params_table)
 
-    def results(self, result: list) -> None:
+    def results(self, result: list | Iterator) -> None:
         if not config.verbose or not self.show_result:
             return
+        if isinstance(result, Iterator):
+            _result = ["".join(result)]
+        else:
+            _result = result
         self.console.print(
-            Columns([i.model_dump_json(indent=2) if not isinstance(i, str) else i for i in result]), no_wrap=False
+            Columns([i.model_dump_json(indent=2) if not isinstance(i, str) else i for i in _result]),  # type: ignore[attr-defined]
+            no_wrap=False,
         )
 
     def progress_start(self, n: int) -> None:

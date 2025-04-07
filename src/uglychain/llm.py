@@ -324,7 +324,9 @@ def llm(
                 response = Client.generate(model, messages, **merged_api_params)
 
                 if merged_api_params.get("stream", False):
-                    return process_stream_resopnse(response)
+                    stream_result = process_stream_resopnse(response)
+                    default_session.log("results", result=stream_result)
+                    return stream_result
                 else:
                     result = [response_model.parse_from_response(choice) for choice in response]
                     default_session.log("progress_intermediate")

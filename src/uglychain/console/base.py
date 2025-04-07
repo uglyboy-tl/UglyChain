@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Iterator
 from dataclasses import dataclass
 from typing import Any
 
@@ -37,7 +38,7 @@ class BaseConsole(ABC):
         pass
 
     @abstractmethod
-    def results(self, result: list) -> None:
+    def results(self, result: list | Iterator) -> None:
         pass
 
     @abstractmethod
