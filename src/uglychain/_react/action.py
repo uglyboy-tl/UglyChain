@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from functools import cached_property
 from typing import Any
 
-from .utils import parse_to_dict
+from uglychain.utils import parse_to_dict
 
 
 @dataclass

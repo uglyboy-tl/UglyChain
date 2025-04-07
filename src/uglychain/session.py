@@ -6,10 +6,10 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
-from .console import Console
-from .logger import Logger
-from .react_action import Action
+from ._react import Action
+from .console import BaseConsole, get_console
 from .tools import Tool
+from .utils import Logger
 
 MAX_AGRS: int = 5
 MAX_ARGS_LEN: int = 8
@@ -20,7 +20,7 @@ class Session:
     type: str = "llm"
     uuid: uuid.UUID = field(init=False, default_factory=uuid.uuid1)
     info: dict[str, str] = field(init=False, default_factory=dict)
-    console: Console = field(default_factory=Console)
+    console: BaseConsole = field(default_factory=get_console)
 
     def __post_init__(self) -> None:
         Logger.get(self.id, "base_info").regedit(self.console.base_info)

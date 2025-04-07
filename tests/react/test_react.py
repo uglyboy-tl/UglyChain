@@ -5,9 +5,10 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pydantic import BaseModel
 
+from uglychain._react import Action
+from uglychain._react.core import ReActProcess
 from uglychain.client import Client
-from uglychain.react import ReActProcess, react
-from uglychain.react_action import Action
+from uglychain.react import react
 from uglychain.tools import Tool, final_answer
 
 
@@ -69,7 +70,7 @@ def test_react_with_console(mock_tool, mock_prompt, mocker):
     mock_action.image = None
 
     # 模拟 Action.from_response 函数
-    mocker.patch("uglychain.react_action.Action.from_response", return_value=mock_action)
+    mocker.patch("uglychain._react.action.Action.from_response", return_value=mock_action)
 
     # 模拟 llm 函数返回值
     mocker.patch.object(
@@ -105,7 +106,7 @@ def test_react_with_console(mock_tool, mock_prompt, mocker):
 def test_react_once_list_message(mocker):
     """测试 react_once 函数处理列表类型消息的情况"""
     # 模拟 gen_prompt 返回列表类型消息
-    with patch("uglychain.react.gen_prompt", return_value=[{"role": "user", "content": "Test message"}]):
+    with patch("uglychain.llm.gen_prompt", return_value=[{"role": "user", "content": "Test message"}]):
         # 创建一个模拟的 Action 对象
         mock_action = mocker.MagicMock()
         mock_action.__str__.return_value = "Action content"
@@ -129,7 +130,7 @@ def test_react_once_list_message(mocker):
 def test_react_once_str_message(mocker):
     """测试 react_once 函数处理字符串类型消息的情况"""
     # 模拟 gen_prompt 返回字符串类型消息
-    with patch("uglychain.react.gen_prompt", return_value="Test prompt"):
+    with patch("uglychain.llm.gen_prompt", return_value="Test prompt"):
         # 创建模拟的 Action 对象
         mock_action1 = mocker.MagicMock()
         mock_action1.__str__.return_value = "Action 1"
@@ -151,7 +152,7 @@ def test_react_once_str_message(mocker):
 def test_react_once_invalid_message():
     """测试 react_once 函数处理无效类型消息的情况"""
     # 模拟 gen_prompt 返回无效类型消息
-    with patch("uglychain.react.gen_prompt", return_value=123):
+    with patch("uglychain.llm.gen_prompt", return_value=123):
         # 直接测试无效消息类型的处理逻辑
         message = 123
 
@@ -168,7 +169,7 @@ def test_react_once_invalid_message():
 def test_final_call_list_message_failed(mocker):
     """测试 final_call 函数处理列表类型消息失败的情况"""
     # 模拟 gen_prompt 返回列表类型消息
-    with patch("uglychain.react.gen_prompt", return_value=[{"role": "user", "content": "Test message"}]):
+    with patch("uglychain.llm.gen_prompt", return_value=[{"role": "user", "content": "Test message"}]):
         # 模拟 llm 函数返回值
         mocker.patch.object(
             Client,
@@ -207,7 +208,7 @@ def test_final_call_list_message_failed(mocker):
 def test_final_call_list_message_trans(mocker):
     """测试 final_call 函数处理列表类型消息并转换结果的情况"""
     # 模拟 gen_prompt 返回列表类型消息
-    with patch("uglychain.react.gen_prompt", return_value=[{"role": "user", "content": "Test message"}]):
+    with patch("uglychain.llm.gen_prompt", return_value=[{"role": "user", "content": "Test message"}]):
         # 模拟 llm 函数返回值
         mocker.patch.object(
             Client,
@@ -250,7 +251,7 @@ def test_final_call_list_message_trans(mocker):
 def test_final_call_str_message_failed(mocker):
     """测试 final_call 函数处理字符串类型消息失败的情况"""
     # 模拟 gen_prompt 返回字符串类型消息
-    with patch("uglychain.react.gen_prompt", return_value="Test prompt"):
+    with patch("uglychain.llm.gen_prompt", return_value="Test prompt"):
         # 模拟 llm 函数返回值
         mocker.patch.object(
             Client,
@@ -281,7 +282,7 @@ def test_final_call_str_message_failed(mocker):
 def test_final_call_str_message_trans(mocker):
     """测试 final_call 函数处理字符串类型消息并转换结果的情况"""
     # 模拟 gen_prompt 返回字符串类型消息
-    with patch("uglychain.react.gen_prompt", return_value="Test prompt"):
+    with patch("uglychain.llm.gen_prompt", return_value="Test prompt"):
         # 模拟 llm 函数返回值
         mocker.patch.object(
             Client,
@@ -316,7 +317,7 @@ def test_final_call_str_message_trans(mocker):
 def test_final_call_invalid_message():
     """测试 final_call 函数处理无效类型消息的情况"""
     # 模拟 gen_prompt 返回无效类型消息
-    with patch("uglychain.react.gen_prompt", return_value=123):
+    with patch("uglychain.llm.gen_prompt", return_value=123):
         # 直接测试无效消息类型的处理逻辑
         message = 123
 
@@ -371,7 +372,7 @@ def test_react_with_max_steps(mock_tool, mock_prompt, mocker):
 
     # 模拟 Action.from_response 函数，依次返回不同的 Action
     mock_react_response = mocker.patch(
-        "uglychain.react_action.Action.from_response", side_effect=[mock_action1, mock_action2]
+        "uglychain._react.action.Action.from_response", side_effect=[mock_action1, mock_action2]
     )
 
     # 模拟 llm 函数返回值
@@ -413,7 +414,7 @@ def test_react_with_max_steps_exceeded(mock_tool, mock_prompt, mocker):
     mock_action.image = None
 
     # 模拟 Action.from_response 函数，总是返回 done=False 的 Action
-    mocker.patch("uglychain.react_action.Action.from_response", return_value=mock_action)
+    mocker.patch("uglychain._react.action.Action.from_response", return_value=mock_action)
 
     # 模拟 llm 函数返回值
     mocker.patch.object(
@@ -436,7 +437,7 @@ def test_react_with_max_steps_exceeded(mock_tool, mock_prompt, mocker):
 
     # 模拟 llm 函数，用于 final_call
     mock_llm = mocker.MagicMock(return_value="Final result after max steps")
-    mocker.patch("uglychain.react.llm", return_value=lambda x: mock_llm)
+    mocker.patch("uglychain._react.core.llm", return_value=lambda x: mock_llm)
 
     # 调用 react 函数，设置 max_steps=2
     decorated_func = react(tools=[mock_tool], max_steps=2)(mock_prompt)
@@ -467,7 +468,7 @@ def test_react_with_response_format(mock_tool, mock_prompt, mocker, response_mod
     mock_action.image = None
 
     # 模拟 Action.from_response 函数
-    mocker.patch("uglychain.react_action.Action.from_response", return_value=mock_action)
+    mocker.patch("uglychain._react.action.Action.from_response", return_value=mock_action)
 
     # 模拟 llm 函数返回值
     mocker.patch.object(
@@ -491,7 +492,7 @@ def test_react_with_response_format(mock_tool, mock_prompt, mocker, response_mod
     # 模拟 llm 函数，用于 final_call
     formatted_result = response_model(result="Formatted result")
     mock_llm = mocker.MagicMock(return_value=formatted_result)
-    mocker.patch("uglychain.react.llm", return_value=lambda x: mock_llm)
+    mocker.patch("uglychain._react.core.llm", return_value=lambda x: mock_llm)
 
     # 调用 react 函数，设置 response_format=TestResponseModel
     decorated_func = react(tools=[mock_tool], response_format=response_model)(mock_prompt)

@@ -28,7 +28,7 @@ class Browser:
     @cached_property
     def browser(self) -> PlaywrightBrowser:
         self.start()
-        return self._playwright.chromium.launch(headless=False)
+        return self._playwright.chromium.launch(channel="msedge", headless=False)
 
     @cached_property
     def context(self) -> BrowserContext:

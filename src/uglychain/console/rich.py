@@ -14,18 +14,14 @@ from rich.progress import Progress
 from rich.prompt import Confirm
 from rich.table import Table, box
 
-from .config import config
-from .schema import Messages
+from uglychain.config import config
+from uglychain.schema import Messages
+
+from .base import BaseConsole
 
 
 @dataclass
-class Console:
-    show_base_info: bool = True
-    show_progress: bool = True
-    show_api_params: bool = True
-    show_result: bool = True
-    show_message: bool = True
-    show_react: bool = False
+class RichConsole(BaseConsole):
     console: rich.console.Console = field(init=False, default_factory=rich.console.Console)
     progress: Progress = field(init=False, default_factory=Progress)
     messages_table: Table = field(init=False, default_factory=Table)

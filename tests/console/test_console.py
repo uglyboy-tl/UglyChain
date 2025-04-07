@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import pytest
-from rich.console import Console as RichConsole
+from rich.console import Console
 from rich.live import Live
 from rich.progress import Progress
 
-from uglychain.console import Console, PauseLive
+from uglychain.console.rich import PauseLive, RichConsole
 
 
 @pytest.fixture
@@ -15,17 +15,17 @@ def mock_config(monkeypatch):
         need_confirm = True
 
     mock = MockConfig()
-    monkeypatch.setattr("uglychain.console.config", mock)
+    monkeypatch.setattr("uglychain.console.rich.config", mock)
     return mock
 
 
 @pytest.fixture
 def console(mock_config):
-    return Console()
+    return RichConsole()
 
 
 def test_console_initialization(console):
-    assert isinstance(console.console, RichConsole)
+    assert isinstance(console.console, Console)
     assert isinstance(console.progress, Progress)
 
 

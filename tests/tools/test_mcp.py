@@ -63,6 +63,7 @@ def test_tool_mcp_and_mcp_client(tools_manager, mocker):
         env = {"key1": "value", "key2": "value"}
 
     with temporary_env_var("key1", "test_value"):
+        tools_manager.mcp_names.clear()
         mcp = Tool.mcp(SampleMCP)
         assert isinstance(mcp, MCP)
         assert mcp.command == "command"
@@ -71,11 +72,10 @@ def test_tool_mcp_and_mcp_client(tools_manager, mocker):
         assert "PATH" in mcp.env
         assert mcp.env["key2"] == "value"
         assert isinstance(mcp._client, McpClient)
-        mock_initialize = mocker.patch.object(mcp._client, "initialize")
         mocker.patch.object(mcp._client, "_tools", return_value=[])
-        tools_manager.activate_mcp_client(mcp._client)
-        mock_initialize.assert_called_once()
         assert mcp.tools is not None
+        assert Tool._manager.mcp_names == {"SampleMCP"}
+        assert Tool._manager.mcp_tools is not None
 
 
 def test_mcp(tools_manager, mocker):

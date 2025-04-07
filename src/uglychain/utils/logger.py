@@ -3,11 +3,11 @@ from __future__ import annotations
 import functools
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, ClassVar
+from typing import Any, ClassVar, ParamSpec
 
 from blinker import NamedSignal, signal
 
-from .schema import P
+P = ParamSpec("P")
 
 
 @dataclass
