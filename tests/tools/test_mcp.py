@@ -7,8 +7,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from uglychain.tools.mcp import MCP, McpClient, McpTool
-from uglychain.tools.tool import Tool
+from uglychain.tools.core import Tool
+from uglychain.tools.mcp import McpClient, McpTool
+from uglychain.tools.schema import MCP
 
 
 class SampleMCP:

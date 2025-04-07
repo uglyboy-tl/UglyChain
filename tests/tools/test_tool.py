@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from uglychain.tools.tool import Tool
+from uglychain.tools.core import Tool
 
 
 @pytest.mark.parametrize(
@@ -52,6 +52,3 @@ def test_tool_call_tool(tools_manager, mocker):
 def test_tool_validate_call_tool():
     with pytest.raises(ValueError, match="Can't find tool non_existent_tool"):
         Tool.call_tool("non_existent_tool")
-    tool = Tool("test", "test", {})
-    with pytest.raises(ValueError, match="Tool test not registered"):
-        tool()

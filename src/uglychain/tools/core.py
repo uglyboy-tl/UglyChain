@@ -6,20 +6,14 @@ from dataclasses import dataclass
 from functools import singledispatch
 from typing import Any, ClassVar, cast, overload
 
-from .base import BaseTool, ToolsClass
 from .function_schema import function_schema
-from .mcp import MCP
+from .schema import MCP, BaseTool, ToolsClass
 from .tool_manager import ToolsManager
 
 
 @dataclass
-class Tool(BaseTool):
+class Tool:
     _manager: ClassVar[ToolsManager] = ToolsManager()
-
-    def __call__(self, **kwargs: Any) -> str | tuple[str, str]:
-        if self.name not in self._manager.tools:
-            raise ValueError(f"Tool {self.name} not registered")
-        return self.call_tool(self.name, **kwargs)
 
     @classmethod
     def call_tool(cls, tool_name: str, **arguments: Any) -> str | tuple[str, str]:
@@ -30,9 +24,9 @@ class Tool(BaseTool):
     def tool(cls, obj: type[Any]) -> ToolsClass: ...  # type: ignore
     @overload
     @classmethod
-    def tool(cls, obj: object) -> Tool: ...
+    def tool(cls, obj: object) -> BaseTool: ...
     @classmethod
-    def tool(cls, obj: type[Any] | object) -> Tool | ToolsClass:
+    def tool(cls, obj: type[Any] | object) -> BaseTool | ToolsClass:
         return tool_wrapper(obj, cls)
 
     @classmethod
@@ -64,18 +58,18 @@ class Tool(BaseTool):
 
 
 @singledispatch
-def tool_wrapper(obj: Any, cls: type[Tool]) -> Tool | ToolsClass:
+def tool_wrapper(obj: Any, cls: type[Tool]) -> BaseTool | ToolsClass:
     raise NotImplementedError("Method not implemented for this type")
 
 
 @tool_wrapper.register(object)
-def _(func: Callable, cls: type[Tool]) -> Tool:
+def _(func: Callable, cls: type[Tool]) -> BaseTool:
     name = func.__name__
     if name in cls._manager.tools:
         raise ValueError(f"Tool {name} already exists")
     cls._manager.register_tool(name, func)
     schema = function_schema(func)
-    return Tool(name=name, description=schema["description"], args_schema=schema["parameters"])
+    return BaseTool(name=name, description=schema["description"], args_schema=schema["parameters"])
 
 
 @tool_wrapper.register(type)

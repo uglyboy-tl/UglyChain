@@ -4,8 +4,9 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from uglychain import Tool, llm
+from uglychain import llm
 from uglychain.tasks.task import Task
+from uglychain.tools import BaseTool
 
 
 class SubTask(BaseModel):
@@ -25,7 +26,7 @@ class Plan(BaseModel):
 
     tasks: list[SubTask] = Field(description="The tasks to be performed. Output in Chinese")
 
-    def convert_to_task_list(self, tools: list[Tool]) -> list[Task]:
+    def convert_to_task_list(self, tools: list[BaseTool]) -> list[Task]:
         tools_dict = {tool.name: tool for tool in tools}
         share_context: dict[str, Any] = {}
         Task.set_context(share_context)

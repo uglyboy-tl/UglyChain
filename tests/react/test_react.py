@@ -9,12 +9,12 @@ from uglychain.client import Client
 from uglychain.react.action import Action
 from uglychain.react.core import react
 from uglychain.react.default import ReActProcess
-from uglychain.tools import Tool, final_answer
+from uglychain.tools import BaseTool, Tool
 
 
 @pytest.fixture
 def mock_tool():
-    tool = MagicMock(spec=Tool)
+    tool = MagicMock(spec=BaseTool)
     tool.name = "mock_tool"
     tool.description = "A mock tool for testing."
     tool.args_schema = {}
@@ -30,7 +30,7 @@ def mock_prompt():
 
 
 def test_final_answer():
-    assert final_answer(answer="Test Answer") == "Test Answer"
+    assert Tool.call_tool("final_answer", answer="Test Answer") == "Test Answer"
 
 
 def test_react_basic(mock_tool, mock_prompt, mocker):

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .tool import Tool
+from .core import Tool
 
 
 @Tool.tool

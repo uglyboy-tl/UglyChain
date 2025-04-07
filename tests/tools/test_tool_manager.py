@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from uglychain.tools.tool import Tool
+from uglychain.tools.core import Tool
 from uglychain.tools.tool_manager import ToolsManager, cleanup
 
 

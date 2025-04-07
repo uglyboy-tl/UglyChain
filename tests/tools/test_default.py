@@ -10,6 +10,7 @@ from pathlib import Path
 
 import pytest
 
+from uglychain import Tool
 from uglychain.tools.default import TIMEOUT, execute_command, user_input, visit_webpage, web_search
 
 
@@ -36,7 +37,7 @@ def load_env_file(filepath):
 )
 def test_user_input(input_str, expected_output):
     sys.stdin = StringIO(input_str)
-    result = user_input(question="Test Question")
+    result = Tool.call_tool("user_input", question="Test Question")
     assert result == expected_output
     sys.stdin = sys.__stdin__
 
@@ -77,7 +78,7 @@ def test_web_search(monkeypatch, query, mock_response, expected_result):
     monkeypatch.setattr(http.client.HTTPSConnection, "getresponse", mock_request)
 
     os.environ["JINA_API_KEY"] = "test_api_key"
-    result = web_search(query=query)
+    result = Tool.call_tool("web_search", query=query)
     if mock_response["status"] == 200:
         assert expected_result in result
     else:
@@ -85,7 +86,7 @@ def test_web_search(monkeypatch, query, mock_response, expected_result):
     os.environ.pop("JINA_API_KEY")
     if mock_response["status"] == 200:
         with pytest.raises(ValueError, match="JINA_API_KEY is not set"):
-            web_search(query=query)
+            Tool.call_tool("web_search", query=query)
 
 
 @pytest.mark.parametrize(
@@ -110,7 +111,7 @@ def test_visit_webpage(monkeypatch, url, mock_response, expected_content):
     monkeypatch.setattr(http.client.HTTPSConnection, "request", mock_request)
     monkeypatch.setattr(http.client.HTTPSConnection, "getresponse", mock_request)
 
-    result = visit_webpage(url=url)
+    result = Tool.call_tool("visit_webpage", url=url)
     if mock_response["status"] == 200:
         assert expected_content in result
     else:
@@ -141,7 +142,7 @@ def test_execute_command(monkeypatch, command, mock_response, expected_output):
         )
 
     monkeypatch.setattr(subprocess, "run", mock_run)
-    result = execute_command(command=command)
+    result = Tool.call_tool("execute_command", command=command)
     assert expected_output in result
 
 
@@ -162,7 +163,7 @@ def test_execute_command_with_invalid_command(monkeypatch, command, mock_respons
         )
 
     monkeypatch.setattr(subprocess, "run", mock_run)
-    result = execute_command(command=command)
+    result = Tool.call_tool("execute_command", command=command)
     assert expected_output in result
     assert mock_response["stdout"] in result
     assert mock_response["stderr"] in result
@@ -182,5 +183,5 @@ def test_execute_command_with_exceptions(monkeypatch, command, exception, expect
         raise exception
 
     monkeypatch.setattr(subprocess, "run", mock_run)
-    result = execute_command(command=command)
+    result = Tool.call_tool("execute_command", command=command)
     assert expected_output in result
