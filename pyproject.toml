@@ -5,7 +5,7 @@ description = "Default template for PDM package"
 authors = [
     {name = "Uglyboy", email = "uglyboy@uglyboy.cn"},
 ]
-dependencies = ["pydantic>=2.0.0", "rich>=13.9.4", "aisuite[openai]>=0.1.7", "mcp>=1.2.0", "ruamel-yaml>=0.18.10", "blinker>=1.9.0"]
+dependencies = ["pydantic>=2.0.0", "rich>=13.9.4", "mcp>=1.2.0", "ruamel-yaml>=0.18.10", "blinker>=1.9.0", "aisuite>=0.1.11", "openai>=1.70.0", "docstring-parser>=0.16"]
 requires-python = ">=3.10"
 readme = "README.md"
 license = {text = "MIT"}
@@ -117,7 +117,8 @@ docs-deploy = "mkdocs gh-deploy"
 
 [tool.coverage.run]
 omit = [
-    "src/uglychain/utils/tools.py",
+    "src/uglychain/tools/browser_use/*",
+    "src/uglychain/tools/tasks/*",
     "src/uglychain/tmp/*"
     # 你可以在这里添加更多的路径
 ]

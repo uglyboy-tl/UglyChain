@@ -7,7 +7,7 @@ from examples.schema import get_current_weather, search_baidu, search_bing, sear
 
 from uglychain import config, llm
 from uglychain.schema import ToolResponse
-from uglychain.utils import function_schema
+from uglychain.tools import function_schema
 
 
 def get_tools_schema(tools: list[Callable]) -> list[dict[str, Any]]:

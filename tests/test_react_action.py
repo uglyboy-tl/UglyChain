@@ -7,9 +7,9 @@ from uglychain.react_action import Action
 
 def mock_tool_call(mocker, mock_return):
     if isinstance(mock_return, Exception):
-        mocker.patch("uglychain.tool.Tool.call_tool", side_effect=mock_return)
+        mocker.patch("uglychain.tools.Tool.call_tool", side_effect=mock_return)
     else:
-        mocker.patch("uglychain.tool.Tool.call_tool", return_value=mock_return)
+        mocker.patch("uglychain.tools.Tool.call_tool", return_value=mock_return)
 
 
 @pytest.mark.parametrize(
@@ -99,7 +99,7 @@ def test_action_initialization(session):
 
 
 def test_obs_multiple_access(mocker, react_session):
-    mocker.patch("uglychain.tool.Tool.call_tool", return_value="Tool output")
+    mocker.patch("uglychain.tools.Tool.call_tool", return_value="Tool output")
     action = Action(tool="mock_tool")
     react_session.process(action)
     assert action.obs == "Tool output"

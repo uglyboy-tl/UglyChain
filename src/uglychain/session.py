@@ -9,7 +9,7 @@ from typing import Any
 from .console import Console
 from .logger import Logger
 from .react_action import Action
-from .tool import Tool
+from .tools import Tool
 
 MAX_AGRS: int = 5
 MAX_ARGS_LEN: int = 8

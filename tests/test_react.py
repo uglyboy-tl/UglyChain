@@ -6,9 +6,9 @@ import pytest
 from pydantic import BaseModel
 
 from uglychain.client import Client
-from uglychain.react import ReActProcess, final_answer, react
+from uglychain.react import ReActProcess, react
 from uglychain.react_action import Action
-from uglychain.tool import Tool
+from uglychain.tools import Tool, final_answer
 
 
 @pytest.fixture

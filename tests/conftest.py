@@ -5,6 +5,7 @@ import pytest
 from uglychain.client import Client
 from uglychain.console import Console
 from uglychain.session import Session
+from uglychain.tools.tool_manager import ToolsManager
 
 
 @pytest.fixture
@@ -54,3 +55,10 @@ def mock_client(monkeypatch):
     Client.reset()
     monkeypatch.setattr("aisuite.Client", MockClient)
     return MockClient
+
+
+@pytest.fixture
+def tools_manager():
+    tools_manager = ToolsManager()
+    tools_manager.mcp_tools.clear()
+    return tools_manager

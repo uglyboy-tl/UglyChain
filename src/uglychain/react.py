@@ -12,20 +12,14 @@ from .prompt import REACT_SYSTEM_PROMPT
 from .react_action import Action
 from .schema import Messages, P, T
 from .session import Session
-from .tool import MCP, Tool, Tools, convert_to_tools
+from .tools import BaseTool, Tools, convert_to_tool_list, final_answer
 from .utils import retry
-
-
-@Tool.tool
-def final_answer(answer: str) -> str:
-    """When get Final Answer, use this tool to return the answer and finishes the task."""
-    return answer
 
 
 @overload
 def react(
     model: str = "",
-    tools: list[Tool | MCP | Tools] | None = None,
+    tools: Tools | None = None,
     *,
     response_format: None = None,
     **api_params: Any,
@@ -35,7 +29,7 @@ def react(
 @overload
 def react(
     model: str = "",
-    tools: list[Tool | MCP | Tools] | None = None,
+    tools: Tools | None = None,
     *,
     response_format: type[T],
     **api_params: Any,
@@ -44,7 +38,7 @@ def react(
 
 def react(
     model: str = "",
-    tools: list[Tool | MCP | Tools] | None = None,
+    tools: Tools | None = None,
     *,
     response_format: type[T] | None = None,
     max_steps: int = -1,
@@ -55,7 +49,7 @@ def react(
     process = ReActProcess(
         model=model or config.default_model,
         session=default_session,
-        tools=convert_to_tools(tools),
+        tools=convert_to_tool_list(tools),
         response_format=response_format,
         api_params=api_params.copy(),
     )
@@ -107,7 +101,7 @@ class ReActProcess(Generic[T]):
     func: Callable[..., str | Messages | None] = field(init=False, default_factory=lambda: lambda *args, **kwargs: None)
     model: str
     session: Session
-    tools: list[Tool]
+    tools: list[BaseTool]
     response_format: type[T] | None
     api_params: dict[str, Any]
 

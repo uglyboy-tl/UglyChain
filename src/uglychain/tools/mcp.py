@@ -1,12 +1,18 @@
 from __future__ import annotations
 
 import asyncio
+import os
+from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from typing import Any
+from functools import cached_property
+from typing import Any, ClassVar
 
 from mcp import ClientSession, StdioServerParameters, types
 from mcp.client.stdio import stdio_client
 from pydantic_core import to_json
+
+from .base import BaseTool
 
 
 @dataclass
@@ -18,8 +24,14 @@ class McpTool:
     client: McpClient
 
     async def _arun(self, **kwargs: Any) -> str:
+        if not self.client._session:
+            self.client.initialize()
         result = await self.client._session.call_tool(self.name, arguments=kwargs)  # type: ignore
         return to_json(result.content).decode()
+
+    def __call__(self, **kwargs: Any) -> str:
+        future = self.client._executor.submit(self.client._loop.run_until_complete, self._arun(**kwargs))
+        return future.result()
 
 
 @dataclass
@@ -29,6 +41,15 @@ class McpClient:
     _session: ClientSession | None = None
     _tools: list[McpTool] = field(default_factory=list)
     _init_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+    _loop: ClassVar[asyncio.AbstractEventLoop] = field(init=False, default=asyncio.get_event_loop())
+    _executor: ClassVar[ThreadPoolExecutor] = field(init=False, default=ThreadPoolExecutor())
+
+    def __post_init__(self) -> None:
+        asyncio.set_event_loop(self._loop)
+
+    @classmethod
+    def create(cls, name: str, command: str, args: list[str], env: dict[str, str] | None = None) -> McpClient:
+        return cls(name, StdioServerParameters(command=command, args=args, env=env or {}))
 
     async def _start_session(self) -> ClientSession:
         async with self._init_lock:
@@ -40,7 +61,7 @@ class McpClient:
                 await self._session.initialize()
             return self._session
 
-    async def initialize(self, force_refresh: bool = False) -> None:
+    async def _ainitialize(self, force_refresh: bool) -> None:
         if self._tools and not force_refresh:
             return
 
@@ -53,6 +74,10 @@ class McpClient:
         except Exception as e:
             print(f"Error gathering tools for {self.server_param.command} {' '.join(self.server_param.args)}: {e}")
             raise
+
+    def initialize(self, force_refresh: bool = False) -> None:
+        future = self._executor.submit(self._loop.run_until_complete, self._ainitialize(force_refresh))
+        future.result()
 
     async def close(self) -> None:
         pass
@@ -76,3 +101,34 @@ class McpClient:
     @property
     def tools(self) -> list[McpTool]:
         return self._tools
+
+
+@dataclass
+class MCP:
+    name: str
+    command: str
+    args: list[str]
+    env: dict[str, str] = field(default_factory=dict)
+    disabled: bool = False
+    autoApprove: list[str] = field(default_factory=list)  # noqa: N815
+    _client: McpClient = field(init=False)
+    callback_activate: Callable[[McpClient], None] = field(init=False)
+
+    def __post_init__(self) -> None:
+        for key in self.env:
+            self.env[key] = os.getenv(key, self.env[key])
+        self.env["PATH"] = os.getenv("PATH", "")
+        self._client = McpClient.create(self.name, self.command, self.args, self.env)
+
+    @cached_property
+    def tools(self) -> list[BaseTool]:
+        if self.disabled:
+            return []
+        if self._client._session is None:
+            self.callback_activate(self._client)
+        return [
+            BaseTool(
+                name=f"{self._client.name}:{tool.name}", description=tool.description, args_schema=tool.args_schema
+            )
+            for tool in self._client.tools
+        ]
