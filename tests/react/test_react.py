@@ -5,10 +5,10 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pydantic import BaseModel
 
-from uglychain._react import Action
-from uglychain._react.core import ReActProcess
 from uglychain.client import Client
-from uglychain.react import react
+from uglychain.react.action import Action
+from uglychain.react.core import react
+from uglychain.react.default import ReActProcess
 from uglychain.tools import Tool, final_answer
 
 
@@ -70,7 +70,7 @@ def test_react_with_console(mock_tool, mock_prompt, mocker):
     mock_action.image = None
 
     # 模拟 Action.from_response 函数
-    mocker.patch("uglychain._react.action.Action.from_response", return_value=mock_action)
+    mocker.patch("uglychain.react.action.Action.from_response", return_value=mock_action)
 
     # 模拟 llm 函数返回值
     mocker.patch.object(
@@ -372,7 +372,7 @@ def test_react_with_max_steps(mock_tool, mock_prompt, mocker):
 
     # 模拟 Action.from_response 函数，依次返回不同的 Action
     mock_react_response = mocker.patch(
-        "uglychain._react.action.Action.from_response", side_effect=[mock_action1, mock_action2]
+        "uglychain.react.action.Action.from_response", side_effect=[mock_action1, mock_action2]
     )
 
     # 模拟 llm 函数返回值
@@ -414,7 +414,7 @@ def test_react_with_max_steps_exceeded(mock_tool, mock_prompt, mocker):
     mock_action.image = None
 
     # 模拟 Action.from_response 函数，总是返回 done=False 的 Action
-    mocker.patch("uglychain._react.action.Action.from_response", return_value=mock_action)
+    mocker.patch("uglychain.react.action.Action.from_response", return_value=mock_action)
 
     # 模拟 llm 函数返回值
     mocker.patch.object(
@@ -437,7 +437,7 @@ def test_react_with_max_steps_exceeded(mock_tool, mock_prompt, mocker):
 
     # 模拟 llm 函数，用于 final_call
     mock_llm = mocker.MagicMock(return_value="Final result after max steps")
-    mocker.patch("uglychain._react.core.llm", return_value=lambda x: mock_llm)
+    mocker.patch("uglychain.react.default.llm", return_value=lambda x: mock_llm)
 
     # 调用 react 函数，设置 max_steps=2
     decorated_func = react(tools=[mock_tool], max_steps=2)(mock_prompt)
@@ -468,7 +468,7 @@ def test_react_with_response_format(mock_tool, mock_prompt, mocker, response_mod
     mock_action.image = None
 
     # 模拟 Action.from_response 函数
-    mocker.patch("uglychain._react.action.Action.from_response", return_value=mock_action)
+    mocker.patch("uglychain.react.action.Action.from_response", return_value=mock_action)
 
     # 模拟 llm 函数返回值
     mocker.patch.object(
@@ -492,7 +492,7 @@ def test_react_with_response_format(mock_tool, mock_prompt, mocker, response_mod
     # 模拟 llm 函数，用于 final_call
     formatted_result = response_model(result="Formatted result")
     mock_llm = mocker.MagicMock(return_value=formatted_result)
-    mocker.patch("uglychain._react.core.llm", return_value=lambda x: mock_llm)
+    mocker.patch("uglychain.react.default.llm", return_value=lambda x: mock_llm)
 
     # 调用 react 函数，设置 response_format=TestResponseModel
     decorated_func = react(tools=[mock_tool], response_format=response_model)(mock_prompt)

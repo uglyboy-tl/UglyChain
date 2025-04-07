@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from uglychain._react import Action
+from uglychain.react.action import Action
 
 
 def mock_tool_call(mocker, mock_return):
@@ -152,7 +152,7 @@ def test_action_args(session, thought, tool, args):
     ],
 )
 def test_fix_func_name(func_name, expected_name):
-    from uglychain._react.action import _fix_func_name
+    from uglychain.react.action import _fix_func_name
 
     assert _fix_func_name(func_name) == expected_name
 

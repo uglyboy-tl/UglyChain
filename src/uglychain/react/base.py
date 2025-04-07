@@ -16,7 +16,7 @@ from .action import Action
 
 @dataclass
 class BaseReActProcess(Generic[T], ABC):
-    func: Callable[..., str | Messages | None] = field(init=False, default_factory=lambda: lambda *args, **kwargs: None)
+    func: Callable[..., str | Messages | None] = field(init=False)
     model: str
     session: Session
     tools: list[BaseTool]

@@ -4,10 +4,10 @@ import inspect
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Literal
 
-from ._react import Action
 from .console import BaseConsole, get_console
+from .react.action import Action
 from .tools import Tool
 from .utils import Logger
 
@@ -17,21 +17,24 @@ MAX_ARGS_LEN: int = 8
 
 @dataclass
 class Session:
-    type: str = "llm"
+    session_type: Literal["llm", "react"] = "llm"
     uuid: uuid.UUID = field(init=False, default_factory=uuid.uuid1)
     info: dict[str, str] = field(init=False, default_factory=dict)
     console: BaseConsole = field(default_factory=get_console)
 
     def __post_init__(self) -> None:
+        self.init_console()
+
+    def init_console(self) -> None:
         Logger.get(self.id, "base_info").regedit(self.console.base_info)
-        if self.type == "llm":
+        if self.session_type == "llm":
             Logger.get(self.id, "api_params").regedit(self.console.api_params)
             Logger.get(self.id, "results").regedit(self.console.results)
             Logger.get(self.id, "progress_start").regedit(self.console.progress_start)
             Logger.get(self.id, "progress_intermediate").regedit(self.console.progress_intermediate)
             Logger.get(self.id, "progress_end").regedit(self.console.progress_end)
             Logger.get(self.id, "messages").regedit(self.console.log_messages)
-        elif self.type == "react":
+        elif self.session_type == "react":
             self.console.show_react = True
             Logger.get(self.id, "rule").regedit(self.console.rule)
             Logger.get(self.id, "action").regedit(self.console.action_message)

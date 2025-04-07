@@ -4,13 +4,14 @@ from collections.abc import Callable, Iterator
 from functools import wraps
 from typing import Any, overload
 
-from ._react import Action
-from ._react.base import BaseReActProcess
-from ._react.core import ReActProcess
-from .config import config
-from .schema import Messages, P, T
-from .session import Session
-from .tools import Tools, convert_to_tool_list, final_answer
+from uglychain.config import config
+from uglychain.schema import Messages, P, T
+from uglychain.session import Session
+from uglychain.tools import Tools, convert_to_tool_list, final_answer
+
+from .action import Action
+from .base import BaseReActProcess
+from .get_process import get_react_process
 
 
 @overload
@@ -43,7 +44,7 @@ def react(
     **api_params: Any,
 ) -> Callable[[Callable[P, str | Messages | None]], Callable[P, str | T]]:
     default_session = session or Session("react")
-    process: BaseReActProcess = ReActProcess(
+    process: BaseReActProcess = get_react_process(
         model=model or config.default_model,
         session=default_session,
         tools=convert_to_tool_list(tools),
