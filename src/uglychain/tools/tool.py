@@ -44,7 +44,7 @@ class Tool(BaseTool):
             env=getattr(obj, "env", {}),
         )
         cls._manager.register_mcp(obj.__name__)
-        mcp.callback_activate = cls._manager.activate_mcp_client
+        mcp.register_callback = cls._manager.register_mcp_tool
         return mcp
 
     @classmethod
@@ -57,9 +57,9 @@ class Tool(BaseTool):
         name, config_dict = list(config_origin.items())[0]
         assert isinstance(config_dict, dict)
         config = {k: v for k, v in config_dict.items() if k in {"command", "args", "env", "disabled", "autoApprove"}}
-        mcp = MCP(name, **config)
+        mcp = MCP(str(name), **config)
         cls._manager.register_mcp(name)
-        mcp.callback_activate = cls._manager.activate_mcp_client
+        mcp.register_callback = cls._manager.register_mcp_tool
         return mcp
 
 

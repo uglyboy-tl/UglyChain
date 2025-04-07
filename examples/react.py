@@ -34,6 +34,6 @@ if __name__ == "__main__":
     config.verbose = True
     # config.need_confirm = True
     # search("牛顿")
-    update([{"role": "user", "content": "更新我的电脑系统"}])
+    # update([{"role": "user", "content": "更新我的电脑系统"}])
     # weather("北京")
-    # code_interpreter("我买房贷款了187万，贷款的年利率是4.9%，贷款期限是30年，每月还款多少？")
+    code_interpreter("我买房贷款了187万，贷款的年利率是4.9%，贷款期限是30年，每月还款多少？")

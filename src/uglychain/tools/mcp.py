@@ -112,7 +112,7 @@ class MCP:
     disabled: bool = False
     autoApprove: list[str] = field(default_factory=list)  # noqa: N815
     _client: McpClient = field(init=False)
-    callback_activate: Callable[[McpClient], None] = field(init=False)
+    register_callback: Callable[[str, McpTool], None] = field(init=False)
 
     def __post_init__(self) -> None:
         for key in self.env:
@@ -125,10 +125,16 @@ class MCP:
         if self.disabled:
             return []
         if self._client._session is None:
-            self.callback_activate(self._client)
-        return [
-            BaseTool(
-                name=f"{self._client.name}:{tool.name}", description=tool.description, args_schema=tool.args_schema
+            self._client.initialize()
+        result: list[BaseTool] = []
+        for tool in self._client.tools:
+            name = f"{self._client.name}:{tool.name}"
+            self.register_callback(name, tool)
+            result.append(
+                BaseTool(
+                    name,
+                    description=tool.description,
+                    args_schema=tool.args_schema,
+                )
             )
-            for tool in self._client.tools
-        ]
+        return result

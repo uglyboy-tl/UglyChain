@@ -8,7 +8,7 @@ from typing import Any
 
 from uglychain.utils import singleton
 
-from .mcp import McpClient, McpTool
+from .mcp import McpTool
 
 
 def cleanup() -> None:
@@ -56,7 +56,7 @@ class ToolsManager:
             raise ValueError(f"MCP client {name} already exists")
         self.mcp_names.add(name)
 
-    def activate_mcp_client(self, client: McpClient) -> None:
-        client.initialize()
-        for tool in client.tools:
-            self.mcp_tools[f"{client.name}:{tool.name}"] = tool
+    def register_mcp_tool(self, name: str, tool: McpTool) -> None:
+        if name in self.mcp_tools:
+            raise ValueError(f"MCP tool {name} already exists")
+        self.mcp_tools[name] = tool
