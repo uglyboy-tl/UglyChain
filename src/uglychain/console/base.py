@@ -34,15 +34,15 @@ class BaseConsole(ABC):
         pass
 
     @abstractmethod
-    def api_params(self, api_params: dict[str, Any]) -> None:
+    def api_params(self, message: dict[str, Any]) -> None:
         pass
 
     @abstractmethod
-    def results(self, result: list | Iterator) -> None:
+    def results(self, message: list | Iterator) -> None:
         pass
 
     @abstractmethod
-    def progress_start(self, n: int) -> None:
+    def progress_start(self, message: int) -> None:
         pass
 
     @abstractmethod
@@ -54,11 +54,11 @@ class BaseConsole(ABC):
         pass
 
     @abstractmethod
-    def log_messages(self, messages: Messages) -> None:
+    def log_messages(self, message: Messages) -> None:
         pass
 
     @abstractmethod
-    def call_tool_confirm(self, name: str) -> bool:
+    def call_tool_confirm(self, message: str) -> bool:
         pass
 
 
@@ -75,13 +75,13 @@ class EmptyConsole(BaseConsole):
     def tool_message(self, message: str = "", arguments: dict[str, Any] | None = None) -> None:
         return
 
-    def api_params(self, api_params: dict[str, Any]) -> None:
+    def api_params(self, message: dict[str, Any]) -> None:
         return
 
-    def results(self, result: list | Iterator) -> None:
+    def results(self, message: list | Iterator) -> None:
         return
 
-    def progress_start(self, n: int) -> None:
+    def progress_start(self, message: int) -> None:
         return
 
     def progress_intermediate(self) -> None:
@@ -90,8 +90,8 @@ class EmptyConsole(BaseConsole):
     def progress_end(self) -> None:
         return
 
-    def log_messages(self, messages: Messages) -> None:
+    def log_messages(self, message: Messages) -> None:
         return
 
-    def call_tool_confirm(self, name: str) -> bool:
+    def call_tool_confirm(self, message: str) -> bool:
         return True

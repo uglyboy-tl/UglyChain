@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from typing import Any, Literal
 
 from .console import BaseConsole, SimpleConsole
-from .utils import Logger
+from .utils import MessageBus
 
 MAX_AGRS: int = 5
 MAX_ARGS_LEN: int = 8
@@ -25,19 +25,19 @@ class Session:
 
     def console_register(self, console: BaseConsole) -> None:
         self.consoles.append(console)
-        Logger.get(self.id, "base_info").regedit(console.base_info)
+        MessageBus.get(self.id, "base_info").regedit(console.base_info)
         if self.session_type == "llm":
-            Logger.get(self.id, "api_params").regedit(console.api_params)
-            Logger.get(self.id, "results").regedit(console.results)
-            Logger.get(self.id, "progress_start").regedit(console.progress_start)
-            Logger.get(self.id, "progress_intermediate").regedit(console.progress_intermediate)
-            Logger.get(self.id, "progress_end").regedit(console.progress_end)
-            Logger.get(self.id, "messages").regedit(console.log_messages)
+            MessageBus.get(self.id, "api_params").regedit(console.api_params)
+            MessageBus.get(self.id, "results").regedit(console.results)
+            MessageBus.get(self.id, "progress_start").regedit(console.progress_start)
+            MessageBus.get(self.id, "progress_intermediate").regedit(console.progress_intermediate)
+            MessageBus.get(self.id, "progress_end").regedit(console.progress_end)
+            MessageBus.get(self.id, "messages").regedit(console.log_messages)
         elif self.session_type == "react":
             console.show_react = True
-            Logger.get(self.id, "rule").regedit(console.rule)
-            Logger.get(self.id, "action").regedit(console.action_message)
-            Logger.get(self.id, "tool").regedit(console.tool_message)
+            MessageBus.get(self.id, "rule").regedit(console.rule)
+            MessageBus.get(self.id, "action").regedit(console.action_message)
+            MessageBus.get(self.id, "tool").regedit(console.tool_message)
 
     @property
     def model(self) -> str:
@@ -60,11 +60,11 @@ class Session:
     def id(self) -> str:
         return self.uuid.hex
 
-    def log(self, module: str, message: str = "", /, **kwargs: Any) -> None:
-        Logger.get(self.id, module).info(message, **kwargs)
+    def send(self, module: str, message: object = "", /, **kwargs: Any) -> None:
+        MessageBus.get(self.id, module).send(message, **kwargs)
 
     def show_base_info(self) -> None:
-        self.log("base_info", self.func, model=self.model, id=self.id)
+        self.send("base_info", self.func, model=self.model, id=self.id)
         for console in self.consoles:
             console.show_base_info = False
 

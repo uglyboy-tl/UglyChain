@@ -75,7 +75,7 @@ class RichConsole(BaseConsole):
     def rule(self, message: str = "", **kwargs: Any) -> None:
         if not config.verbose or not self.show_react:
             return
-        self.console.rule(title=message, **kwargs)
+        self.console.rule(title=message, align="left")
 
     def action_message(self, message: str = "", **kwargs: Any) -> None:
         if not config.verbose or not self.show_react:
@@ -96,39 +96,39 @@ class RichConsole(BaseConsole):
             )
         )
 
-    def api_params(self, api_params: dict[str, Any]) -> None:
+    def api_params(self, message: dict[str, Any]) -> None:
         if not config.verbose or not self.show_api_params:
             return
-        if api_params:
-            if "tools" in api_params and api_params["tools"]:
+        if message:
+            if "tools" in message and message["tools"]:
                 params_table = Table(title="Tools", box=box.SIMPLE, expand=True)
                 params_table.add_column("Name", justify="right", no_wrap=True)
                 params_table.add_column("Parameters", justify="center")
-                for tool in api_params["tools"]:
+                for tool in message["tools"]:
                     params_table.add_row(
                         tool["function"]["name"], json.dumps(tool["function"]["parameters"], ensure_ascii=False)
                     )
                 self.console.print(params_table)
 
-    def results(self, result: list | Iterator) -> None:
+    def results(self, message: list | Iterator) -> None:
         if not config.verbose or not self.show_result:
             return
-        if isinstance(result, Iterator):
-            _result = ["".join(result)]
+        if isinstance(message, Iterator):
+            _result = ["".join(message)]
         else:
-            _result = result
+            _result = message
         self.console.print(
             Columns([i.model_dump_json(indent=2) if not isinstance(i, str) else i for i in _result]),  # type: ignore[attr-defined]
             no_wrap=False,
         )
 
-    def progress_start(self, n: int) -> None:
+    def progress_start(self, message: int) -> None:
         self.progress.disable = not self.show_progress or config.verbose
-        if n > 1:
+        if message > 1:
             self.show_result = False
         else:
             self.progress.disable = True
-        self._task_id = self.progress.add_task("模型进度", total=n)
+        self._task_id = self.progress.add_task("模型进度", total=message)
         self.progress.start()
 
     def progress_intermediate(self) -> None:
@@ -137,22 +137,22 @@ class RichConsole(BaseConsole):
     def progress_end(self) -> None:
         self.progress.stop()
 
-    def log_messages(self, messages: Messages) -> None:
+    def log_messages(self, message: Messages) -> None:
         if not config.verbose or not self.show_message:
             return
         self._init_messages_table()
-        for message in messages:
-            if message["role"] == "system":
+        for msg in message:
+            if msg["role"] == "system":
                 style = "bold green"
-            elif message["role"] == "user":
+            elif msg["role"] == "user":
                 style = "italic yellow"
             else:
                 style = "italic blue"
-            self.messages_table.add_row(str(message["role"]), str(message["content"]), style=style)
+            self.messages_table.add_row(str(msg["role"]), str(msg["content"]), style=style)
         self._update_live()
 
-    def call_tool_confirm(self, name: str) -> bool:
-        if config.need_confirm and name not in ["final_answer", "user_input"]:
+    def call_tool_confirm(self, message: str) -> bool:
+        if config.need_confirm and message not in ["final_answer", "user_input"]:
             return Confirm.ask("Do you confirm to run this tool?", console=self.console, show_default=True)
         return True
 

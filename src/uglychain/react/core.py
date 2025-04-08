@@ -71,7 +71,7 @@ def react(
             act = Action()
             while react_times == 0 or not act.done and (max_steps == -1 or react_times < max_steps):
                 react_times += 1
-                default_session.log("rule", f"Step {react_times}", align="left")
+                default_session.send("rule", f"Step {react_times}")
                 image = act.image  # 如果上次的结果中有图片
                 act = process.react(*prompt_args, image=image, acts=acts, **prompt_kwargs)
                 process_act(default_session, act)  # 工具执行
@@ -95,17 +95,17 @@ def react(
 
 
 def process_act(session: Session, act: Action) -> None:
-    session.log("tool", act.tool, arguments=act.args)
+    session.send("tool", act.tool, arguments=act.args)
     if not session.call_tool_confirm(act.tool):
         act.obs = "User cancelled. Please find other ways to solve this problem."
         return
     try:
         result = Tool.call_tool(act.tool, **act.args)
         act.obs, act.image = result if isinstance(result, tuple) else (result, None)
-        session.log("action", _short_result(act.obs), style="bold green")
+        session.send("action", _short_result(act.obs), style="bold green")
     except Exception as e:
         act.obs = f"Error: {e}"
-        session.log("action", act.obs, style="bold red")
+        session.send("action", act.obs, style="bold red")
 
 
 def _short_result(result: str) -> str:

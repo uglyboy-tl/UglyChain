@@ -54,7 +54,7 @@ class ReActProcess(BaseReActProcess[T]):
             if isinstance(result, Iterator):
                 result = "".join(result)
             act = Action.from_response(result)
-            self.session.log("action", act.thought, style="yellow")
+            self.session.send("action", act.thought, style="yellow")
             return act
 
         return react_response_action_with_retry

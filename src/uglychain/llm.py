@@ -318,24 +318,24 @@ def llm(
                 messages = _gen_messages(res, prompt, image)
                 response_model.process_parameters(model, messages, merged_api_params)
 
-                default_session.log("api_params", api_params=merged_api_params)
-                default_session.log("messages", messages=messages)
+                default_session.send("api_params", merged_api_params)
+                default_session.send("messages", messages)
 
                 response = Client.generate(model, messages, **merged_api_params)
 
                 if merged_api_params.get("stream", False):
                     stream_result = process_stream_resopnse(response)
-                    default_session.log("results", result=stream_result)
+                    default_session.send("results", stream_result)
                     return stream_result
                 else:
                     result = [response_model.parse_from_response(choice) for choice in response]
-                    default_session.log("progress_intermediate")
-                    default_session.log("results", result=result)
+                    default_session.send("progress_intermediate")
+                    default_session.send("results", result)
                     return result
 
             results: list[str] | list[ToolResponse] | list[T] = []
 
-            default_session.log("progress_start", n=m if m > 1 else n)
+            default_session.send("progress_start", m if m > 1 else n)
 
             if merged_api_params.get("stream", False):
                 return (item for item in process_single_prompt(0) if isinstance(item, str) and item)
@@ -349,7 +349,7 @@ def llm(
                 for i in range(m):
                     results.extend(process_single_prompt(i))
 
-            default_session.log("progress_end")
+            default_session.send("progress_end")
 
             if not results:
                 raise ValueError("模型未返回任何选择")
