@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 
 from uglychain.react.action import Action
+from uglychain.react.core import process_act
 
 
 def mock_tool_call(mocker, mock_return):
@@ -25,10 +26,10 @@ def mock_tool_call(mocker, mock_return):
 def test_obs(mocker, react_session, mock_return, expected_obs, log_style, image):
     mock_tool_call(mocker, mock_return)
     action = Action(tool="mock_tool")
-    react_session.process(action)
+    process_act(react_session, action)
     assert action.obs == expected_obs
     assert action.image == image
-    react_session.console.action_message.assert_called_with(message=expected_obs, style=log_style)
+    react_session.consoles[-1].action_message.assert_called_with(message=expected_obs, style=log_style)
 
 
 def test_done(session):
@@ -74,7 +75,7 @@ def test_repr(session):
 )
 def test_info(session, thought, tool, args, expected_info):
     action = Action(thought=thought, tool=tool, args=args)
-    session.process(action)
+    process_act(session, action)
     assert action.info == expected_info
 
 
@@ -87,7 +88,7 @@ def test_from_response(mocker, session):
     assert action.tool == "test_tool"
     assert action.args == {"arg1": "value1"}
     mock_tool_call(mocker, "Tool output")
-    session.process(action)
+    process_act(session, action)
     assert action.obs == "Tool output"
 
 
@@ -101,10 +102,10 @@ def test_action_initialization(session):
 def test_obs_multiple_access(mocker, react_session):
     mocker.patch("uglychain.tools.Tool.call_tool", return_value="Tool output")
     action = Action(tool="mock_tool")
-    react_session.process(action)
+    process_act(react_session, action)
     assert action.obs == "Tool output"
     assert action.obs == "Tool output"  # Accessing multiple times should return the same result
-    react_session.console.action_message.assert_called_with(message="Tool output", style="bold green")
+    react_session.consoles[-1].action_message.assert_called_with(message="Tool output", style="bold green")
 
 
 def test_from_response_various_inputs(session):

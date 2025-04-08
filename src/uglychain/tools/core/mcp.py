@@ -4,24 +4,9 @@ import os
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from functools import cached_property
-from typing import Any
 
-from .mcp import McpClient, McpTool
-
-
-@dataclass
-class BaseTool:
-    name: str
-    description: str
-    args_schema: dict[str, Any]
-
-
-class ToolsClass:
-    name: str
-    tools: list[BaseTool]
-
-    def __getattr__(self, name: str) -> Any:
-        return getattr(self, name)
+from ..utils import McpClient, McpTool
+from .base_tool import BaseTool
 
 
 @dataclass
@@ -59,10 +44,3 @@ class MCP:
                 )
             )
         return result
-
-
-Tools = list[BaseTool | MCP | ToolsClass]
-
-
-def convert_to_tool_list(tools: Tools | None) -> list[BaseTool]:
-    return [tool for t in tools or [] for tool in ([t] if isinstance(t, BaseTool) else t.tools)]

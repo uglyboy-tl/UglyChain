@@ -176,7 +176,7 @@ class DomService:
         focus_element: int,
         viewport_expansion: int,
     ) -> DOMElementNode:
-        js_code = resources.read_text("uglychain.tools.browser_use", "buildDomTree.js")
+        js_code = resources.read_text("uglychain.tools.providers.browser_use", "buildDomTree.js")
 
         args = {
             "doHighlightElements": highlight_elements,

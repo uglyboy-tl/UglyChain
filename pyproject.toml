@@ -5,7 +5,7 @@ description = "Default template for PDM package"
 authors = [
     {name = "Uglyboy", email = "uglyboy@uglyboy.cn"},
 ]
-dependencies = ["pydantic>=2.0.0", "rich>=13.9.4", "mcp>=1.2.0", "ruamel-yaml>=0.18.10", "blinker>=1.9.0", "aisuite>=0.1.11", "openai>=1.70.0", "docstring-parser>=0.16"]
+dependencies = ["pydantic>=2.0.0", "mcp>=1.2.0", "ruamel-yaml>=0.18.10", "blinker>=1.9.0", "aisuite>=0.1.11", "openai>=1.70.0", "docstring-parser>=0.16"]
 requires-python = ">=3.10"
 readme = "README.md"
 license = {text = "MIT"}
@@ -17,22 +17,29 @@ code = [
 browser = [
     "playwright>=1.50.0",
 ]
+rich = [
+    "rich>=14.0.0",
+]
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
 
 [dependency-groups]
-dev = [
+lint = [
     "ruff>=0.8.4",
+]
+test = [
     "pytest>=8.3.4",
     "pytest-cov>=6.0.0",
+    "pytest-mock>=3.14.0",
+    "pytest-asyncio>=0.25.3",
+]
+doc = [
     "mkdocs>=1.6.1",
     "mkdocs-material>=9.5.49",
     "mkdocstrings[python]>=0.27.0",
     "mkdocs-static-i18n[material]>=1.2.3",
-    "pytest-mock>=3.14.0",
-    "pytest-asyncio>=0.25.3",
 ]
 
 

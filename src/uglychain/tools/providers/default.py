@@ -7,7 +7,7 @@ import subprocess
 import urllib.parse
 from pathlib import Path
 
-from uglychain import Tool
+from ..core import Tool
 
 TIMEOUT = 60
 

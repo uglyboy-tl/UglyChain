@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 
 from uglychain import Tool
-from uglychain.tools.default import TIMEOUT, execute_command, user_input, visit_webpage, web_search
+from uglychain.tools.providers.default import TIMEOUT, execute_command, user_input, visit_webpage, web_search
 
 
 def load_env_file(filepath):

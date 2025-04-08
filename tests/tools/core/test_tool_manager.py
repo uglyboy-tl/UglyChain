@@ -3,7 +3,7 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 from uglychain.tools.core import Tool
-from uglychain.tools.tool_manager import ToolsManager, cleanup
+from uglychain.tools.core.tool_manager import ToolsManager, cleanup
 
 
 def test_call_tool_with_console():

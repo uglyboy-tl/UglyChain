@@ -7,7 +7,7 @@ from typing import Any, overload
 from uglychain.config import config
 from uglychain.schema import Messages, P, T
 from uglychain.session import Session
-from uglychain.tools import Tools, convert_to_tool_list, final_answer
+from uglychain.tools import Tool, Tools, convert_to_tool_list, final_answer
 
 from .action import Action
 from .base import BaseReActProcess
@@ -74,7 +74,7 @@ def react(
                 default_session.log("rule", f"Step {react_times}", align="left")
                 image = act.image  # 如果上次的结果中有图片
                 act = process.react(*prompt_args, image=image, acts=acts, **prompt_kwargs)
-                default_session.process(act)  # 工具执行
+                process_act(default_session, act)  # 工具执行
                 acts.append(act)
 
             response: str | Iterator[str] | T = act.obs
@@ -92,3 +92,27 @@ def react(
         return model_call
 
     return parameterized_lm_decorator
+
+
+def process_act(session: Session, act: Action) -> None:
+    session.log("tool", act.tool, arguments=act.args)
+    if not session.call_tool_confirm(act.tool):
+        act.obs = "User cancelled. Please find other ways to solve this problem."
+        return
+    try:
+        result = Tool.call_tool(act.tool, **act.args)
+        act.obs, act.image = result if isinstance(result, tuple) else (result, None)
+        session.log("action", _short_result(act.obs), style="bold green")
+    except Exception as e:
+        act.obs = f"Error: {e}"
+        session.log("action", act.obs, style="bold red")
+
+
+def _short_result(result: str) -> str:
+    lines = result.split("\n")
+    if len(lines) > 10:
+        return "\n".join(lines[:10]) + "\n..."
+    elif len(result) > 200:
+        return result[:200] + "..."
+    else:
+        return result

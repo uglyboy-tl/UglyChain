@@ -5,8 +5,8 @@ from rich.console import Console
 from uglychain import config
 from uglychain.tasks import flow, planner
 from uglychain.tools import convert_to_tool_list
-from uglychain.tools.coder import Coder
-from uglychain.tools.default import e2b_mcp_server, execute_command, web_search
+from uglychain.tools.providers.coder import Coder
+from uglychain.tools.providers.default import e2b_mcp_server, execute_command, web_search
 
 config.verbose = True
 config.default_model = "openai:gpt-4o"

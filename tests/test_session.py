@@ -2,20 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from uglychain.session import Session, _format_arg_str, _short_result
-
-
-def test_short_result():
-    input_data = "Line1\nLine2\nLine3\nLine4\nLine5\nLine6\nLine7\nLine8\nLine9\nLine10\nLine11\nLine12"
-    expected_output = "Line1\nLine2\nLine3\nLine4\nLine5\nLine6\nLine7\nLine8\nLine9\nLine10\n..."
-    assert _short_result(input_data) == expected_output
-
-    long_text = "a" * 201
-    expected_long_output = "a" * 200 + "..."
-    assert _short_result(long_text) == expected_long_output
-
-    short_text = "Short text"
-    assert _short_result(short_text) == short_text
+from uglychain.session import Session, _format_arg_str
 
 
 @pytest.mark.parametrize(

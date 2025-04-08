@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 from uglychain.client import Client
 from uglychain.react.action import Action
-from uglychain.react.core import react
+from uglychain.react.core import _short_result, react
 from uglychain.react.default import ReActProcess
 from uglychain.tools import BaseTool, Tool
 
@@ -27,6 +27,19 @@ def mock_prompt():
         return "Test prompt"
 
     return prompt
+
+
+def test_short_result():
+    input_data = "Line1\nLine2\nLine3\nLine4\nLine5\nLine6\nLine7\nLine8\nLine9\nLine10\nLine11\nLine12"
+    expected_output = "Line1\nLine2\nLine3\nLine4\nLine5\nLine6\nLine7\nLine8\nLine9\nLine10\n..."
+    assert _short_result(input_data) == expected_output
+
+    long_text = "a" * 201
+    expected_long_output = "a" * 200 + "..."
+    assert _short_result(long_text) == expected_long_output
+
+    short_text = "Short text"
+    assert _short_result(short_text) == short_text
 
 
 def test_final_answer():
@@ -358,7 +371,7 @@ def test_tool_descriptions():
 
 def test_react_with_max_steps(mock_tool, mock_prompt, mocker):
     """测试 react 函数的 max_steps 参数"""
-    mocker.patch("uglychain.session.Session.process")
+    mocker.patch("uglychain.react.core.process_act")
     # 模拟 Action 对象，前两次 done 为 False，第三次为 True
     mock_action1 = mocker.MagicMock(spec=Action)
     mock_action1.done = False

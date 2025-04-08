@@ -8,8 +8,8 @@ from unittest.mock import MagicMock
 import pytest
 
 from uglychain.tools.core import Tool
-from uglychain.tools.mcp import McpClient, McpTool
-from uglychain.tools.schema import MCP
+from uglychain.tools.core.mcp import MCP
+from uglychain.tools.utils import McpClient, McpTool
 
 
 class SampleMCP:
@@ -105,7 +105,7 @@ def test_mcp_post_init(mocker):
 
 @pytest.mark.asyncio
 async def test_mcp_tool_arun(mocker, tools_manager):
-    mock_client = mocker.patch("uglychain.tools.mcp.McpClient")
+    mock_client = mocker.patch("uglychain.tools.core.mcp.McpClient")
     client = mock_client.return_value
     mcp_tool = McpTool(client_name="client", name="tool", description="", args_schema={}, client=client)
     mock_session = mocker.patch.object(client, "_session")

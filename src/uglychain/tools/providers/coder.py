@@ -6,7 +6,7 @@ from pathlib import Path
 
 from unidiff import PatchSet
 
-from uglychain import Tool
+from ..core import Tool
 
 
 @Tool.tool

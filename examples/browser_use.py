@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from uglychain import config, react
-from uglychain.tools.browser_use import BrowserUse
+from uglychain.tools.providers.browser_use import BrowserUse
 
 
 @react(tools=[BrowserUse])

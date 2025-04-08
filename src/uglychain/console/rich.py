@@ -61,12 +61,13 @@ class RichConsole(BaseConsole):
         self.messages_table.add_column("角色", justify="right", no_wrap=True)
         self.messages_table.add_column("内容")
 
-    def base_info(self, message: str = "", model: str = "") -> None:
+    def base_info(self, message: str = "", model: str = "", id: str = "") -> None:
         if not config.verbose or not self.show_base_info:
             return
         base_table = Table(box=box.SIMPLE, show_header=False)
         base_table.add_column(style="green")
         base_table.add_column(style="blue")
+        base_table.add_row("ID", id)
         base_table.add_row("Model", model)
         base_table.add_row("Func", message)
         self.console.print(base_table)

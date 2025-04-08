@@ -13,11 +13,12 @@ from .base import BaseConsole
 
 @dataclass
 class SimpleConsole(BaseConsole):
-    def base_info(self, message: str = "", model: str = "") -> None:
+    def base_info(self, message: str = "", model: str = "", id: str = "") -> None:
         if not config.verbose or not self.show_base_info:
             return
-        print(f"Model:{model}")
-        print(f"Func:{message}")
+        print(f"\nID:    {id}")
+        print(f"Model: {model}")
+        print(f"Func:  {message}")
 
     def rule(self, message: str = "", **kwargs: Any) -> None:
         if not config.verbose or not self.show_react:

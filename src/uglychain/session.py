@@ -6,9 +6,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
-from .console import BaseConsole, get_console
-from .react.action import Action
-from .tools import Tool
+from .console import BaseConsole, SimpleConsole
 from .utils import Logger
 
 MAX_AGRS: int = 5
@@ -20,25 +18,26 @@ class Session:
     session_type: Literal["llm", "react"] = "llm"
     uuid: uuid.UUID = field(init=False, default_factory=uuid.uuid1)
     info: dict[str, str] = field(init=False, default_factory=dict)
-    console: BaseConsole = field(default_factory=get_console)
+    consoles: list[BaseConsole] = field(init=False, default_factory=list)
 
     def __post_init__(self) -> None:
-        self.init_console()
+        self.console_register(SimpleConsole())
 
-    def init_console(self) -> None:
-        Logger.get(self.id, "base_info").regedit(self.console.base_info)
+    def console_register(self, console: BaseConsole) -> None:
+        self.consoles.append(console)
+        Logger.get(self.id, "base_info").regedit(console.base_info)
         if self.session_type == "llm":
-            Logger.get(self.id, "api_params").regedit(self.console.api_params)
-            Logger.get(self.id, "results").regedit(self.console.results)
-            Logger.get(self.id, "progress_start").regedit(self.console.progress_start)
-            Logger.get(self.id, "progress_intermediate").regedit(self.console.progress_intermediate)
-            Logger.get(self.id, "progress_end").regedit(self.console.progress_end)
-            Logger.get(self.id, "messages").regedit(self.console.log_messages)
+            Logger.get(self.id, "api_params").regedit(console.api_params)
+            Logger.get(self.id, "results").regedit(console.results)
+            Logger.get(self.id, "progress_start").regedit(console.progress_start)
+            Logger.get(self.id, "progress_intermediate").regedit(console.progress_intermediate)
+            Logger.get(self.id, "progress_end").regedit(console.progress_end)
+            Logger.get(self.id, "messages").regedit(console.log_messages)
         elif self.session_type == "react":
-            self.console.show_react = True
-            Logger.get(self.id, "rule").regedit(self.console.rule)
-            Logger.get(self.id, "action").regedit(self.console.action_message)
-            Logger.get(self.id, "tool").regedit(self.console.tool_message)
+            console.show_react = True
+            Logger.get(self.id, "rule").regedit(console.rule)
+            Logger.get(self.id, "action").regedit(console.action_message)
+            Logger.get(self.id, "tool").regedit(console.tool_message)
 
     @property
     def model(self) -> str:
@@ -65,24 +64,12 @@ class Session:
         Logger.get(self.id, module).info(message, **kwargs)
 
     def show_base_info(self) -> None:
-        self.log("base_info", self.func, model=self.model)
-        self.console.show_base_info = False
-
-    def process(self, act: Action) -> None:
-        self.log("tool", act.tool, arguments=act.args)
-        if not self.call_tool_confirm(act.tool):
-            act.obs = "User cancelled. Please find other ways to solve this problem."
-            return
-        try:
-            result = Tool.call_tool(act.tool, **act.args)
-            act.obs, act.image = result if isinstance(result, tuple) else (result, None)
-            self.log("action", _short_result(act.obs), style="bold green")
-        except Exception as e:
-            act.obs = f"Error: {e}"
-            self.log("action", act.obs, style="bold red")
+        self.log("base_info", self.func, model=self.model, id=self.id)
+        for console in self.consoles:
+            console.show_base_info = False
 
     def call_tool_confirm(self, name: str) -> bool:
-        return self.console.call_tool_confirm(name)
+        return self.consoles[0].call_tool_confirm(name)
 
     @staticmethod
     def format_func_call(func: Callable, *args: Any, **kwargs: Any) -> str:
@@ -131,13 +118,3 @@ def _format_arg_str(arg_str: Any, max_len: int = MAX_ARGS_LEN) -> str:
             return f"{arg_str[:max_len].strip()}..."
         else:
             return arg_str
-
-
-def _short_result(result: str) -> str:
-    lines = result.split("\n")
-    if len(lines) > 10:
-        return "\n".join(lines[:10]) + "\n..."
-    elif len(result) > 200:
-        return result[:200] + "..."
-    else:
-        return result

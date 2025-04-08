@@ -6,8 +6,10 @@ from dataclasses import dataclass
 from functools import singledispatch
 from typing import Any, ClassVar, cast, overload
 
-from .function_schema import function_schema
-from .schema import MCP, BaseTool, ToolsClass
+from ..utils import function_schema
+from .base_tool import BaseTool
+from .mcp import MCP
+from .schema import ToolsClass
 from .tool_manager import ToolsManager
 
 

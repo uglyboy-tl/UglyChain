@@ -3,9 +3,9 @@ from __future__ import annotations
 import pytest
 
 from uglychain.client import Client
-from uglychain.console import RichConsole
+from uglychain.console.rich import RichConsole
 from uglychain.session import Session
-from uglychain.tools.tool_manager import ToolsManager
+from uglychain.tools.core.tool_manager import ToolsManager
 
 
 @pytest.fixture
@@ -18,13 +18,15 @@ def console(mocker):
 
 @pytest.fixture
 def session(mocker, console):
-    session = Session(console=console)
+    session = Session()
+    session.console_register(console)
     return session
 
 
 @pytest.fixture
 def react_session(mocker, console):
-    session = Session("react", console=console)
+    session = Session("react")
+    session.console_register(console)
     return session
 
 

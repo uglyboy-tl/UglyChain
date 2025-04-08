@@ -8,7 +8,7 @@ from typing import Any
 
 from uglychain.utils import singleton
 
-from .mcp import McpTool
+from ..utils import McpTool
 
 
 def cleanup() -> None:

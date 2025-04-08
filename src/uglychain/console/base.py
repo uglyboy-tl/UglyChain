@@ -18,7 +18,7 @@ class BaseConsole(ABC):
     show_react: bool = False
 
     @abstractmethod
-    def base_info(self, message: str = "", model: str = "") -> None:
+    def base_info(self, message: str = "", model: str = "", id: str = "") -> None:
         pass
 
     @abstractmethod
@@ -60,3 +60,38 @@ class BaseConsole(ABC):
     @abstractmethod
     def call_tool_confirm(self, name: str) -> bool:
         pass
+
+
+class EmptyConsole(BaseConsole):
+    def base_info(self, message: str = "", model: str = "", id: str = "") -> None:
+        return
+
+    def rule(self, message: str = "", **kwargs: Any) -> None:
+        return
+
+    def action_message(self, message: str = "", **kwargs: Any) -> None:
+        return
+
+    def tool_message(self, message: str = "", arguments: dict[str, Any] | None = None) -> None:
+        return
+
+    def api_params(self, api_params: dict[str, Any]) -> None:
+        return
+
+    def results(self, result: list | Iterator) -> None:
+        return
+
+    def progress_start(self, n: int) -> None:
+        return
+
+    def progress_intermediate(self) -> None:
+        return
+
+    def progress_end(self) -> None:
+        return
+
+    def log_messages(self, messages: Messages) -> None:
+        return
+
+    def call_tool_confirm(self, name: str) -> bool:
+        return True

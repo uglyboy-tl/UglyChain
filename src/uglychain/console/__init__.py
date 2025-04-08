@@ -1,15 +1,10 @@
 from __future__ import annotations
 
-from .base import BaseConsole
-from .rich import RichConsole
+from .base import BaseConsole, EmptyConsole
 from .simple import SimpleConsole
 
-
-def get_console() -> BaseConsole:
-    return SimpleConsole()
-
-
 __all__ = [
-    "get_console",
+    "SimpleConsole",
+    "EmptyConsole",
     "BaseConsole",
 ]

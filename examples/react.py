@@ -3,7 +3,7 @@ from __future__ import annotations
 from pydantic import BaseModel
 
 from uglychain import config, react
-from uglychain.tools.default import e2b_mcp_server, execute_command, visit_webpage, web_search
+from uglychain.tools.providers.default import e2b_mcp_server, execute_command, visit_webpage, web_search
 
 
 class Date(BaseModel):
@@ -20,12 +20,12 @@ def update(message_history: list[dict[str, str]]):
     return message_history
 
 
-@react("deepseek:deepseek-chat", [execute_command, visit_webpage])
+@react(tools=[execute_command, visit_webpage])
 def weather(city: str):
     return f"使用 wttr.in 获取{city}的天气信息"
 
 
-@react(tools=[e2b_mcp_server])
+@react("deepseek:deepseek-chat", [e2b_mcp_server])
 def code_interpreter(question: str):
     return f"{question}"
 

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from uglychain import config, react
-from uglychain.tools.coder import Coder
-from uglychain.tools.default import execute_command
+from uglychain.tools.providers.coder import Coder
+from uglychain.tools.providers.default import execute_command
 
 
 @react(tools=[Coder, execute_command])
