@@ -2,3 +2,4 @@
 - [ ] Thinking 模型的思考能力和任意模型组合
 - [ ] Config 配置信息的本地加载
 - [ ] MCP 的资源和 Prompt 信息的利用
+- [ ] MCP 支持 SSE 和 WS 协议

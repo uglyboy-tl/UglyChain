@@ -12,7 +12,7 @@ from ..utils import McpTool
 
 
 def cleanup() -> None:
-    ToolsManager().stop()
+    asyncio.run(ToolsManager().cleanup_clients())
 
 
 atexit.register(cleanup)
@@ -25,14 +25,20 @@ class ToolsManager:
     mcp_tools: dict[str, McpTool] = field(default_factory=dict)
     mcp_names: set[str] = field(default_factory=set)
 
-    def stop(self) -> None:
+    async def cleanup_clients(self) -> None:
         client_names, clients = set(), []
         for tool in self.mcp_tools.values():
             if tool.client.name not in client_names:
                 clients.append(tool.client)
                 client_names.add(tool.client.name)
+        cleanup_tasks = []
         for client in clients:
-            asyncio.run(client.close())
+            cleanup_tasks.append(asyncio.create_task(client.close()))
+        if cleanup_tasks:
+            try:
+                await asyncio.gather(*cleanup_tasks, return_exceptions=True)
+            except Exception as e:
+                print(f"Warning during final cleanup: {e}")
 
     def call_tool(self, tool_name: str, arguments: dict[str, Any]) -> str | tuple[str, str]:
         if tool_name not in self.tools and tool_name not in self.mcp_tools:

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import AsyncExitStack
 from dataclasses import dataclass, field
 from typing import Any, ClassVar
 
@@ -22,7 +23,15 @@ class McpTool:
         if not self.client._session:
             self.client.initialize()
         result = await self.client._session.call_tool(self.name, arguments=kwargs)  # type: ignore
-        return to_json(result.content).decode()
+        content = result.content[0]
+        if isinstance(content, types.TextContent):
+            return content.text
+        elif isinstance(content, types.ImageContent):
+            return content.data
+        elif isinstance(content, types.EmbeddedResource) and isinstance(content.resource, types.TextResourceContents):
+            return content.resource.text
+        else:
+            raise ValueError(f"Unsupported content type: {type(content)}")
 
     def __call__(self, **kwargs: Any) -> str:
         future = self.client._executor.submit(self.client._loop.run_until_complete, self._arun(**kwargs))
@@ -35,7 +44,9 @@ class McpClient:
     server_param: StdioServerParameters
     _session: ClientSession | None = None
     _tools: list[McpTool] = field(default_factory=list)
-    _init_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+    _init_lock: asyncio.Lock = field(init=False, default_factory=asyncio.Lock)
+    _cleanup_lock: asyncio.Lock = field(init=False, default_factory=asyncio.Lock)
+    exit_stack: AsyncExitStack = field(init=False, default_factory=AsyncExitStack)
     _loop: ClassVar[asyncio.AbstractEventLoop] = field(init=False, default=asyncio.get_event_loop())
     _executor: ClassVar[ThreadPoolExecutor] = field(init=False, default=ThreadPoolExecutor())
 
@@ -50,10 +61,10 @@ class McpClient:
         async with self._init_lock:
             if self._session is None:
                 self._client = stdio_client(self.server_param)
-                read, write = await self._client.__aenter__()
-                self._session = ClientSession(read, write)
-                await self._session.__aenter__()
-                await self._session.initialize()
+                read, write = await self.exit_stack.enter_async_context(self._client)
+                _session = await self.exit_stack.enter_async_context(ClientSession(read, write))
+                await _session.initialize()
+                self._session = _session
             return self._session
 
     async def _ainitialize(self, force_refresh: bool) -> None:
@@ -75,23 +86,14 @@ class McpClient:
         future.result()
 
     async def close(self) -> None:
-        pass
-        """
-        try:
-            if self._session:
-                await self._session.__aexit__(None, None, None)
-        except Exception:
-            # Currently above code doesn't really works and not closing the session
-            # But it's not a big deal as we are exiting anyway
-            # TODO find a way to cleanly close the session
-            pass
-        try:
-            if self._client:
-                await self._client.__aexit__(None, None, None)
-        except Exception:
-            # TODO find a way to cleanly close the client
-            pass
-        """
+        """Clean up server resources."""
+        async with self._cleanup_lock:
+            try:
+                await self.exit_stack.aclose()
+                self._session = None
+                self._client = None
+            except Exception as e:
+                print(f"Error during cleanup of server {self.name}: {e}")
 
     @property
     def tools(self) -> list[McpTool]:
