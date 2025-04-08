@@ -9,6 +9,7 @@ from typing import Any
 
 from .llm import llm
 from .schema import P, ToolResponse
+from .session import Session
 from .utils._load_utils import YAML_INSTANCE, convert_to_variable_name, resolve_references, update_dict_recursively
 
 # Constants
@@ -56,10 +57,12 @@ def load(
 
     ## 从配置文件中解析出name, description, model, map_keys 等信息
     name = convert_to_variable_name(configs.pop("name", path.name))
+    session = Session()
     for key in ["id", "description", "author", "version", "tags"]:
-        if key not in configs:
-            continue
-        configs.pop(key)
+        value = configs.pop(key, None)
+        if value:
+            session.info[key] = value
+
     model = configs.pop("model", "")
     map_keys: list[str] | None = configs.pop("map_keys", None)
 
@@ -84,7 +87,7 @@ def load(
     func.__doc__ = system_prompt
     func.__signature__ = new_sig  # type: ignore
     # return func
-    return llm(model, response_format=None, map_keys=map_keys, **configs)(func)
+    return llm(model, response_format=None, map_keys=map_keys, session=session, **configs)(func)
 
 
 def _replace_placeholder(match: re.Match[str], kwargs: dict[str, Any]) -> str:

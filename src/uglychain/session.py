@@ -3,7 +3,7 @@ from __future__ import annotations
 import inspect
 import logging
 import uuid
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -83,11 +83,17 @@ class Session:
 
     @property
     def id(self) -> str:
-        return self.uuid.hex
+        id = self.info.get("id")
+        if id:
+            return id
+        else:
+            return self.uuid.hex
 
     def send(self, module: str, message: Any = None, /, **kwargs: Any) -> None:
         # Log the message, module, and kwargs
         if config.session_log:
+            if isinstance(message, Iterator):
+                message = "".join(message)
             logger.info(message, extra={"id": self.id, "module_name": module, "kwargs": kwargs})
         MessageBus.get(self.id, module).send(message, **kwargs)
 
