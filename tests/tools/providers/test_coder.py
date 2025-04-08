@@ -4,6 +4,10 @@ from pathlib import Path
 
 import pytest
 
+# 在导入其他模块之前检查 unidiff 是否可用
+pytest.importorskip("unidiff", reason="unidiff is not installed")
+
+
 from uglychain.tools.providers.coder import Coder, _convert_path, _convert_to_unified_diff
 
 

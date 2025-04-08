@@ -77,12 +77,12 @@ class RichConsole(BaseConsole):
             return
         self.console.rule(title=message, align="left")
 
-    def action_message(self, message: str = "", **kwargs: Any) -> None:
+    def action_info(self, message: str = "", **kwargs: Any) -> None:
         if not config.verbose or not self.show_react:
             return
         self.console.print(Panel(message, box=box.SIMPLE), **kwargs)
 
-    def tool_message(self, message: str = "", arguments: dict[str, Any] | None = None) -> None:
+    def tool_info(self, message: str = "", arguments: dict[str, Any] | None = None) -> None:
         if (
             config.need_confirm
             and message in ["final_answer", "user_input"]
@@ -110,9 +110,11 @@ class RichConsole(BaseConsole):
                     )
                 self.console.print(params_table)
 
-    def results(self, message: list | Iterator) -> None:
+    def results(self, message: list | Iterator | None = None) -> None:
         if not config.verbose or not self.show_result:
             return
+        if message is None:
+            message = list()
         if isinstance(message, Iterator):
             _result = ["".join(message)]
         else:
@@ -137,7 +139,7 @@ class RichConsole(BaseConsole):
     def progress_end(self) -> None:
         self.progress.stop()
 
-    def log_messages(self, message: Messages) -> None:
+    def messages(self, message: Messages, **kwargs: Any) -> None:
         if not config.verbose or not self.show_message:
             return
         self._init_messages_table()

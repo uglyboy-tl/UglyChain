@@ -29,7 +29,7 @@ def test_obs(mocker, react_session, mock_return, expected_obs, log_style, image)
     process_act(react_session, action)
     assert action.obs == expected_obs
     assert action.image == image
-    react_session.consoles[-1].action_message.assert_called_with(message=expected_obs, style=log_style)
+    react_session.consoles[-1].action_info.assert_called_with(message=expected_obs, style=log_style)
 
 
 def test_done(session):
@@ -105,7 +105,7 @@ def test_obs_multiple_access(mocker, react_session):
     process_act(react_session, action)
     assert action.obs == "Tool output"
     assert action.obs == "Tool output"  # Accessing multiple times should return the same result
-    react_session.consoles[-1].action_message.assert_called_with(message="Tool output", style="bold green")
+    react_session.consoles[-1].action_info.assert_called_with(message="Tool output", style="bold green")
 
 
 def test_from_response_various_inputs(session):

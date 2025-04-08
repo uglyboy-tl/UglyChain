@@ -38,7 +38,16 @@ def tools():
     print(_tools())
 
 
+def tools2():
+    @llm(tools=[will_it_rain], max_turns=2)
+    def _tools():
+        return "I live in San Francisco. Can you check for weather and plan an outdoor picnic for me at 2pm?"
+
+    print(_tools())
+
+
 if __name__ == "__main__":
     config.verbose = True
     functian_call()
     tools()
+    tools2()

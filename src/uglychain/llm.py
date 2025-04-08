@@ -319,7 +319,9 @@ def llm(
                 response_model.process_parameters(model, messages, merged_api_params)
 
                 default_session.send("api_params", merged_api_params)
-                default_session.send("messages", messages)
+                default_session.send(
+                    "messages", messages, id=default_session.id, session_type=default_session.session_type
+                )
 
                 response = Client.generate(model, messages, **merged_api_params)
 

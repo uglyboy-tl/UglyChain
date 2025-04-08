@@ -3,16 +3,15 @@ from __future__ import annotations
 import pytest
 
 from uglychain.client import Client
-from uglychain.console.rich import RichConsole
+from uglychain.console import EmptyConsole
 from uglychain.session import Session
 from uglychain.tools.core.tool_manager import ToolsManager
 
 
 @pytest.fixture
 def console(mocker):
-    console = RichConsole()
-    console.action_message = mocker.MagicMock()
-    console._live = mocker.MagicMock()  # Initialize _live attribute
+    console = EmptyConsole()
+    console.action_info = mocker.MagicMock()
     return console
 
 

@@ -13,9 +13,9 @@ class BaseConsole(ABC):
     show_base_info: bool = True
     show_progress: bool = True
     show_api_params: bool = True
-    show_result: bool = True
+    show_result: bool = False
     show_message: bool = True
-    show_react: bool = False
+    show_react: bool = True
 
     @abstractmethod
     def base_info(self, message: str = "", model: str = "", id: str = "") -> None:
@@ -26,11 +26,11 @@ class BaseConsole(ABC):
         pass
 
     @abstractmethod
-    def action_message(self, message: str = "", **kwargs: Any) -> None:
+    def action_info(self, message: str = "", **kwargs: Any) -> None:
         pass
 
     @abstractmethod
-    def tool_message(self, message: str = "", arguments: dict[str, Any] | None = None) -> None:
+    def tool_info(self, message: str = "", arguments: dict[str, Any] | None = None) -> None:
         pass
 
     @abstractmethod
@@ -38,7 +38,7 @@ class BaseConsole(ABC):
         pass
 
     @abstractmethod
-    def results(self, message: list | Iterator) -> None:
+    def results(self, message: list | Iterator | None = None) -> None:
         pass
 
     @abstractmethod
@@ -54,7 +54,7 @@ class BaseConsole(ABC):
         pass
 
     @abstractmethod
-    def log_messages(self, message: Messages) -> None:
+    def messages(self, message: Messages, **kwargs: Any) -> None:
         pass
 
     @abstractmethod
@@ -69,16 +69,16 @@ class EmptyConsole(BaseConsole):
     def rule(self, message: str = "", **kwargs: Any) -> None:
         return
 
-    def action_message(self, message: str = "", **kwargs: Any) -> None:
+    def action_info(self, message: str = "", **kwargs: Any) -> None:
         return
 
-    def tool_message(self, message: str = "", arguments: dict[str, Any] | None = None) -> None:
+    def tool_info(self, message: str = "", arguments: dict[str, Any] | None = None) -> None:
         return
 
     def api_params(self, message: dict[str, Any] | None = None) -> None:
         return
 
-    def results(self, message: list | Iterator) -> None:
+    def results(self, message: list | Iterator | None = None) -> None:
         return
 
     def progress_start(self, message: int) -> None:
@@ -90,7 +90,7 @@ class EmptyConsole(BaseConsole):
     def progress_end(self) -> None:
         return
 
-    def log_messages(self, message: Messages) -> None:
+    def messages(self, message: Messages, **kwargs: Any) -> None:
         return
 
     def call_tool_confirm(self, message: str) -> bool:

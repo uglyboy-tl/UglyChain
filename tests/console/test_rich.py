@@ -1,6 +1,10 @@
 from __future__ import annotations
 
 import pytest
+
+# 在导入其他模块之前检查 unidiff 是否可用
+pytest.importorskip("rich", reason="rich is not installed")
+
 from rich.console import Console
 from rich.live import Live
 from rich.progress import Progress
@@ -32,7 +36,6 @@ def test_console_initialization(console):
 @pytest.mark.parametrize("verbose, expected_call_count", [(True, 1), (False, 0)])
 def test_log(console, mock_config, mocker, verbose, expected_call_count):
     mock_config.verbose = verbose
-    console.show_react = True
     mock_console = mocker.patch.object(console.console, "print")
     console.action_message(message="Test log message")
     assert mock_console.call_count == expected_call_count
@@ -41,7 +44,6 @@ def test_log(console, mock_config, mocker, verbose, expected_call_count):
 @pytest.mark.parametrize("verbose, method, expected_call_count", [(True, "rule", 1), (False, "print", 0)])
 def test_rule(console, mock_config, mocker, verbose, method, expected_call_count):
     mock_config.verbose = verbose
-    console.show_react = True
     mock_console = mocker.patch.object(console.console, method)
     console.rule(message="Test rule")
     assert mock_console.call_count == expected_call_count
@@ -120,7 +122,6 @@ def test_call_tool_confirm(console, mock_config, monkeypatch, mocker):
 def test_call_tool_confirm_show_info(console, mock_config, monkeypatch, mocker):
     mock_config.need_confirm = False
     mock_config.verbose = True
-    console.show_react = True
     console.call_tool_confirm("test_tool")
 
 

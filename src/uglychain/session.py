@@ -26,18 +26,17 @@ class Session:
     def console_register(self, console: BaseConsole) -> None:
         self.consoles.append(console)
         MessageBus.get(self.id, "base_info").regedit(console.base_info)
+        MessageBus.get(self.id, "messages").regedit(console.messages)
         if self.session_type == "llm":
             MessageBus.get(self.id, "api_params").regedit(console.api_params)
             MessageBus.get(self.id, "results").regedit(console.results)
             MessageBus.get(self.id, "progress_start").regedit(console.progress_start)
             MessageBus.get(self.id, "progress_intermediate").regedit(console.progress_intermediate)
             MessageBus.get(self.id, "progress_end").regedit(console.progress_end)
-            MessageBus.get(self.id, "messages").regedit(console.log_messages)
         elif self.session_type == "react":
-            console.show_react = True
             MessageBus.get(self.id, "rule").regedit(console.rule)
-            MessageBus.get(self.id, "action").regedit(console.action_message)
-            MessageBus.get(self.id, "tool").regedit(console.tool_message)
+            MessageBus.get(self.id, "action").regedit(console.action_info)
+            MessageBus.get(self.id, "tool").regedit(console.tool_info)
 
     @property
     def model(self) -> str:

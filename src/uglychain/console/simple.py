@@ -7,9 +7,8 @@ from dataclasses import dataclass
 from typing import Any
 
 from uglychain.config import config
-from uglychain.schema import Messages
 
-from .base import BaseConsole
+from .base import EmptyConsole
 
 # 创建一个新的 logger 实例
 logger = logging.getLogger("SimpleConsoleLogger")
@@ -18,7 +17,7 @@ logger.addHandler(logging.StreamHandler())
 
 
 @dataclass
-class SimpleConsole(BaseConsole):
+class SimpleConsole(EmptyConsole):
     def base_info(self, message: str = "", model: str = "", id: str = "") -> None:
         if not config.verbose or not self.show_base_info:
             return
@@ -31,12 +30,12 @@ class SimpleConsole(BaseConsole):
             return
         logger.info(f"\n--- {message} ---")
 
-    def action_message(self, message: str = "", **kwargs: Any) -> None:
+    def action_info(self, message: str = "", **kwargs: Any) -> None:
         if not config.verbose or not self.show_react:
             return
         logger.info(message)
 
-    def tool_message(self, message: str = "", arguments: dict[str, Any] | None = None) -> None:
+    def tool_info(self, message: str = "", arguments: dict[str, Any] | None = None) -> None:
         if (
             config.need_confirm
             and message in ["final_answer", "user_input"]
@@ -52,7 +51,9 @@ class SimpleConsole(BaseConsole):
             message = dict()
         return
 
-    def results(self, message: list | Iterator) -> None:
+    def results(self, message: list | Iterator | None = None) -> None:
+        if message is None:
+            message = list()
         if not config.verbose or not self.show_result:
             return
         if isinstance(message, Iterator):
@@ -62,18 +63,3 @@ class SimpleConsole(BaseConsole):
         else:
             for i in message:
                 logger.info(i)
-
-    def progress_start(self, message: int) -> None:
-        return
-
-    def progress_intermediate(self) -> None:
-        return
-
-    def progress_end(self) -> None:
-        return
-
-    def log_messages(self, message: Messages) -> None:
-        return
-
-    def call_tool_confirm(self, message: str) -> bool:
-        return True
