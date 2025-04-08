@@ -14,6 +14,7 @@ class Config(BaseModel):
     llm_timeout: int = Field(default=30, description="语言模型的最大运行时间（秒）。")
     llm_wait_time: int = Field(default=0, description="语言模型的每次重试等待时间（秒）。")
     use_parallel_processing: bool = Field(default=False, description="是否对语言模型使用并行处理。")
+    session_log: bool = Field(default=True, description="如果为真，则启用会话日志记录。")
     verbose: bool = Field(default=False, description="如果为真，则启用详细日志记录。")
     need_confirm: bool = Field(default=False, description="如果为真，则工具使用需要确认。")
 

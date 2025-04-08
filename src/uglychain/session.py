@@ -1,16 +1,42 @@
 from __future__ import annotations
 
 import inspect
+import logging
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import datetime
+from pathlib import Path
 from typing import Any, Literal
 
+from .config import config
 from .console import BaseConsole, SimpleConsole
 from .utils import MessageBus
 
 MAX_AGRS: int = 5
 MAX_ARGS_LEN: int = 8
+
+
+class CustomFormatter(logging.Formatter):
+    def format(self, record: logging.LogRecord) -> str:
+        if not record.msg:
+            self._style._fmt = "%(asctime)s - %(id)s - %(module_name)s"
+        else:
+            self._style._fmt = "%(asctime)s - %(id)s - %(module_name)s - %(message)s"
+        return super().format(record)
+
+
+# Ensure the logs directory exists
+if config.session_log:
+    Path("logs").mkdir(parents=True, exist_ok=True)
+
+logger = logging.getLogger("SessionLogger")
+logger.setLevel(logging.INFO)
+timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+handler = logging.FileHandler(f"logs/session_{timestamp}.log")
+formatter = CustomFormatter()
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 
 @dataclass
@@ -60,6 +86,9 @@ class Session:
         return self.uuid.hex
 
     def send(self, module: str, message: Any = None, /, **kwargs: Any) -> None:
+        # Log the message, module, and kwargs
+        if config.session_log:
+            logger.info(message, extra={"id": self.id, "module_name": module, "kwargs": kwargs})
         MessageBus.get(self.id, module).send(message, **kwargs)
 
     def show_base_info(self) -> None:
