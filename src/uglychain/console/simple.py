@@ -47,7 +47,9 @@ class SimpleConsole(BaseConsole):
         logger.info(json.dumps(arguments, indent=2, ensure_ascii=False))
         logger.info("=======================")
 
-    def api_params(self, message: dict[str, Any]) -> None:
+    def api_params(self, message: dict[str, Any] | None = None) -> None:
+        if message is None:
+            message = dict()
         return
 
     def results(self, message: list | Iterator) -> None:

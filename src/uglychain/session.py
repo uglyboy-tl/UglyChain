@@ -60,7 +60,7 @@ class Session:
     def id(self) -> str:
         return self.uuid.hex
 
-    def send(self, module: str, message: object = "", /, **kwargs: Any) -> None:
+    def send(self, module: str, message: Any = None, /, **kwargs: Any) -> None:
         MessageBus.get(self.id, module).send(message, **kwargs)
 
     def show_base_info(self) -> None:

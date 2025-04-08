@@ -40,7 +40,7 @@ class MessageBus:
     signal: ClassVar[NamedSignal] = signal("uglychain")
     _map: ClassVar[dict[str, dict[str, MessageBus]]] = field(default={})
 
-    def send(self, message: object = "", **kwargs: Any) -> None:
+    def send(self, message: Any = None, **kwargs: Any) -> None:
         if message:
             kwargs.update(message=message)
         # Log the message, module, and kwargs

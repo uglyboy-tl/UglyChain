@@ -34,7 +34,7 @@ class BaseConsole(ABC):
         pass
 
     @abstractmethod
-    def api_params(self, message: dict[str, Any]) -> None:
+    def api_params(self, message: dict[str, Any] | None = None) -> None:
         pass
 
     @abstractmethod
@@ -75,7 +75,7 @@ class EmptyConsole(BaseConsole):
     def tool_message(self, message: str = "", arguments: dict[str, Any] | None = None) -> None:
         return
 
-    def api_params(self, message: dict[str, Any]) -> None:
+    def api_params(self, message: dict[str, Any] | None = None) -> None:
         return
 
     def results(self, message: list | Iterator) -> None:

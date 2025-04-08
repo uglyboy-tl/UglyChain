@@ -96,7 +96,7 @@ class RichConsole(BaseConsole):
             )
         )
 
-    def api_params(self, message: dict[str, Any]) -> None:
+    def api_params(self, message: dict[str, Any] | None = None) -> None:
         if not config.verbose or not self.show_api_params:
             return
         if message:

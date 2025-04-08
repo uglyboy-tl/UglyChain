@@ -49,6 +49,16 @@ def get_current_weather(location: str, unit: Unit = Unit.FAHRENHEIT) -> str:
     return "晴天，25华氏度"
 
 
+def will_it_rain(location: str, time_of_day: str):
+    """Check if it will rain in a location at a given time today.
+
+    Args:
+        location (str): Name of the city
+        time_of_day (str): Time of the day in HH:MM format.
+    """
+    return "YES"
+
+
 def search_baidu(query: str) -> str:
     """Search Baidu for the query.
 
