@@ -6,6 +6,7 @@ from contextlib import contextmanager
 from unittest.mock import MagicMock
 
 import pytest
+from mcp import types
 
 from uglychain.tools.core import Tool
 from uglychain.tools.core.mcp import MCP
@@ -107,12 +108,13 @@ def test_mcp_post_init(mocker):
 async def test_mcp_tool_arun(mocker, tools_manager):
     mock_client = mocker.patch("uglychain.tools.core.mcp.McpClient")
     client = mock_client.return_value
-    mcp_tool = McpTool(client_name="client", name="tool", description="", args_schema={}, client=client)
-    mock_session = mocker.patch.object(client, "_session")
+    mcp_tool = McpTool(client_name="client", client=client, name="tool")
+    mock_session = mocker.patch.object(client, "session")
     mock_session.call_tool.return_value = asyncio.Future()
-    mock_session.call_tool.return_value.set_result(MagicMock(content="result"))
+    content = types.TextContent(type="text", text="result")
+    mock_session.call_tool.return_value.set_result(type("Response", (object,), {"content": [content]}))
     result = await mcp_tool._arun(arg1="value1")
-    assert result == '"result"'
+    assert result == "result"
     tools_manager.mcp_tools.clear()
 
 

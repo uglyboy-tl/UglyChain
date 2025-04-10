@@ -7,7 +7,7 @@ from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, ClassVar, Literal
 
 from .config import config
 from .console import BaseConsole, SimpleConsole
@@ -26,17 +26,23 @@ class CustomFormatter(logging.Formatter):
         return super().format(record)
 
 
-# Ensure the logs directory exists
-if config.session_log:
-    Path("logs").mkdir(parents=True, exist_ok=True)
+@dataclass
+class Logger:
+    _logger: ClassVar[logging.Logger | None] = None
 
-logger = logging.getLogger("SessionLogger")
-logger.setLevel(logging.INFO)
-timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-handler = logging.FileHandler(f"logs/session_{timestamp}.log")
-formatter = CustomFormatter()
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+    @classmethod
+    def info(cls, message: str, **kwargs: Any) -> None:
+        if not config.session_log:
+            return
+        if cls._logger is None:
+            cls._logger = logging.getLogger("SessionLogger")
+            cls._logger.setLevel(logging.INFO)
+            timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+            Path("logs").mkdir(parents=True, exist_ok=True)
+            handler = logging.FileHandler(f"logs/session_{timestamp}.log")
+            handler.setFormatter(CustomFormatter())
+            cls._logger.addHandler(handler)
+        cls._logger.info(message, **kwargs)
 
 
 @dataclass
@@ -94,7 +100,7 @@ class Session:
         if config.session_log:
             if isinstance(message, Iterator):
                 message = "".join(message)
-            logger.info(message, extra={"id": self.id, "module_name": module, "kwargs": kwargs})
+            Logger.info(message, extra={"id": self.id, "module_name": module, "kwargs": kwargs})
         MessageBus.get(self.id, module).send(message, **kwargs)
 
     def show_base_info(self) -> None:

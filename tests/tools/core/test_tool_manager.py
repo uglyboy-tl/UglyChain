@@ -20,7 +20,7 @@ def test_tools_manager_singleton():
 
 
 def test_cleanup(mocker):
-    mock_stop = mocker.patch.object(ToolsManager(), "stop")
+    mock_stop = mocker.patch.object(ToolsManager(), "cleanup_clients")
     cleanup()
     mock_stop.assert_called_once()
 
