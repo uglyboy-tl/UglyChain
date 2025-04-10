@@ -98,8 +98,6 @@ class Session:
     def send(self, module: str, message: Any = None, /, **kwargs: Any) -> None:
         # Log the message, module, and kwargs
         if config.session_log:
-            if isinstance(message, Iterator):
-                message = "".join(message)
             Logger.info(message, extra={"id": self.id, "module_name": module, "kwargs": kwargs})
         MessageBus.get(self.id, module).send(message, **kwargs)
 

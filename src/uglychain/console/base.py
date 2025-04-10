@@ -13,7 +13,7 @@ class BaseConsole(ABC):
     show_base_info: bool = True
     show_progress: bool = True
     show_api_params: bool = True
-    show_result: bool = False
+    show_result: bool = True
     show_message: bool = True
     show_react: bool = True
 
