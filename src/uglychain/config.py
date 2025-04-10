@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import configparser
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -26,12 +27,13 @@ config = Config()
 
 # 读取本地配置文件以覆盖默认值
 CONFIG_FILENAME = "config.ini"
+CONFIG_APP_DIR = "uglychain"
 CONFIG_SECTION = "uglychain"
 
 parser = configparser.ConfigParser()
 # 尝试从多个位置读取配置文件，例如当前目录或用户主目录
 config_path_local = Path(CONFIG_FILENAME)
-config_path_home = Path.home() / ".config" / CONFIG_FILENAME
+config_path_home = Path(Path(os.getenv("XDG_CONFIG_HOME", Path.home() / ".config")) / CONFIG_APP_DIR / CONFIG_FILENAME)
 config_files_read = parser.read([config_path_local, config_path_home])
 
 if config_files_read and parser.has_section(CONFIG_SECTION):
