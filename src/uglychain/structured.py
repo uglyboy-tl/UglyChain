@@ -94,7 +94,7 @@ class ResponseModel(Generic[T]):
             return ToolResponse.parse(choice.message.tool_calls[0].function)
         # Other modes
         if self.response_type is str:
-            response = f"<think>\n{reasoning_content}\n</think>\n" if reasoning_content else ""
+            response = f"<thinking>\n{reasoning_content}\n</thinking>\n" if reasoning_content else ""
             response += choice.message.content.strip()
             return response
         assert issubclass(self.response_type, BaseModel) and not inspect.isabstract(self.response_type)

@@ -18,10 +18,10 @@ logger.addHandler(logging.StreamHandler())
 
 @dataclass
 class SimpleConsole(EmptyConsole):
-    def base_info(self, message: str = "", model: str = "", id: str = "") -> None:
+    def base_info(self, message: str = "", model: str = "") -> None:
         if not config.verbose or not self.show_base_info:
             return
-        logger.info(f"\nID:    {id}")
+        logger.info(f"\nID:    {self.id}")
         logger.info(f"Model: {model}")
         logger.info(f"Func:  {message}")
 

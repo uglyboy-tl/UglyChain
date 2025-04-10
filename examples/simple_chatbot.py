@@ -25,5 +25,5 @@ while True:
             output += chunk
         print()
     else:
-        output = response.split("</think>")[-1]
+        output = response.split("</thinking>")[-1]
     message_history.append({"role": "assistant", "content": output})

@@ -10,7 +10,7 @@ from uglychain.tools.core.tool_manager import ToolsManager
 
 @pytest.fixture
 def console(mocker):
-    console = EmptyConsole()
+    console = EmptyConsole("test")
     console.action_info = mocker.MagicMock()
     return console
 

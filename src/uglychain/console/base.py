@@ -10,6 +10,7 @@ from uglychain.schema import Messages
 
 @dataclass
 class BaseConsole(ABC):
+    id: str
     show_base_info: bool = True
     show_progress: bool = True
     show_api_params: bool = True
@@ -18,7 +19,7 @@ class BaseConsole(ABC):
     show_react: bool = True
 
     @abstractmethod
-    def base_info(self, message: str = "", model: str = "", id: str = "") -> None:
+    def base_info(self, message: str = "", model: str = "") -> None:
         pass
 
     @abstractmethod
@@ -63,7 +64,7 @@ class BaseConsole(ABC):
 
 
 class EmptyConsole(BaseConsole):
-    def base_info(self, message: str = "", model: str = "", id: str = "") -> None:
+    def base_info(self, message: str = "", model: str = "") -> None:
         return
 
     def rule(self, message: str = "", **kwargs: Any) -> None:

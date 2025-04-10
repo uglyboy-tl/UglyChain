@@ -3,7 +3,7 @@ from __future__ import annotations
 import inspect
 import logging
 import uuid
-from collections.abc import Callable, Iterator
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -47,13 +47,17 @@ class Logger:
 
 @dataclass
 class Session:
-    session_type: Literal["llm", "react"] = "llm"
-    uuid: uuid.UUID = field(init=False, default_factory=uuid.uuid1)
+    session_type: Literal["llm", "think", "react"] = "llm"
+    uuid: uuid.UUID = field(init=False, default_factory=uuid.uuid4)
     info: dict[str, str] = field(init=False, default_factory=dict)
     consoles: list[BaseConsole] = field(init=False, default_factory=list)
 
     def __post_init__(self) -> None:
-        self.console_register(SimpleConsole())
+        self.add_console(SimpleConsole)
+
+    def add_console(self, cls: type[BaseConsole]) -> None:
+        console = cls(self.id)
+        self.console_register(console)
 
     def console_register(self, console: BaseConsole) -> None:
         self.consoles.append(console)
@@ -102,7 +106,7 @@ class Session:
         MessageBus.get(self.id, module).send(message, **kwargs)
 
     def show_base_info(self) -> None:
-        self.send("base_info", self.func, model=self.model, id=self.id)
+        self.send("base_info", self.func, model=self.model)
         for console in self.consoles:
             console.show_base_info = False
 
