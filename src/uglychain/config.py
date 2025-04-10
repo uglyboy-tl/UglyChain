@@ -28,7 +28,7 @@ config = Config()
 # 读取本地配置文件以覆盖默认值
 CONFIG_FILENAME = "config.ini"
 CONFIG_APP_DIR = "uglychain"
-CONFIG_SECTION = "uglychain"
+CONFIG_SECTION = "DEFAULT"
 
 parser = configparser.ConfigParser()
 # 尝试从多个位置读取配置文件，例如当前目录或用户主目录
