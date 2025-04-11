@@ -23,15 +23,15 @@ def solve_math(problem: str):
 
 
 if __name__ == "__main__":
-    # config.verbose = True
+    config.verbose = True
 
     # 简单示例
     result = solve_problem(
         "如果一个球从10米高的地方落下，假设每次弹起的高度是前一次的80%，那么它会弹几次才能达到不足1米的高度？"
     )
-    print(result)
+    print(f"\n===\n{result}")
 
     # 结构化输出示例
     answer = solve_math("计算 (3x^2 + 2x - 5) 在 x=2 时的值")
-    print(f"Solution: {answer.solution}")
+    print(f"\n===\nSolution: {answer.solution}")
     print(f"Explanation: {answer.explanation}")

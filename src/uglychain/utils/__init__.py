@@ -5,6 +5,7 @@ from ._parse import parse_to_dict
 from .message_bus import MessageBus
 from .retry import retry
 from .singleton import singleton
+from .stream import Stream
 
 __all__ = [
     "convert_to_variable_name",
@@ -12,4 +13,5 @@ __all__ = [
     "singleton",
     "parse_to_dict",
     "MessageBus",
+    "Stream",
 ]

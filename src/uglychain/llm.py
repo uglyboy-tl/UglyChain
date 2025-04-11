@@ -11,7 +11,7 @@ from .config import config
 from .schema import Messages, P, T, ToolResponse
 from .session import Session
 from .structured import ResponseModel
-from .utils import retry
+from .utils import Stream, retry
 
 
 @overload
@@ -326,9 +326,9 @@ def llm(
                 response = Client.generate(model, messages, **merged_api_params)
 
                 if merged_api_params.get("stream", False):
-                    stream_result = process_stream_resopnse(response)
-                    default_session.send("results", stream_result)
-                    return stream_result
+                    stream = Stream(process_stream_resopnse(response))
+                    default_session.send("results", stream)
+                    return stream.iterator
                 else:
                     result = [response_model.parse_from_response(choice) for choice in response]
                     default_session.send("progress_intermediate")

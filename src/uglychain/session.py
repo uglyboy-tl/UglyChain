@@ -63,12 +63,15 @@ class Session:
         self.consoles.append(console)
         MessageBus.get(self.id, "base_info").regedit(console.base_info)
         MessageBus.get(self.id, "messages").regedit(console.messages)
-        if self.session_type == "llm" or self.session_type == "think":
+        if self.session_type == "llm":
             MessageBus.get(self.id, "api_params").regedit(console.api_params)
             MessageBus.get(self.id, "results").regedit(console.results)
             MessageBus.get(self.id, "progress_start").regedit(console.progress_start)
             MessageBus.get(self.id, "progress_intermediate").regedit(console.progress_intermediate)
             MessageBus.get(self.id, "progress_end").regedit(console.progress_end)
+        elif self.session_type == "think":
+            MessageBus.get(self.id, "api_params").regedit(console.api_params)
+            MessageBus.get(self.id, "results").regedit(console.results)
         elif self.session_type == "react":
             MessageBus.get(self.id, "rule").regedit(console.rule)
             MessageBus.get(self.id, "action").regedit(console.action_info)

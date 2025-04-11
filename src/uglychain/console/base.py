@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from uglychain.schema import Messages
+from uglychain.utils import Stream
 
 
 @dataclass
@@ -39,7 +40,7 @@ class BaseConsole(ABC):
         pass
 
     @abstractmethod
-    def results(self, message: list | Iterator | None = None) -> None:
+    def results(self, message: list | Stream | None = None) -> None:
         pass
 
     @abstractmethod
@@ -79,7 +80,7 @@ class EmptyConsole(BaseConsole):
     def api_params(self, message: dict[str, Any] | None = None) -> None:
         return
 
-    def results(self, message: list | Iterator | None = None) -> None:
+    def results(self, message: list | Stream | None = None) -> None:
         return
 
     def progress_start(self, message: int) -> None:

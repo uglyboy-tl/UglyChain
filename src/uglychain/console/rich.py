@@ -17,6 +17,7 @@ from rich.table import Table, box
 
 from uglychain.config import config
 from uglychain.schema import Messages
+from uglychain.utils import Stream
 
 from .base import BaseConsole
 
@@ -110,13 +111,13 @@ class RichConsole(BaseConsole):
                     )
                 self.console.print(params_table)
 
-    def results(self, message: list | Iterator | None = None) -> None:
+    def results(self, message: list | Stream | None = None) -> None:
         if not config.verbose or not self.show_result:
             return
         if message is None:
             message = list()
-        if isinstance(message, Iterator):
-            _result = ["".join(message)]
+        if isinstance(message, Stream):
+            _result = ["".join(message.iterator)]
         else:
             _result = message
         self.console.print(
