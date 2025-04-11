@@ -63,7 +63,7 @@ class Session:
         self.consoles.append(console)
         MessageBus.get(self.id, "base_info").regedit(console.base_info)
         MessageBus.get(self.id, "messages").regedit(console.messages)
-        if self.session_type == "llm":
+        if self.session_type == "llm" or self.session_type == "think":
             MessageBus.get(self.id, "api_params").regedit(console.api_params)
             MessageBus.get(self.id, "results").regedit(console.results)
             MessageBus.get(self.id, "progress_start").regedit(console.progress_start)
