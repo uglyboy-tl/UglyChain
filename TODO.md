@@ -1,4 +1,4 @@
-- [ ] React 使用 Stream 时，流式数据的渲染
+- [x] React 使用 Stream 时，流式数据的渲染
 - [x] Thinking 模型的思考能力和任意模型组合
 - [x] Config 配置信息的本地加载
 - [ ] MCP 的资源和 Prompt 信息的利用
