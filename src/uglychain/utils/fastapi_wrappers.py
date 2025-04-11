@@ -8,7 +8,7 @@ from inspect import Parameter, signature
 from pydantic import BaseModel, create_model
 
 
-def decorator(func: Callable) -> Callable:
+def json_post_endpoint(func: Callable) -> Callable:
     # 获取函数签名信息
     sig = signature(func)
     parameters = sig.parameters
