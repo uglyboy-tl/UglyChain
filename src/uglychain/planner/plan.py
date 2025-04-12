@@ -4,7 +4,7 @@ import textwrap
 from dataclasses import dataclass, field
 from functools import cached_property
 
-from examples.mcp import amap_mcp_server, thinking_mcp_server
+from examples.mcp_tool import amap_mcp_server, thinking_mcp_server
 
 from uglychain import llm
 from uglychain.planner.prompt import INITIAL_PLAN, UPDATE_PLAN_SYSTEM, UPDATE_PLAN_USER

@@ -94,7 +94,17 @@ def test_mcp(tools_manager, mocker):
     assert fetch.tools[0].name == "Fetch:fetch"
     assert Tool.call_tool("Fetch:fetch", url="https://jsonplaceholder.typicode.com/posts")
     mock_call_tool.assert_called_once()
-    tools_manager.stop()
+    tools_manager.cleanup_clients()
+
+
+def test_mcp_see(tools_manager):
+    class Amap:
+        command = f"https://mcp.amap.com/sse?key={os.getenv('AMAP_MAPS_API_KEY')}"
+
+    amap = Tool.mcp(Amap)
+    assert amap.tools[-1].name == "Amap:maps_weather"
+    Tool.call_tool("Amap:maps_weather", city="北京")
+    tools_manager.cleanup_clients()
 
 
 def test_mcp_post_init(mocker):

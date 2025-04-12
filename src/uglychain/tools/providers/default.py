@@ -38,7 +38,7 @@ def execute_command(command: str) -> str:
         else:
             return f"Command execution failed with return code {result.returncode}.{_format_std(result.stdout, result.stderr)}"
     except subprocess.TimeoutExpired:
-        return "Command execution timed out after {TIMEOUT} seconds."
+        return f"Command execution timed out after {TIMEOUT} seconds."
     except subprocess.SubprocessError as e:
         return f"Failed to execute command: {str(e)}"
     except Exception as e:

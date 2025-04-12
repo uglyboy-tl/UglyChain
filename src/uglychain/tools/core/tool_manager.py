@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import asyncio
-import atexit
+
+# import atexit
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
@@ -15,7 +16,7 @@ def cleanup() -> None:
     asyncio.run(ToolsManager().cleanup_clients())
 
 
-atexit.register(cleanup)
+# atexit.register(cleanup)
 
 
 @singleton
