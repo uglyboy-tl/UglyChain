@@ -25,22 +25,11 @@ This plan should involve individual tasks based on the available tools, that if 
 Do not skip steps, do not add any superfluous steps. Only write the high-level plan, DO NOT DETAIL INDIVIDUAL TOOL CALLS.
 After writing the final step of the plan, write the '\n<end_plan>' tag and stop there.
 
+## 3. Tools
 You can leverage these tools:
-{%- for tool in tools.values() %}
-- {{ tool.name }}: {{ tool.description }}
-    Takes inputs: {{tool.inputs}}
-    Returns an output of type: {{tool.output_type}}
-{%- endfor %}
+{tools_descriptions}
 
-{%- if managed_agents and managed_agents.values() | list %}
-You can also give tasks to team members.
-Calling a team member works the same as for calling a tool: simply, the only argument you can give in the call is 'task', a long string explaining your task.
-Given that this team member is a real human, you should be very verbose in your task.
-Here is a list of the team members that you can call:
-{%- for agent in managed_agents.values() %}
-- {{ agent.name }}: {{ agent.description }}
-{%- endfor %}
-{%- endif %}
+{managed_agents_descriptions}
 
 ---
 Now begin! Here is your task:
@@ -81,22 +70,20 @@ Beware that you have {remaining_steps} steps remaining.
 Do not skip steps, do not add any superfluous steps. Only write the high-level plan, DO NOT DETAIL INDIVIDUAL TOOL CALLS.
 After writing the final step of the plan, write the '\n<end_plan>' tag and stop there.
 
+## 3. Tools
 You can leverage these tools:
-{%- for tool in tools.values() %}
-- {{ tool.name }}: {{ tool.description }}
-    Takes inputs: {{tool.inputs}}
-    Returns an output of type: {{tool.output_type}}
-{%- endfor %}
+{tools_descriptions}
 
-{%- if managed_agents and managed_agents.values() | list %}
-You can also give tasks to team members.
-Calling a team member works the same as for calling a tool: simply, the only argument you can give in the call is 'task'.
-Given that this team member is a real human, you should be very verbose in your task, it should be a long string providing information as detailed as necessary.
-Here is a list of the team members that you can call:
-{%- for agent in managed_agents.values() %}
-- {{ agent.name }}: {{ agent.description }}
-{%- endfor %}
-{%- endif %}
+{managed_agents_descriptions}
 
+---
 Now write your new plan below.
+"""
+
+AGENTS_MANAGER = """
+You can also give tasks to team members.
+Calling a team member works the same as for calling a tool: simply, the only argument you can give in the call is 'task', a long string explaining your task.
+Given that this team member is a real human, you should be very verbose in your task.
+Here is a list of the team members that you can call:
+{agents_descriptions}
 """

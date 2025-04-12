@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
@@ -9,7 +8,7 @@ from typing import Any, Generic
 
 from uglychain.schema import Messages, T
 from uglychain.session import Session
-from uglychain.tools import BaseTool
+from uglychain.tools import BaseTool, get_tools_descriptions
 
 from .action import Action
 
@@ -35,11 +34,4 @@ class BaseReActProcess(Generic[T], ABC):
 
     @cached_property
     def tools_descriptions(self) -> str:
-        descriptions = []
-
-        for tool in self.tools:
-            markdown = f"### {tool.name}\n"
-            markdown += f"> {tool.description}\n\n"
-            markdown += f"{json.dumps(tool.args_schema, ensure_ascii=False)}\n"
-            descriptions.append(markdown)
-        return "\n".join(descriptions)
+        return get_tools_descriptions(self.tools)

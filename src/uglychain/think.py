@@ -52,18 +52,36 @@ def think(
     default_session = session or Session("think")
     thinking_model = thinking_model or "deepseek:deepseek-reasoner"
     response_model = model or config.default_model
+    default_api_params_from_decorator = api_params.copy()
 
     def decorator(func: Callable[P, str | Messages | None]) -> Callable[P, str | T]:
         @wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> str | T:
+            # Remove any parameters that are not applicable to the thinking model
+            for key in ["map_keys", "tools", "n"]:
+                if key in default_api_params_from_decorator:
+                    default_api_params_from_decorator.pop(key)
             # First, use the thinking model to generate reasoning
-            generate_reasoning = llm(model=thinking_model, session=default_session, stream=True, **api_params)(func)
+            generate_reasoning = llm(
+                thinking_model,
+                session=default_session,
+                n=None,
+                map_keys=None,
+                stream=True,
+                tools=None,
+                **default_api_params_from_decorator,
+            )(func)
 
             response: Iterator[str] = generate_reasoning(*args, **kwargs)
             reasoning = _get_reasoning(response)
 
             # Then, use the response model with the reasoning included
-            @llm(model=response_model, response_format=response_format, session=default_session, **api_params)
+            @llm(
+                model=response_model,
+                response_format=response_format,
+                session=default_session,
+                **default_api_params_from_decorator,
+            )
             def generate_response(*inner_args: Any, reasoning: str, **inner_kwargs: Any) -> str:
                 """You are a helpful assistant. Use the provided reasoning to formulate your response."""
                 prompt = func(*inner_args, **inner_kwargs)

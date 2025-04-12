@@ -28,7 +28,6 @@ def test_update_plan_user_prompt_exists():
     assert "## 1. Updated facts survey" in UPDATE_PLAN_USER
     assert "## 2. Plan" in UPDATE_PLAN_USER
     assert "{remaining_steps}" in UPDATE_PLAN_USER  # Template variable
-    assert "{%- for tool in tools.values() %}" in UPDATE_PLAN_USER  # Jinja2 template syntax
 
 
 def test_initial_plan_template_variables():
@@ -50,7 +49,5 @@ def test_update_plan_user_template_variables():
     """Test that the UPDATE_PLAN_USER template contains expected variables."""
     # Check for remaining_steps variable
     assert "{remaining_steps}" in UPDATE_PLAN_USER
-    # Check for tools variable (in Jinja2 syntax)
-    assert "tools.values()" in UPDATE_PLAN_USER
     # Check for managed_agents variable (in Jinja2 syntax)
     assert "managed_agents" in UPDATE_PLAN_USER
