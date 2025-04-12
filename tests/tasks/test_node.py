@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 import pytest
 
-from uglychain.tasks.node import BaseNode, flow
+from uglychain.tmp.tasks.node import BaseNode, flow
 
 
 @dataclass

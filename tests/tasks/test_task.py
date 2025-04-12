@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from uglychain.tasks.task import Task, TaskResponse
+from uglychain.tmp.tasks.task import Task, TaskResponse
 
 
 # Mock class for MCP and Tool

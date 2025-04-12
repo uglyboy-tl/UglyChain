@@ -25,7 +25,7 @@ def mock_config(monkeypatch):
 
 @pytest.fixture
 def console(mock_config):
-    return RichConsole()
+    return RichConsole("test")
 
 
 def test_console_initialization(console):
@@ -37,7 +37,7 @@ def test_console_initialization(console):
 def test_log(console, mock_config, mocker, verbose, expected_call_count):
     mock_config.verbose = verbose
     mock_console = mocker.patch.object(console.console, "print")
-    console.action_message(message="Test log message")
+    console.action_info(message="Test log message")
     assert mock_console.call_count == expected_call_count
 
 
@@ -70,7 +70,7 @@ def test_log_messages(console):
         {"role": "user", "content": "test user"},
         {"role": "assistant", "content": "test assistant"},
     ]
-    console.log_messages(messages)
+    console.messages(messages)
     assert console.messages_table.row_count == 3
 
 
