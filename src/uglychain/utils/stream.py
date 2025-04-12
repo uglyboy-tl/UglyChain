@@ -41,6 +41,3 @@ class Stream:
 
             if self._stopped and current_index >= len(self._cache):
                 break
-
-            if self._stopped and current_index >= len(self._cache):
-                break
