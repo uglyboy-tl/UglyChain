@@ -114,26 +114,31 @@ class McpClient:
 
     async def _start_session(self) -> ClientSession:
         async with self._init_lock:
-            if self._session is None:
-                if isinstance(self.server_param, StdioServerParameters):
-                    self._client = stdio_client(self.server_param)
-                elif isinstance(self.server_param, dict):
-                    self._client = sse_client(**self.server_param)
-                elif isinstance(self.server_param, str):
-                    try:
-                        from mcp.client.websocket import websocket_client
+            try:
+                if self._session is None:
+                    if isinstance(self.server_param, StdioServerParameters):
+                        self._client = stdio_client(self.server_param)
+                    elif isinstance(self.server_param, dict):
+                        self._client = sse_client(**self.server_param)
+                    elif isinstance(self.server_param, str):
+                        try:
+                            from mcp.client.websocket import websocket_client
 
-                        self._client = websocket_client(self.server_param)
-                    except ImportError as err:
-                        raise ImportError(
-                            "WebSocket client is not available. Please install the required package."
-                        ) from err
-                else:
-                    raise ValueError(f"Unsupported server parameters type: {type(self.server_param)}")
-                read, write = await self.exit_stack.enter_async_context(self._client)
-                _session = await self.exit_stack.enter_async_context(ClientSession(read, write))
-                await _session.initialize()
-                self._session = _session
+                            self._client = websocket_client(self.server_param)
+                        except ImportError as err:
+                            raise ImportError(
+                                "WebSocket client is not available. Please install the required package."
+                            ) from err
+                    else:
+                        raise ValueError(f"Unsupported server parameters type: {type(self.server_param)}")
+                    read, write = await self.exit_stack.enter_async_context(self._client)
+                    _session = await self.exit_stack.enter_async_context(ClientSession(read, write))
+                    await _session.initialize()
+                    self._session = _session
+            except Exception as e:
+                print(f"Error starting session for {self.name}: {e}")
+                await self.close()
+                raise
             return self._session
 
     async def _ainitialize(self, force_refresh: bool) -> None:
@@ -194,6 +199,7 @@ class McpClient:
             try:
                 await self.exit_stack.aclose()
                 self._session = None
+                del self.session
                 self._client = None
             except Exception as e:
                 print(f"Error during cleanup of server {self.name}: {e}")
