@@ -34,21 +34,38 @@ def react(
 ) -> Callable[[Callable[P, str | Messages | None]], Callable[P, T]]: ...
 
 
+@overload
 def react(
     model: str = "",
     tools: Tools | None = None,
     *,
-    response_format: type[T] | None = None,
+    response_format: type[list[Action]],
+    **api_params: Any,
+) -> Callable[[Callable[P, str | Messages | None]], Callable[P, list[Action]]]: ...
+
+
+def react(
+    model: str = "",
+    tools: Tools | None = None,
+    *,
+    response_format: type[T] | type[list[Action]] | None = None,
     max_steps: int = -1,
     session: Session | None = None,
     **api_params: Any,
-) -> Callable[[Callable[P, str | Messages | None]], Callable[P, str | T]]:
+) -> Callable[[Callable[P, str | Messages | None]], Callable[P, str | T | list[Action]]]:
     default_session = session or Session("react")
+
+    output_acts: bool = False
+    if response_format == list[Action]:
+        output_acts = True
+        default_response_format: type[T] | None = None
+    else:
+        default_response_format = response_format  # type: ignore[assignment]
     process: BaseReActProcess = get_react_process(
         model=model or config.default_model,
         session=default_session,
         tools=convert_to_tool_list(tools),
-        response_format=response_format,
+        response_format=default_response_format,
         api_params=api_params.copy(),
     )
     process.tools.append(final_answer)
@@ -56,12 +73,12 @@ def react(
 
     def parameterized_lm_decorator(
         prompt: Callable[P, str | Messages | None],
-    ) -> Callable[P, str | T]:
+    ) -> Callable[P, str | T | list[Action]]:
         @wraps(prompt)
         def model_call(
             *prompt_args: P.args,
             **prompt_kwargs: P.kwargs,
-        ) -> str | T:
+        ) -> str | T | list[Action]:
             process.func = prompt
             default_session.func = Session.format_func_call(prompt, *prompt_args, **prompt_kwargs)
             default_session.show_base_info()
@@ -69,7 +86,7 @@ def react(
             react_times = 0
             acts: list[Action] = []
             act = Action()
-            while react_times == 0 or not act.done and (max_steps == -1 or react_times < max_steps):
+            while react_times == 0 or not act.done and (max_steps < 0 or react_times < max_steps):
                 react_times += 1
                 default_session.send("rule", f"Step {react_times}")
                 image = act.image  # 如果上次的结果中有图片
@@ -78,7 +95,9 @@ def react(
                 acts.append(act)
 
             response: str | Iterator[str] | T = act.obs
-            if not act.done and react_times == max_steps:
+            if output_acts and react_times >= max_steps:
+                return acts
+            if not act.done and react_times >= max_steps:
                 response = process.final(*prompt_args, acts=acts, call_type="failed", **prompt_kwargs)
             elif process.response_format is not None:
                 response = process.final(*prompt_args, acts=acts, call_type="trans", **prompt_kwargs)

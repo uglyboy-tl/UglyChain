@@ -20,7 +20,7 @@ class amap_mcp_sse:
 @Tool.mcp
 class thinking_mcp_server:
     command = "npx"
-    args = ["-y", "@zengwenliang/mcp-server-sequential-thinking"]
+    args = ["-y", "@modelcontextprotocol/server-sequential-thinking"]
 
 
 @Tool.mcp

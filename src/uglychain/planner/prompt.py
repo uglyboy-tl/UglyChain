@@ -25,11 +25,13 @@ This plan should involve individual tasks based on the available tools, that if 
 Do not skip steps, do not add any superfluous steps. Only write the high-level plan, DO NOT DETAIL INDIVIDUAL TOOL CALLS.
 After writing the final step of the plan, write the '\n<end_plan>' tag and stop there.
 
-## 3. Tools
 You can leverage these tools:
 {tools_descriptions}
 
 {managed_agents_descriptions}
+
+
+You MUST respond STRICTLY in {language}.  Do NOT deviate from the specified language under any circumstances.
 
 ---
 Now begin! Here is your task:
@@ -70,11 +72,14 @@ Beware that you have {remaining_steps} steps remaining.
 Do not skip steps, do not add any superfluous steps. Only write the high-level plan, DO NOT DETAIL INDIVIDUAL TOOL CALLS.
 After writing the final step of the plan, write the '\n<end_plan>' tag and stop there.
 
-## 3. Tools
+
 You can leverage these tools:
 {tools_descriptions}
 
 {managed_agents_descriptions}
+
+
+You MUST respond STRICTLY in {language}.  Do NOT deviate from the specified language under any circumstances.
 
 ---
 Now write your new plan below.

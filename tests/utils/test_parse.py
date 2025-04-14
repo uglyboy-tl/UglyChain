@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from uglychain.utils._parse import _parse_json, parse_to_dict
+from uglychain.utils._parse import _convert_value_type, _parse_json, parse_to_dict
 
 
 @pytest.mark.parametrize(
@@ -86,3 +86,29 @@ def test_parse_json(response, expected):
 def test_parse_json_exceptions(response, exception, match):
     with pytest.raises(exception, match=match):
         _parse_json(response)
+
+
+@pytest.mark.parametrize(
+    "value, expected",
+    [
+        ("123", 123),  # Integer
+        ("-123", -123),  # Negative integer
+        ("123.45", 123.45),  # Float
+        ("-123.45", -123.45),  # Negative float
+        ("true", True),  # Boolean true
+        ("True", True),  # Boolean True
+        ("false", False),  # Boolean false
+        ("False", False),  # Boolean False
+        ("[1, 2, 3]", [1, 2, 3]),  # List
+        ("(1, 2, 3)", (1, 2, 3)),  # Tuple
+        ('{"key": "value"}', {"key": "value"}),  # Dict
+        ("  123  ", 123),  # Whitespace around number
+        ("  true  ", True),  # Whitespace around boolean
+        ("  [1, 2, 3]  ", [1, 2, 3]),  # Whitespace around list
+        ("normal string", "normal string"),  # Regular string
+        ("[invalid syntax", "[invalid syntax"),  # Invalid syntax
+        ("123abc", "123abc"),  # Not a valid number
+    ],
+)
+def test_convert_value_type(value, expected):
+    assert _convert_value_type(value) == expected

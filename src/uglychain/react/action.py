@@ -36,9 +36,9 @@ class Action:
 
     @classmethod
     def from_response(cls, text: str) -> Action:
-        special_func_token = "\nAction:"
-        special_args_token = "\nAction Input:"
-        special_obs_token = "\nObservation:"
+        special_func_token = "Action:"
+        special_args_token = "Action Input:"
+        special_obs_token = "Observation:"
         i, j, k = text.rfind(special_func_token), text.rfind(special_args_token), text.rfind(special_obs_token)
         if 0 <= i < j:
             if k < j:
