@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import threading
-from collections.abc import Generator, Iterator
-from typing import Any
+from collections.abc import Iterator
 
 
 class Stream:
@@ -28,7 +27,7 @@ class Stream:
             self._stopped = True
 
     @property
-    def iterator(self) -> Generator[str, None, None]:
+    def iterator(self) -> Iterator[str]:
         """生成一个从当前缓存位置开始的新迭代器"""
         current_index = 0
 

@@ -35,7 +35,11 @@ class Config(BaseModel):
 
         paths = self.path
         if paths:  # 确保路径列表不为空
-            config_files_read = parser.read(paths)
+            try:
+                config_files_read = parser.read(paths)
+            except configparser.Error as e:
+                print(f"Warning: Error reading config file: {e}")
+                config_files_read = None
 
             if config_files_read:
                 # 在 configparser 中，DEFAULT 是一个特殊的部分，不会出现在 sections() 的结果中

@@ -95,7 +95,7 @@ def react(
                 acts.append(act)
 
             response: str | Iterator[str] | T = act.obs
-            if output_acts and react_times >= max_steps:
+            if output_acts:
                 return acts
             if not act.done and react_times >= max_steps:
                 response = process.final(*prompt_args, acts=acts, call_type="failed", **prompt_kwargs)
