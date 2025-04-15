@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from uglychain.utils._parse import _convert_value_type, _parse_json, parse_to_dict
+from uglychain.utils._response_parser import extract_json_dict, infer_value_type, parse_response_to_dict
 
 
 @pytest.mark.parametrize(
@@ -29,8 +29,8 @@ from uglychain.utils._parse import _convert_value_type, _parse_json, parse_to_di
 )
 def test_parse_to_dict(response, expected, mocker):
     if response.startswith("{"):
-        mocker.patch("uglychain.utils._parse._parse_json", return_value=expected)
-    assert parse_to_dict(response) == expected
+        mocker.patch("uglychain.utils._response_parser.extract_json_dict", return_value=expected)
+    assert parse_response_to_dict(response) == expected
 
 
 @pytest.mark.parametrize(
@@ -47,9 +47,11 @@ def test_parse_to_dict(response, expected, mocker):
 )
 def test_parse_to_dict_exceptions(response, exception, match, mocker):
     if response.startswith("{"):
-        mocker.patch("uglychain.utils._parse._parse_json", side_effect=ValueError("Invalid JSON format"))
+        mocker.patch(
+            "uglychain.utils._response_parser.extract_json_dict", side_effect=ValueError("Invalid JSON format")
+        )
     with pytest.raises(exception, match=match):
-        parse_to_dict(response)
+        parse_response_to_dict(response)
 
 
 @pytest.mark.parametrize(
@@ -71,7 +73,7 @@ def test_parse_to_dict_exceptions(response, exception, match, mocker):
     ],
 )
 def test_parse_json(response, expected):
-    assert _parse_json(response) == expected
+    assert extract_json_dict(response) == expected
 
 
 @pytest.mark.parametrize(
@@ -85,7 +87,7 @@ def test_parse_json(response, expected):
 )
 def test_parse_json_exceptions(response, exception, match):
     with pytest.raises(exception, match=match):
-        _parse_json(response)
+        extract_json_dict(response)
 
 
 @pytest.mark.parametrize(
@@ -111,4 +113,4 @@ def test_parse_json_exceptions(response, exception, match):
     ],
 )
 def test_convert_value_type(value, expected):
-    assert _convert_value_type(value) == expected
+    assert infer_value_type(value) == expected

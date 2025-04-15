@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from functools import cached_property
 from typing import Any
 
-from uglychain.utils import parse_to_dict
+from uglychain.utils import parse_response_to_dict
 
 
 @dataclass
@@ -45,7 +45,7 @@ class Action:
                 text = text.rstrip() + special_obs_token
             k = text.rfind(special_obs_token)
             func_name = text[i + len(special_func_token) : j].strip().split("#")[0]
-            func_args = parse_to_dict(text[j + len(special_args_token) : k])
+            func_args = parse_response_to_dict(text[j + len(special_args_token) : k])
             text = text[:i].strip()
             if text.startswith("Thought:"):
                 text = text[len("Thought:") :]
