@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import inspect
 import logging
+import sys
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -32,6 +33,9 @@ class Logger:
 
     @classmethod
     def info(cls, message: str, **kwargs: Any) -> None:
+        if "pytest" in sys.modules:
+            return
+
         if not config.session_log:
             return
         if cls._logger is None:
