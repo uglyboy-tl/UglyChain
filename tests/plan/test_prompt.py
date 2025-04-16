@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from uglychain.planner.prompt import INITIAL_PLAN, UPDATE_PLAN_SYSTEM, UPDATE_PLAN_USER
+from uglychain.plan.prompt import INITIAL_PLAN, UPDATE_PLAN_SYSTEM, UPDATE_PLAN_USER
 
 
 def test_initial_plan_prompt_exists():
