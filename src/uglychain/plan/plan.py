@@ -42,7 +42,7 @@ def update_planning(
         {
             "role": "user",
             "content": UPDATE_PLAN_USER.format(
-                remaining_steps=remaining_steps,
+                remaining_steps=remaining_steps if remaining_steps > 0 else "Unlimited",
                 tools_descriptions=tools_descriptions,
                 managed_agents_descriptions="",
                 language=config.default_language,
@@ -57,7 +57,10 @@ class Plan:
     task: str
     tools: Tools
     model: str = field(default=config.default_model)
+    planning_interval: int = field(default=PLANNING_INTERVAL)
+    max_steps: int = field(default=MAX_STEPS)
     is_first_time: bool = field(init=False, default=True)
+    _memory_message: Messages = field(init=False, default_factory=list)
 
     @cached_property
     def tools_descriptions(self) -> str:
@@ -80,12 +83,10 @@ class Plan:
         def main(messages: Messages) -> Messages:
             return messages
 
-        return react(self.model, tools=self.tools, response_format=list[Action], max_steps=PLANNING_INTERVAL)(main)
+        return react(self.model, tools=self.tools, response_format=list[Action], max_steps=self.planning_interval)(main)
 
     def gen_messages(self, acts: list[Action] | None = None, remaining_steps: int = -1) -> Messages:
         messages: Messages = []
-        if remaining_steps == -1:
-            remaining_steps = 100
         if acts is None:
             acts = []
         plan: str
@@ -96,18 +97,19 @@ class Plan:
             plan = self.get_update_plan(acts, remaining_steps)
         messages.append({"role": "assistant", "content": plan})
         messages.append({"role": "user", "content": "Now proceed and carry out this plan."})
-        return messages
+        for act in acts:
+            self._memory_message.append({"role": "assistant", "content": str(act)})
+        self._memory_message.extend(messages)
+        return self._memory_message
 
     def process(self) -> str:
-        remaining_steps = MAX_STEPS
+        remaining_steps = self.max_steps
         history: list[Action] = []
         acts = self.react(self.gen_messages())
 
         while not acts[-1].done:
             remaining_steps -= len(acts)
             history.extend(acts)
-            print("===================================")
-            print(acts)
             acts = self.react(self.gen_messages(acts, remaining_steps))
 
         return acts[-1].obs
