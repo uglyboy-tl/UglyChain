@@ -29,7 +29,7 @@ repos:
           - types-requests
           - types-certifi
           - pytest
-  - repo: https://github.com/pdm-project/pdm
-    rev: 2.22.0
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.8.17
     hooks:
-      - id: pdm-lock-check
+    - id: uv-lock  # Updates the uv lockfile

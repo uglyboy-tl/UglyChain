@@ -1,6 +1,7 @@
 # Project specific files
 /*.py
 config.ini
+*.bak
 
 # IDE - specific files
 .vs/
