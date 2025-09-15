@@ -10,4 +10,4 @@ from .think import think
 from .tools import Tool, Tools
 
 __all__ = ["config", "llm", "think", "react", "load", "Tools", "Tool", "BaseConsole", "Plan"]
-__version__ = "v1.6.5"
+__version__ = "v1.6.6"
